@@ -1,7 +1,9 @@
 [gd_scene format=3 uid="uid://wwqx8ahb8wxb"]
 
-[ext_resource type="Script" uid="uid://bw0ww0n4ho5au" path="res://HUB Central/TimeAunote.cs" id="1_46po3"]
+[ext_resource type="Texture2D" uid="uid://balcnyrpqfc7c" path="res://art/perso_idle_cote.png" id="2_40cda"]
 [ext_resource type="Texture2D" uid="uid://dudaewe214h5n" path="res://art/agent secret.png" id="2_mnim8"]
+[ext_resource type="Texture2D" uid="uid://gqmtpy4ap05x" path="res://art/perso_idle_dos.png" id="3_8marf"]
+[ext_resource type="Texture2D" uid="uid://fwavcpk1tpfp" path="res://art/perso_idle_face.png" id="4_uco7y"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bwjto"]
 atlas = ExtResource("2_mnim8")
@@ -18,6 +20,30 @@ region = Rect2(277, 45, 85, 138)
 [sub_resource type="AtlasTexture" id="AtlasTexture_op7ga"]
 atlas = ExtResource("2_mnim8")
 region = Rect2(405, 45, 85, 138)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lce8u"]
+atlas = ExtResource("2_40cda")
+region = Rect2(0, 0, 362, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ub2k0"]
+atlas = ExtResource("2_40cda")
+region = Rect2(362, 0, 362, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_emnf4"]
+atlas = ExtResource("3_8marf")
+region = Rect2(0, 0, 360, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3jjo1"]
+atlas = ExtResource("3_8marf")
+region = Rect2(360, 0, 360, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6redd"]
+atlas = ExtResource("4_uco7y")
+region = Rect2(0, 0, 362, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jo4gm"]
+atlas = ExtResource("4_uco7y")
+region = Rect2(362, 0, 362, 641)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_46po3"]
 atlas = ExtResource("2_mnim8")
@@ -88,6 +114,39 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_lce8u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ub2k0")
+}],
+"loop": true,
+"name": &"idle_cote",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_emnf4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3jjo1")
+}],
+"loop": true,
+"name": &"idle_dos",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6redd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jo4gm")
+}],
+"loop": true,
+"name": &"idle_face",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_46po3")
 }, {
 "duration": 1.0,
@@ -147,8 +206,8 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_q13i1"]
-radius = 31.250004
-height = 117.50001
+radius = 108.75001
+height = 432.50003
 
 [sub_resource type="Animation" id="Animation_46po3"]
 length = 0.001
@@ -240,7 +299,6 @@ z_index = 10
 scale = Vector2(0.8, 0.8)
 disable_mode = 2
 motion_mode = 1
-script = ExtResource("1_46po3")
 
 [node name="timerAttente" type="Timer" parent="." unique_id=1698449373]
 wait_time = 3.0
@@ -249,10 +307,11 @@ one_shot = true
 [node name="animation" type="AnimatedSprite2D" parent="." unique_id=1002676863]
 scale = Vector2(0.8, 0.8)
 sprite_frames = SubResource("SpriteFrames_sh265")
-animation = &"attente"
+animation = &"idle_face"
+frame_progress = 0.8308008
 
 [node name="collision" type="CollisionShape2D" parent="." unique_id=413316968]
-position = Vector2(-2.5, 5)
+position = Vector2(-3.75, 5)
 scale = Vector2(0.99999994, 0.99999994)
 shape = SubResource("CapsuleShape2D_q13i1")
 disabled = true

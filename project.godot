@@ -11,7 +11,8 @@ config_version=5
 [application]
 
 config/name="timeOnaute"
-config/features=PackedStringArray("4.6", "C#", "Mobile")
+run/main_scene="uid://1le7qkl4cyvh"
+config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
 
 [display]

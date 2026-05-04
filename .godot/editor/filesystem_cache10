@@ -1,35 +1,36 @@
 63f7b34db8d8cdea90c76aacccf841ec
-::res://::1777891840
-icon.svg::CompressedTexture2D::5956381368198407656::1777800001::1777800082::1::::<><><>0<>0<>f754f64803239ebb48c0ec7138148976<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
-Main.cs::CSharpScript::4299028709985239739::1777800001::0::1::::<>Node2D<><>0<>0<><>::
-Main.tscn::PackedScene::3008878264431423357::1777802473::0::1::::<><><>0<>0<><>::uid://cpwcmvqpo2hot::::res://HUB Central/TimeAunoteDansHubCentral.tscn<>uid://b2iqm0hp68vj4::::res://Main.cs<>uid://du4nqc1owu81f::::res://PorteJaune/TimeOnauteDansPrehistoire.tscn
-::res://art/::1777800082
-agent secret bien.jpg::CompressedTexture2D::6894237258900690106::1777800001::1777800082::1::::<><><>0<>0<>7efe39e1258ef7e4ee9961fe617773f2<>res://.godot/imported/agent secret bien.jpg-c6aa29cd213e55213839f5ddf6be2e14.ctex::
-agent secret.png::CompressedTexture2D::8569240363233320717::1777800001::1777800082::1::::<><><>0<>0<>bb59b1e440bd26ec2730464b30caf66a<>res://.godot/imported/agent secret.png-02c454bc6ea4f4ca696e4db4612e27e5.ctex::
-hub central sans portes.jpeg::CompressedTexture2D::7680153558853400748::1777800001::1777800082::1::::<><><>0<>0<>cfa2dbbbd2a65f2fc27d66d61bdc5c16<>res://.godot/imported/hub central sans portes.jpeg-4fc8c472d54cde9707fc35240fc57121.ctex::
-hub central.jpeg::CompressedTexture2D::6799322143557397867::1777800001::1777800082::1::::<><><>0<>0<>73ad61cc05e6ba3d9d977adaaaa3e284<>res://.godot/imported/hub central.jpeg-b8d1c5946bb33df80300d53d8588e702.ctex::
-porteBleue.png::CompressedTexture2D::5671890461675356910::1777800001::1777800082::1::::<><><>0<>0<>906ce0f6202263ac22d7b8e591eebdc6<>res://.godot/imported/porteBleue.png-132fe9012685cf636c5106b30f597785.ctex::
-porteJaune.png::CompressedTexture2D::4863285887389362010::1777800001::1777800082::1::::<><><>0<>0<>a2d32f5f11470b408ac1a9b75a2b72dc<>res://.godot/imported/porteJaune.png-c7fded1762c1c6e7718322c516eda4e5.ctex::
-porteRouge.png::CompressedTexture2D::5565454562309645454::1777800001::1777800082::1::::<><><>0<>0<>d22b29e7b849ca84eb86ebd30e8de24b<>res://.godot/imported/porteRouge.png-2f3849d9c093108a84c0487dc1d4fe92.ctex::
-test.jpg::CompressedTexture2D::8829334324072159088::1777800001::1777800082::1::::<><><>0<>0<>a809bdc852dfeca2bb920d2e802bd1e5<>res://.godot/imported/test.jpg-15446b29c2876570196724e872253488.ctex::
-::res://art/prehistoire/::1777800082
-coffres transparents.png::CompressedTexture2D::4790422979006581113::1777800001::1777800082::1::::<><><>0<>0<>101b18529d73f79019b173f176f8c959<>res://.godot/imported/coffres transparents.png-3d692ac89da24ceb5ce5fa068ec3eae3.ctex::
-coffres.png::CompressedTexture2D::7320010345607532450::1777800001::1777800082::1::::<><><>0<>0<>51d19fd24c9d4e49918c30318ed49f3f<>res://.godot/imported/coffres.png-02f04d536113be155270a37da9e98656.ctex::
-fond_prehistoire.png::CompressedTexture2D::1461034704482256539::1777800001::1777800082::1::::<><><>0<>0<>293e48e8db5d3097abad0dfb10d95132<>res://.godot/imported/fond_prehistoire.png-35db6abfd742da5cc19aedb0eded5251.ctex::
-marche-bas.png::CompressedTexture2D::7540612413807143584::1777800001::1777800082::1::::<><><>0<>0<>2d99ff3bf8dedde475898b130cff2ac1<>res://.godot/imported/marche-bas.png-a1834a607c1632e7e52dd75a5dcbc5cc.ctex::
-marche-droite.png::CompressedTexture2D::9183459163491029254::1777800001::1777800082::1::::<><><>0<>0<>e0a4c63b6849d02b3be56af73912a6ff<>res://.godot/imported/marche-droite.png-05625e9c9be0d7007cb468538beea695.ctex::
-marche-haut.png::CompressedTexture2D::2548120672383392007::1777800001::1777800082::1::::<><><>0<>0<>3fde9fd7985f8be879f7915f99f87d0d<>res://.godot/imported/marche-haut.png-54128e604f2abc8ccefb1f8ed763a07d.ctex::
-repos.png::CompressedTexture2D::1162423755821095922::1777800001::1777800082::1::::<><><>0<>0<>f526710d16476999dc6e909fd01431d0<>res://.godot/imported/repos.png-77463d631f7fe1cb26a92b457d4c2d31.ctex::
-sprites.png::CompressedTexture2D::431528456705344866::1777800001::1777800082::1::::<><><>0<>0<>426f46104b3fa7a1feec34d1bd443801<>res://.godot/imported/sprites.png-197ee416471831dc47fe0bf61cde0486.ctex::
-::res://HUB Central/::1777802807
-fondHubCentral.tscn::PackedScene::1847918959619818993::1777802807::0::1::::<><><>0<>0<><>::uid://dholaiekhwjmq::::res://art/hub central sans portes.jpeg<>uid://cbj2uw5a3n3u1::::res://art/porteJaune.png<>uid://cm2rhbs8hf8m1::::res://art/porteBleue.png<>uid://clj7hunfmamuw::::res://art/porteRouge.png
-TimeAunote.cs::CSharpScript::3983561083381855436::1777801021::0::1::::<>CharacterBody2D<><>0<>0<><>::
-TimeAunote.tscn::PackedScene::1590585149361365855::1777800001::0::1::::<><><>0<>0<><>::uid://bw0ww0n4ho5au::::res://HUB Central/TimeAunote.cs<>uid://dudaewe214h5n::::res://art/agent secret.png
-TimeAunoteDansHubCentral.cs::CSharpScript::2748059999097002316::1777802807::0::1::::<>Node2D<><>0<>0<><>::
-TimeAunoteDansHubCentral.tscn::PackedScene::5871234324466928163::1777801761::0::1::::<><><>0<>0<><>::uid://bffge8tpf41po::::res://HUB Central/TimeAunoteDansHubCentral.cs<>uid://1le7qkl4cyvh::::res://HUB Central/fondHubCentral.tscn<>uid://wwqx8ahb8wxb::::res://HUB Central/TimeAunote.tscn
-::res://PorteJaune/::1777800001
-fondPrehistoire.tscn::PackedScene::7264400575121161947::1777800001::0::1::::<><><>0<>0<><>::uid://u20a7rl0thup::::res://art/prehistoire/fond_prehistoire.png<>uid://cbj2uw5a3n3u1::::res://art/porteJaune.png
-TimeOnauteDansPrehistoire.cs::CSharpScript::4550364336762486509::1777800001::0::1::::<>Node2D<><>0<>0<><>::
-TimeOnauteDansPrehistoire.tscn::PackedScene::8623723918194062269::1777800001::0::1::::<><><>0<>0<><>::uid://b53h3ogw5qjub::::res://PorteJaune/TimeOnauteDansPrehistoire.cs<>uid://dbq6u7im0s1vj::::res://PorteJaune/fondPrehistoire.tscn<>uid://c0fo8w5plbugp::::res://PorteJaune/TimeOnautePrehistoire.tscn
-TimeOnautePrehistoire.cs::CSharpScript::4089979534018233161::1777800001::0::1::::<>CharacterBody2D<><>0<>0<><>::
-TimeOnautePrehistoire.tscn::PackedScene::6538794518759032003::1777800001::0::1::::<><><>0<>0<><>::uid://byjhmomtqj0yn::::res://PorteJaune/TimeOnautePrehistoire.cs<>uid://qtc7jsildr4m::::res://art/prehistoire/repos.png<>uid://dfoy1xges6v25::::res://art/prehistoire/marche-bas.png<>uid://d33sh3xsc5rja::::res://art/prehistoire/marche-droite.png<>uid://bcklf7rvppmxb::::res://art/prehistoire/marche-haut.png
+::res://::1777899180
+icon.svg::CompressedTexture2D::5956381368198407656::1777895593::1777895685::1::::<><><>0<>0<>f754f64803239ebb48c0ec7138148976<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+Main.tscn::PackedScene::3008878264431423357::1777895593::0::1::::<><><>0<>0<><>::uid://cpwcmvqpo2hot::::res://HUB Central/TimeAunoteDansHubCentral.tscn<>uid://b2iqm0hp68vj4::::res://Main.cs<>uid://du4nqc1owu81f::::res://PorteJaune/TimeOnauteDansPrehistoire.tscn
+README.md::TextFile::-1::1777895593::0::1::::<><><>0<>0<><>::
+::res://art/::1777903002
+agent secret bien.jpg::CompressedTexture2D::6894237258900690106::1777895593::1777895685::1::::<><><>0<>0<>7efe39e1258ef7e4ee9961fe617773f2<>res://.godot/imported/agent secret bien.jpg-c6aa29cd213e55213839f5ddf6be2e14.ctex::
+agent secret.png::CompressedTexture2D::8569240363233320717::1777895593::1777895685::1::::<><><>0<>0<>bb59b1e440bd26ec2730464b30caf66a<>res://.godot/imported/agent secret.png-02c454bc6ea4f4ca696e4db4612e27e5.ctex::
+hub central sans portes.jpeg::CompressedTexture2D::7680153558853400748::1777895593::1777895685::1::::<><><>0<>0<>cfa2dbbbd2a65f2fc27d66d61bdc5c16<>res://.godot/imported/hub central sans portes.jpeg-4fc8c472d54cde9707fc35240fc57121.ctex::
+hub central.jpeg::CompressedTexture2D::6799322143557397867::1777895593::1777895685::1::::<><><>0<>0<>73ad61cc05e6ba3d9d977adaaaa3e284<>res://.godot/imported/hub central.jpeg-b8d1c5946bb33df80300d53d8588e702.ctex::
+perso_idle.png::CompressedTexture2D::2232293904812490952::1777900259::1777900262::1::::<><><>0<>0<>63e219b77a8665ab12f71c758a4a3090<>res://.godot/imported/perso_idle.png-2d1118004f54c7241768afb82ce0fb68.ctex::
+perso_idle_cote.png::CompressedTexture2D::2409274775819246354::1777902882::1777902884::1::::<><><>0<>0<>68e13bab86202f516a325804925bcbf3<>res://.godot/imported/perso_idle_cote.png-af37f6e22f09e506c0fef62cf991397b.ctex::
+perso_idle_dos.png::CompressedTexture2D::454926466134346255::1777902933::1777902935::1::::<><><>0<>0<>3dd2af744392394a8e95d1eb4bd58266<>res://.godot/imported/perso_idle_dos.png-de55c35edfac7b13f027b2f43d483a47.ctex::
+perso_idle_face.png::CompressedTexture2D::396398159160109613::1777903171::1777903172::1::::<><><>0<>0<>724397ef4be822382c1efe306552e54c<>res://.godot/imported/perso_idle_face.png-b3681f0338095dadbe06d6754ec8a66e.ctex::
+perso_marche.png::CompressedTexture2D::5932499928467514818::1777899752::1777899755::1::::<><><>0<>0<>40fdf96312e5938c6c8cd2539374e758<>res://.godot/imported/perso_marche.png-a1f1e2b868e3375defb91a4ccb216587.ctex::
+porteBleue.png::CompressedTexture2D::5671890461675356910::1777895593::1777895685::1::::<><><>0<>0<>906ce0f6202263ac22d7b8e591eebdc6<>res://.godot/imported/porteBleue.png-132fe9012685cf636c5106b30f597785.ctex::
+porteJaune.png::CompressedTexture2D::4863285887389362010::1777895593::1777895685::1::::<><><>0<>0<>a2d32f5f11470b408ac1a9b75a2b72dc<>res://.godot/imported/porteJaune.png-c7fded1762c1c6e7718322c516eda4e5.ctex::
+porteRouge.png::CompressedTexture2D::5565454562309645454::1777895593::1777895685::1::::<><><>0<>0<>d22b29e7b849ca84eb86ebd30e8de24b<>res://.godot/imported/porteRouge.png-2f3849d9c093108a84c0487dc1d4fe92.ctex::
+test.jpg::CompressedTexture2D::8829334324072159088::1777895593::1777895685::1::::<><><>0<>0<>a809bdc852dfeca2bb920d2e802bd1e5<>res://.godot/imported/test.jpg-15446b29c2876570196724e872253488.ctex::
+::res://art/prehistoire/::1777895685
+coffres transparents.png::CompressedTexture2D::4790422979006581113::1777895593::1777895685::1::::<><><>0<>0<>101b18529d73f79019b173f176f8c959<>res://.godot/imported/coffres transparents.png-3d692ac89da24ceb5ce5fa068ec3eae3.ctex::
+coffres.png::CompressedTexture2D::7320010345607532450::1777895593::1777895685::1::::<><><>0<>0<>51d19fd24c9d4e49918c30318ed49f3f<>res://.godot/imported/coffres.png-02f04d536113be155270a37da9e98656.ctex::
+fond_prehistoire.png::CompressedTexture2D::1461034704482256539::1777895593::1777895685::1::::<><><>0<>0<>293e48e8db5d3097abad0dfb10d95132<>res://.godot/imported/fond_prehistoire.png-35db6abfd742da5cc19aedb0eded5251.ctex::
+marche-bas.png::CompressedTexture2D::7540612413807143584::1777895593::1777895685::1::::<><><>0<>0<>2d99ff3bf8dedde475898b130cff2ac1<>res://.godot/imported/marche-bas.png-a1834a607c1632e7e52dd75a5dcbc5cc.ctex::
+marche-droite.png::CompressedTexture2D::9183459163491029254::1777895593::1777895685::1::::<><><>0<>0<>e0a4c63b6849d02b3be56af73912a6ff<>res://.godot/imported/marche-droite.png-05625e9c9be0d7007cb468538beea695.ctex::
+marche-haut.png::CompressedTexture2D::2548120672383392007::1777895593::1777895685::1::::<><><>0<>0<>3fde9fd7985f8be879f7915f99f87d0d<>res://.godot/imported/marche-haut.png-54128e604f2abc8ccefb1f8ed763a07d.ctex::
+repos.png::CompressedTexture2D::1162423755821095922::1777895593::1777895685::1::::<><><>0<>0<>f526710d16476999dc6e909fd01431d0<>res://.godot/imported/repos.png-77463d631f7fe1cb26a92b457d4c2d31.ctex::
+sprites.png::CompressedTexture2D::431528456705344866::1777895593::1777895685::1::::<><><>0<>0<>426f46104b3fa7a1feec34d1bd443801<>res://.godot/imported/sprites.png-197ee416471831dc47fe0bf61cde0486.ctex::
+::res://HUB Central/::1777895593
+fondHubCentral.tscn::PackedScene::1847918959619818993::1777895593::0::1::::<><><>0<>0<><>::uid://dholaiekhwjmq::::res://art/hub central sans portes.jpeg<>uid://cbj2uw5a3n3u1::::res://art/porteJaune.png<>uid://cm2rhbs8hf8m1::::res://art/porteBleue.png<>uid://clj7hunfmamuw::::res://art/porteRouge.png
+TimeAunote.tscn::PackedScene::1590585149361365855::1777895593::0::1::::<><><>0<>0<><>::uid://bw0ww0n4ho5au::::res://HUB Central/TimeAunote.cs<>uid://dudaewe214h5n::::res://art/agent secret.png
+TimeAunoteDansHubCentral.tscn::PackedScene::5871234324466928163::1777895593::0::1::::<><><>0<>0<><>::uid://bffge8tpf41po::::res://HUB Central/TimeAunoteDansHubCentral.cs<>uid://1le7qkl4cyvh::::res://HUB Central/fondHubCentral.tscn<>uid://wwqx8ahb8wxb::::res://HUB Central/TimeAunote.tscn
+::res://PorteJaune/::1777895593
+fondPrehistoire.tscn::PackedScene::7264400575121161947::1777895593::0::1::::<><><>0<>0<><>::uid://u20a7rl0thup::::res://art/prehistoire/fond_prehistoire.png<>uid://cbj2uw5a3n3u1::::res://art/porteJaune.png
+TimeOnauteDansPrehistoire.tscn::PackedScene::8623723918194062269::1777895593::0::1::::<><><>0<>0<><>::uid://b53h3ogw5qjub::::res://PorteJaune/TimeOnauteDansPrehistoire.cs<>uid://dbq6u7im0s1vj::::res://PorteJaune/fondPrehistoire.tscn<>uid://c0fo8w5plbugp::::res://PorteJaune/TimeOnautePrehistoire.tscn
+TimeOnautePrehistoire.tscn::PackedScene::6538794518759032003::1777895593::0::1::::<><><>0<>0<><>::uid://byjhmomtqj0yn::::res://PorteJaune/TimeOnautePrehistoire.cs<>uid://qtc7jsildr4m::::res://art/prehistoire/repos.png<>uid://dfoy1xges6v25::::res://art/prehistoire/marche-bas.png<>uid://d33sh3xsc5rja::::res://art/prehistoire/marche-droite.png<>uid://bcklf7rvppmxb::::res://art/prehistoire/marche-haut.png
