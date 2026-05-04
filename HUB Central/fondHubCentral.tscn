@@ -1,0 +1,268 @@
+[gd_scene format=3 uid="uid://1le7qkl4cyvh"]
+
+[ext_resource type="Texture2D" uid="uid://dholaiekhwjmq" path="res://art/hub central sans portes.jpeg" id="1_vqek8"]
+[ext_resource type="Texture2D" uid="uid://cbj2uw5a3n3u1" path="res://art/porteJaune.png" id="2_p81bx"]
+[ext_resource type="Texture2D" uid="uid://cm2rhbs8hf8m1" path="res://art/porteBleue.png" id="3_vqek8"]
+[ext_resource type="Texture2D" uid="uid://clj7hunfmamuw" path="res://art/porteRouge.png" id="4_0tk11"]
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_0tk11"]
+a = Vector2(922, 230)
+b = Vector2(987, 230)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_p81bx"]
+a = Vector2(305, 227)
+b = Vector2(367, 227)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_vqek8"]
+a = Vector2(605, 228)
+b = Vector2(680, 228)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_tbeiy"]
+a = Vector2(92, 483)
+b = Vector2(92, 406)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_uchnh"]
+a = Vector2(1187, 408)
+b = Vector2(1187, 476)
+
+[sub_resource type="Animation" id="Animation_ftlh1"]
+resource_name = "animationPorteJaune"
+length = 3.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = false
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(332.99994, 233.99997)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1.185, 1.185), Vector2(0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 18.84955592153876]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_4q80p"]
+_data = {
+&"animationPorte": SubResource("Animation_ftlh1")
+}
+
+[sub_resource type="Animation" id="Animation_0tk11"]
+resource_name = "new_animation"
+length = 3.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = false
+tracks/0/path = NodePath("porteBleueAnimee:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(332.99997, 234.99998)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("porteBleueAnimee:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 6.283185307179586]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("porteBleueAnimee:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1.185, 1.185), Vector2(0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_uchnh"]
+_data = {
+&"animationPorte": SubResource("Animation_0tk11")
+}
+
+[sub_resource type="Animation" id="Animation_4q80p"]
+resource_name = "animationPorteRouge"
+length = 3.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = false
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(947.00006, 235.00002)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 18.84955592153876]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1.185, 1.185), Vector2(0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_xy2t1"]
+_data = {
+&"animationPorte": SubResource("Animation_4q80p")
+}
+
+[node name="fondHubCentral" type="Node2D" unique_id=358863711]
+
+[node name="image" type="Sprite2D" parent="." unique_id=1394868288]
+scale = Vector2(1.185, 1.185)
+texture = ExtResource("1_vqek8")
+centered = false
+
+[node name="limitesDeplacament" type="StaticBody2D" parent="." unique_id=1969022142]
+
+[node name="tableCentrale" type="CollisionPolygon2D" parent="limitesDeplacament" unique_id=867354444]
+position = Vector2(643, 461)
+rotation = 1.5707964
+build_mode = 1
+polygon = PackedVector2Array(35, 71, -21, 82, -64, 60, -83, 14, -78, -38, -52, -74, -12, -85, 36, -80)
+
+[node name="contour" type="CollisionPolygon2D" parent="limitesDeplacament" unique_id=963982050]
+position = Vector2(653.5, 363)
+scale = Vector2(66.55, 36.9)
+build_mode = 1
+polygon = PackedVector2Array(0.5785122, 9.376694, 0.5634861, 7.6693754, 1.1795645, 7.5338755, 1.2396688, 7.0189705, 1.8407211, 7.04607, 1.8407211, 7.506774, 2.727273, 7.4796743, 2.6972208, 4.9593496, 3.3884296, 4.932249, 3.5086393, 5.826558, 3.8392181, 6.097561, 3.8692713, 5.01355, 4.6356115, 5.01355, 4.695717, 5.9891596, 5.627347, 5.9349594, 5.5822687, 4.9864492, 6.363635, 4.9593496, 6.4387674, 5.9891596, 6.6791887, 5.501355, 6.6341095, 3.902439, 7.3403454, 3.9295387, 7.4154778, 4.498645, 8.106687, 4.6612463, 8.001503, 0.5962057, 7.280241, 0.67750645, 7.235161, -0.704607, 6.513899, -1.7886181, 6.018031, -2.0054197, 5.957926, -2.7371273, 5.1915846, -2.7642274, 5.1465063, -3.4417343, 3.8692713, -3.4146338, 3.8542442, -2.7642274, 3.087903, -2.7913275, 3.10293, -2.0867205, 2.5920353, -2.1138206, 2.5920353, -1.4634142, 1.7956419, -1.4363136, 1.7956419, -1.8699183, 1.2997742, -1.8699183, 1.2847481, -2.5745254, 0.48835468, -2.5745254, 0.5033817, -3.2520323, -0.87903786, -3.2520323, -0.9241171, -2.628726, -1.630353, -2.6558266, -1.6003008, -2.0325198, -2.0060105, -1.924119, -3.268219, -1.924119, -3.2982721, -2.5203252, -4.1998496, -2.5203252, -4.1697965, -3.2520323, -5.3568735, -3.2520323, -5.341848, -2.439024, -6.2283993, -2.4661245, -6.2283983, -1.02981, -6.558977, -1.1111107, -7.160029, -0.29810333, -7.6558967, -0.2439022, -7.7911334, 0.081300735, -8.166791, 0.081300735, -8.647633, 1.1111116, -8.647633, 4.5257454, -8.226896, 4.5257444, -8.211869, 5.01355, -7.731028, 5.0948505, -7.610818, 5.9891596, -7.5657387, 6.720866, -7.220134, 7.5880747, -5.5972943, 7.506774, -5.5221634, 6.5040636, -3.4785876, 6.422763, -2.2614574, 6.422763, -1.6153269, 6.7750673, -1.6002998, 7.615176, -0.98422146, 7.5880747, -0.9541693, 9.322492, -9.759579, 9.268291, -9.759579, -9.647696, 9.338841, -9.620595, 9.308789, 9.322493)
+
+[node name="sortieBas" type="CollisionPolygon2D" parent="limitesDeplacament" unique_id=410737998]
+build_mode = 1
+polygon = PackedVector2Array(586, 706, 695, 706, 653, 708)
+
+[node name="portesVoyageTemps" type="StaticBody2D" parent="." unique_id=49501331]
+
+[node name="porteRouge" type="StaticBody2D" parent="portesVoyageTemps" unique_id=785808025]
+
+[node name="porte rouge" type="CollisionShape2D" parent="portesVoyageTemps/porteRouge" unique_id=1489336345]
+position = Vector2(0, 23)
+shape = SubResource("SegmentShape2D_0tk11")
+
+[node name="porteJaune" type="StaticBody2D" parent="portesVoyageTemps" unique_id=435895642]
+
+[node name="porte jaune" type="CollisionShape2D" parent="portesVoyageTemps/porteJaune" unique_id=1175967145]
+position = Vector2(0, 23)
+shape = SubResource("SegmentShape2D_p81bx")
+
+[node name="porteBleue" type="StaticBody2D" parent="portesVoyageTemps" unique_id=166651461]
+
+[node name="porte bleue" type="CollisionShape2D" parent="portesVoyageTemps/porteBleue" unique_id=2047654810]
+position = Vector2(1, 23)
+shape = SubResource("SegmentShape2D_vqek8")
+
+[node name="portesVoyageSalles" type="StaticBody2D" parent="." unique_id=1397184758]
+
+[node name="porteGauche" type="StaticBody2D" parent="portesVoyageSalles" unique_id=576000317]
+
+[node name="porte gauche" type="CollisionShape2D" parent="portesVoyageSalles/porteGauche" unique_id=1412576089]
+position = Vector2(0, 23)
+shape = SubResource("SegmentShape2D_tbeiy")
+
+[node name="porteDroite" type="StaticBody2D" parent="portesVoyageSalles" unique_id=2131978326]
+
+[node name="porte droite" type="CollisionShape2D" parent="portesVoyageSalles/porteDroite" unique_id=1802315612]
+position = Vector2(0, 23)
+shape = SubResource("SegmentShape2D_uchnh")
+
+[node name="Markers2D" type="Node2D" parent="." unique_id=462566541]
+
+[node name="entreePrincipale" type="Marker2D" parent="Markers2D" unique_id=1319892942]
+position = Vector2(643, 642)
+
+[node name="retourJaune" type="Marker2D" parent="Markers2D" unique_id=426627246]
+position = Vector2(334, 425)
+
+[node name="retourBleu" type="Marker2D" parent="Markers2D" unique_id=8544690]
+position = Vector2(641, 328)
+
+[node name="retourRouge" type="Marker2D" parent="Markers2D" unique_id=401441918]
+position = Vector2(954, 433)
+
+[node name="retourGauche" type="Marker2D" parent="Markers2D" unique_id=125455305]
+position = Vector2(150, 453)
+
+[node name="retourDroite" type="Marker2D" parent="Markers2D" unique_id=799009682]
+position = Vector2(1114, 452)
+
+[node name="porteJauneAnimee" type="Sprite2D" parent="." unique_id=734240421]
+z_index = 1
+position = Vector2(332.99994, 233.99997)
+scale = Vector2(1.185, 1.185)
+texture = ExtResource("2_p81bx")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="porteJauneAnimee" unique_id=1343430915]
+libraries/ = SubResource("AnimationLibrary_4q80p")
+
+[node name="porteBleueAnimee" type="Sprite2D" parent="." unique_id=1279370560]
+z_index = 1
+position = Vector2(639, 233)
+scale = Vector2(1.185, 1.185)
+texture = ExtResource("3_vqek8")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="porteBleueAnimee" unique_id=280023141]
+root_node = NodePath("../..")
+libraries/ = SubResource("AnimationLibrary_uchnh")
+
+[node name="porteRougeAnimee" type="Sprite2D" parent="." unique_id=957196635]
+z_index = 1
+position = Vector2(947.00006, 235.00002)
+scale = Vector2(1.185, 1.185)
+texture = ExtResource("4_0tk11")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="porteRougeAnimee" unique_id=470176453]
+libraries/ = SubResource("AnimationLibrary_xy2t1")
