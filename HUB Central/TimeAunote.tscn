@@ -271,7 +271,7 @@ position = Vector2(-1.25, 2.3841858e-07)
 scale = Vector2(0.8, 0.8)
 sprite_frames = SubResource("SpriteFrames_sh265")
 animation = &"marche_face"
-frame_progress = 0.097175665
+frame_progress = 0.028384103
 
 [node name="collision" type="CollisionShape2D" parent="." unique_id=413316968]
 visible = false

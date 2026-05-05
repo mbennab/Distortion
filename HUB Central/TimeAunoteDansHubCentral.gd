@@ -47,13 +47,13 @@ func _on_timer_sortie_timeout():
 
 func deplacement(delta):
 	var velocity = Vector2.ZERO
-	if Input.is_action_pressed("ui_up"):
+	if Input.is_action_pressed("marche_haut"):
 		velocity.y -= 1
-	if Input.is_action_pressed("ui_down"):
+	if Input.is_action_pressed("marche_bas"):
 		velocity.y += 1
-	if Input.is_action_pressed("ui_right"):
+	if Input.is_action_pressed("marche_droite"):
 		velocity.x += 1
-	if Input.is_action_pressed("ui_left"):
+	if Input.is_action_pressed("marche_gauche"):
 		velocity.x -= 1
 	timeAunote.animation(velocity.normalized())
 	avance(velocity.normalized() * speed * delta)
