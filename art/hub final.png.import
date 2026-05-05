@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5hvcy61vl555"
-path="res://.godot/imported/agent secret bien.jpg-c6aa29cd213e55213839f5ddf6be2e14.ctex"
+uid="uid://dva7q74571ua3"
+path="res://.godot/imported/hub final.png-f5ad20dd3de0fa0b64f6e42300480c57.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/agent secret bien.jpg"
-dest_files=["res://.godot/imported/agent secret bien.jpg-c6aa29cd213e55213839f5ddf6be2e14.ctex"]
+source_file="res://art/hub final.png"
+dest_files=["res://.godot/imported/hub final.png-f5ad20dd3de0fa0b64f6e42300480c57.ctex"]
 
 [params]
 
