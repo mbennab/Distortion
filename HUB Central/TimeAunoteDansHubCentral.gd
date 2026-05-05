@@ -11,7 +11,7 @@ var porteRouge
 var porteGauche
 var porteDroite
 var timerSortie
-var speed = 300
+var speed = 350
 
 func _ready():
 	hide()
