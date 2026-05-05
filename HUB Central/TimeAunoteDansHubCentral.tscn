@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cpwcmvqpo2hot"]
 
-[ext_resource type="Script" uid="uid://bffge8tpf41po" path="res://HUB Central/TimeAunoteDansHubCentral.cs" id="1_iim1y"]
+[ext_resource type="GDScript" path="res://HUB Central/TimeAunoteDansHubCentral.gd" id="1_iim1y"]
 [ext_resource type="PackedScene" uid="uid://1le7qkl4cyvh" path="res://HUB Central/fondHubCentral.tscn" id="2_iim1y"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://HUB Central/TimeAunote.tscn" id="3_iim1y"]
 
@@ -15,4 +15,4 @@ script = ExtResource("1_iim1y")
 wait_time = 3.0
 one_shot = true
 
-[connection signal="timeout" from="timerSortie" to="." method="OnTimerSortieTimeout"]
+[connection signal="timeout" from="timerSortie" to="." method="_on_timer_sortie_timeout"]

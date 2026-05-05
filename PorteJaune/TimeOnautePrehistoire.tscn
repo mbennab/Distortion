@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c0fo8w5plbugp"]
 
-[ext_resource type="Script" uid="uid://byjhmomtqj0yn" path="res://PorteJaune/TimeOnautePrehistoire.cs" id="1_gdlui"]
+[ext_resource type="GDScript" path="res://PorteJaune/TimeOnautePrehistoire.gd" id="1_gdlui"]
 [ext_resource type="Texture2D" uid="uid://qtc7jsildr4m" path="res://art/prehistoire/repos.png" id="2_0sjqv"]
 [ext_resource type="Texture2D" uid="uid://dfoy1xges6v25" path="res://art/prehistoire/marche-bas.png" id="3_kpm4c"]
 [ext_resource type="Texture2D" uid="uid://d33sh3xsc5rja" path="res://art/prehistoire/marche-droite.png" id="4_d6784"]

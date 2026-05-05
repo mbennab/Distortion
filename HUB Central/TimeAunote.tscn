@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://wwqx8ahb8wxb"]
 
+[ext_resource type="GDScript" path="res://HUB Central/TimeAunote.gd" id="1_gd"]
 [ext_resource type="Texture2D" uid="uid://balcnyrpqfc7c" path="res://art/perso_idle_cote.png" id="2_40cda"]
 [ext_resource type="Texture2D" uid="uid://dudaewe214h5n" path="res://art/agent secret.png" id="2_mnim8"]
 [ext_resource type="Texture2D" uid="uid://gqmtpy4ap05x" path="res://art/perso_idle_dos.png" id="3_8marf"]
@@ -400,6 +401,7 @@ z_index = 10
 scale = Vector2(0.8, 0.8)
 disable_mode = 2
 motion_mode = 1
+script = ExtResource("1_gd")
 
 [node name="timerAttente" type="Timer" parent="." unique_id=1698449373]
 wait_time = 3.0

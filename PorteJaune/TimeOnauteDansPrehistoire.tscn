@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://du4nqc1owu81f"]
 
-[ext_resource type="Script" uid="uid://b53h3ogw5qjub" path="res://PorteJaune/TimeOnauteDansPrehistoire.cs" id="1_qiaej"]
+[ext_resource type="GDScript" path="res://PorteJaune/TimeOnauteDansPrehistoire.gd" id="1_qiaej"]
 [ext_resource type="PackedScene" uid="uid://dbq6u7im0s1vj" path="res://PorteJaune/fondPrehistoire.tscn" id="2_dgnl7"]
 [ext_resource type="PackedScene" uid="uid://c0fo8w5plbugp" path="res://PorteJaune/TimeOnautePrehistoire.tscn" id="3_t0et0"]
 

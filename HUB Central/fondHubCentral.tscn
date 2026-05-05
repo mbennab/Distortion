@@ -161,6 +161,7 @@ _data = {
 }
 
 [node name="fondHubCentral" type="Node2D" unique_id=358863711]
+position = Vector2(1, -11)
 
 [node name="image" type="Sprite2D" parent="." unique_id=1394868288]
 scale = Vector2(1.185, 1.185)
