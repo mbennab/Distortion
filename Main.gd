@@ -13,6 +13,8 @@ func _ready():
 	sceneFutur = $Futur
 
 func _process(_delta):
+	if sceneHUB == null:
+		return
 	if not sceneHUB.started and not sceneHUB.stopped:
 		sceneHUB.stop()
 		match sceneHUB.next_scene:
