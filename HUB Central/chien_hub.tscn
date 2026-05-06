@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://cawtmw06g6os5"]
+
+[ext_resource type="Texture2D" uid="uid://c6mi733scvivc" path="res://art/chien-hub.png" id="1_elf7j"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_elf7j"]
+atlas = ExtResource("1_elf7j")
+region = Rect2(0, 0, 471, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vl72q"]
+atlas = ExtResource("1_elf7j")
+region = Rect2(471, 0, 471, 641)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_oyg6i"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_elf7j")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vl72q")
+}],
+"loop": true,
+"name": &"idle-dog",
+"speed": 1.0
+}]
+
+[node name="chien-hub" type="Node2D" unique_id=1396482398]
+
+[node name="animation_chien_hub" type="AnimatedSprite2D" parent="." unique_id=1684280811]
+scale = Vector2(0.1, 0.1)
+sprite_frames = SubResource("SpriteFrames_oyg6i")
+animation = &"idle-dog"
+frame_progress = 0.17198786
