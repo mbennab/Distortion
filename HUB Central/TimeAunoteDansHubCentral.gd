@@ -1,7 +1,9 @@
 extends Node2D
 
 var timeAunote
+var pnjHub
 var positionEntreePrincipale
+var pnjPos
 var started = false
 var stopped = true
 var limites
@@ -12,6 +14,7 @@ var porteGauche
 var porteDroite
 var timerSortie
 var speed = 350
+
 
 func _ready():
 	hide()
@@ -24,6 +27,9 @@ func _ready():
 	porteDroite = $"fondHubCentral/portesVoyageSalles/porteDroite"
 	timerSortie = $timerSortie
 	timeAunote = $TimeAunote
+	pnjHub = $"pnj-hub"
+	pnjPos = $"fondHubCentral/Markers2D/pnjPos".position
+
 
 func _process(delta):
 	deplacement(delta)
@@ -32,6 +38,7 @@ func start():
 	show()
 	timeAunote = $TimeAunote
 	timeAunote.apparition(positionEntreePrincipale)
+	pnjHub.apparition(pnjPos)
 	started = true
 	stopped = false
 

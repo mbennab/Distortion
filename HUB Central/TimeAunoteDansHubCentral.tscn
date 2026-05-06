@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://cpwcmvqpo2hot"]
 
-[ext_resource type="GDScript" path="res://HUB Central/TimeAunoteDansHubCentral.gd" id="1_iim1y"]
+[ext_resource type="Script" uid="uid://cs2cja3r65ups" path="res://HUB Central/TimeAunoteDansHubCentral.gd" id="1_iim1y"]
 [ext_resource type="PackedScene" uid="uid://1le7qkl4cyvh" path="res://HUB Central/fondHubCentral.tscn" id="2_iim1y"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://HUB Central/TimeAunote.tscn" id="3_iim1y"]
+[ext_resource type="PackedScene" uid="uid://cdbextbddujbd" path="res://HUB Central/pnj_hub.tscn" id="4_l1upj"]
+[ext_resource type="Script" uid="uid://bp22n8tog4j0g" path="res://HUB Central/pnj_hub.gd" id="5_fu3hc"]
 
 [node name="TimeAunoteDansHUBCentral" type="Node2D" unique_id=1349946414]
 script = ExtResource("1_iim1y")
@@ -14,5 +16,9 @@ script = ExtResource("1_iim1y")
 [node name="timerSortie" type="Timer" parent="." unique_id=534462567]
 wait_time = 3.0
 one_shot = true
+
+[node name="pnj-hub" parent="." unique_id=526112262 instance=ExtResource("4_l1upj")]
+position = Vector2(1195, 860)
+script = ExtResource("5_fu3hc")
 
 [connection signal="timeout" from="timerSortie" to="." method="_on_timer_sortie_timeout"]

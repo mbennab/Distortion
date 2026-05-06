@@ -241,6 +241,9 @@ position = Vector2(150, 453)
 [node name="retourDroite" type="Marker2D" parent="Markers2D" unique_id=799009682]
 position = Vector2(229, 532)
 
+[node name="pnjPos" type="Marker2D" parent="Markers2D" unique_id=210872974]
+position = Vector2(1195, 870)
+
 [node name="porteJauneAnimee" type="Sprite2D" parent="." unique_id=734240421]
 z_index = 1
 position = Vector2(1652.9998, 284)
@@ -253,7 +256,8 @@ libraries/ = SubResource("AnimationLibrary_4q80p")
 [node name="porteBleueAnimee" type="Sprite2D" parent="." unique_id=1279370560]
 z_index = 1
 position = Vector2(1197, 276.00003)
-scale = Vector2(1.185, 1.185)
+rotation = 6.2831855
+scale = Vector2(1e-05, 1e-05)
 texture = ExtResource("3_vqek8")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="porteBleueAnimee" unique_id=280023141]
