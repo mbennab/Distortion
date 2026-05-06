@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://fevsbp3ny4fq"]
+
+[ext_resource type="GDScript" path="res://MoyenAge/MoyenAge.gd" id="1_gd"]
+[ext_resource type="PackedScene" uid="uid://cfznq8bk1pvxm" path="res://MoyenAge/fondMoyenAge.tscn" id="2_fond"]
+[ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
+
+[node name="MoyenAge" type="Node2D" unique_id=1593019004]
+script = ExtResource("1_gd")
+
+[node name="fondMoyenAge" parent="." unique_id=358863711 instance=ExtResource("2_fond")]
+
+[node name="TimeAunote" parent="." unique_id=409968594 instance=ExtResource("3_perso")]

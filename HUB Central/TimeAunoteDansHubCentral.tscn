@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cs2cja3r65ups" path="res://HUB Central/TimeAunoteDansHubCentral.gd" id="1_iim1y"]
 [ext_resource type="PackedScene" uid="uid://1le7qkl4cyvh" path="res://HUB Central/fondHubCentral.tscn" id="2_iim1y"]
-[ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://HUB Central/TimeAunote.tscn" id="3_iim1y"]
+[ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_iim1y"]
 [ext_resource type="PackedScene" uid="uid://cdbextbddujbd" path="res://HUB Central/pnj_hub.tscn" id="4_l1upj"]
 [ext_resource type="Script" uid="uid://bp22n8tog4j0g" path="res://HUB Central/pnj_hub.gd" id="5_fu3hc"]
 

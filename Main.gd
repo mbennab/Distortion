@@ -1,14 +1,26 @@
 extends Node2D
 
 var sceneHUB
-var scenePrehistoire
+var sceneMoyenAge
+var scenePresent
+var sceneFutur
 
 func _ready():
 	sceneHUB = $TimeAunoteDansHUBCentral
 	sceneHUB.start()
-	scenePrehistoire = $TimeOnauteDansPrehistoire
+	sceneMoyenAge = $MoyenAge
+	scenePresent = $Present
+	sceneFutur = $Futur
 
 func _process(_delta):
 	if not sceneHUB.started and not sceneHUB.stopped:
 		sceneHUB.stop()
-		scenePrehistoire.start()
+		match sceneHUB.next_scene:
+			"MoyenAge":
+				sceneMoyenAge.start()
+			"Present":
+				scenePresent.start()
+			"Futur":
+				sceneFutur.start()
+			_:
+				pass

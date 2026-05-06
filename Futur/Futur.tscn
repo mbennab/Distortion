@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://hxkxa3mbcjmo"]
+
+[ext_resource type="GDScript" path="res://Futur/Futur.gd" id="1_gd"]
+[ext_resource type="PackedScene" uid="uid://e2sc8lr3gqai4" path="res://Futur/fondFutur.tscn" id="2_fond"]
+[ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
+
+[node name="Futur" type="Node2D" unique_id=1593019004]
+script = ExtResource("1_gd")
+
+[node name="fondFutur" parent="." unique_id=358863711 instance=ExtResource("2_fond")]
+
+[node name="TimeAunote" parent="." unique_id=409968594 instance=ExtResource("3_perso")]

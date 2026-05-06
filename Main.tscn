@@ -2,11 +2,17 @@
 
 [ext_resource type="PackedScene" uid="uid://cpwcmvqpo2hot" path="res://HUB Central/TimeAunoteDansHubCentral.tscn" id="1_glv2v"]
 [ext_resource type="GDScript" path="res://Main.gd" id="1_r0du0"]
-[ext_resource type="PackedScene" uid="uid://du4nqc1owu81f" path="res://PorteJaune/TimeOnauteDansPrehistoire.tscn" id="2_uu6xs"]
+[ext_resource type="PackedScene" uid="uid://fevsbp3ny4fq" path="res://MoyenAge/MoyenAge.tscn" id="2_moyen_age"]
+[ext_resource type="PackedScene" uid="uid://gfd7qgc2nhrst" path="res://Present/Present.tscn" id="3_present"]
+[ext_resource type="PackedScene" uid="uid://hxkxa3mbcjmo" path="res://Futur/Futur.tscn" id="4_futur"]
 
 [node name="Main" type="Node2D" unique_id=1098282488]
 script = ExtResource("1_r0du0")
 
 [node name="TimeAunoteDansHUBCentral" parent="." unique_id=1349946414 instance=ExtResource("1_glv2v")]
 
-[node name="TimeOnauteDansPrehistoire" parent="." unique_id=1593019004 instance=ExtResource("2_uu6xs")]
+[node name="MoyenAge" parent="." unique_id=1593019005 instance=ExtResource("2_moyen_age")]
+
+[node name="Present" parent="." unique_id=1593019006 instance=ExtResource("3_present")]
+
+[node name="Futur" parent="." unique_id=1593019007 instance=ExtResource("4_futur")]

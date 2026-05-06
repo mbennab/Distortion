@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://wwqx8ahb8wxb"]
 
-[ext_resource type="Script" uid="uid://ba1oqjj40n1mv" path="res://HUB Central/TimeAunote.gd" id="1_gd"]
+[ext_resource type="Script" uid="uid://ba1oqjj40n1mv" path="res://Personnage/TimeAunote.gd" id="1_gd"]
 [ext_resource type="Texture2D" uid="uid://balcnyrpqfc7c" path="res://art/perso_idle_cote.png" id="2_40cda"]
 [ext_resource type="Texture2D" uid="uid://gqmtpy4ap05x" path="res://art/perso_idle_dos.png" id="3_8marf"]
 [ext_resource type="Texture2D" uid="uid://fwavcpk1tpfp" path="res://art/perso_idle_face.png" id="4_uco7y"]
