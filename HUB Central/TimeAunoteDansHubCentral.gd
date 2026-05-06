@@ -15,6 +15,7 @@ var porteDroite
 var timerSortie
 var speed = 350
 var particles
+var next_scene = ""
 
 
 func _ready():
@@ -77,14 +78,17 @@ func _connect_portal_signals():
 
 func _on_porte_jaune_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
+		next_scene = "MoyenAge"
 		_trigger_portal("jaune", zonePorteJaune.global_position, Color.YELLOW)
 
 func _on_porte_bleue_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
+		next_scene = "Present"
 		_trigger_portal("bleue", zonePorteBleue.global_position, Color.DODGER_BLUE)
 
 func _on_porte_rouge_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
+		next_scene = "Futur"
 		_trigger_portal("rouge", zonePorteRouge.global_position, Color.RED)
 
 func _trigger_portal(porte_name, pos, color):

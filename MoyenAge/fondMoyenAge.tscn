@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://cfznq8bk1pvxm"]
+
+[ext_resource type="Texture2D" path="res://art/MoyenAge/fond_moyen-age.png" id="1_bg"]
+
+[node name="fondMoyenAge" type="Node2D" unique_id=358863711]
+
+[node name="image" type="Sprite2D" parent="." unique_id=1394868288]
+scale = Vector2(1.185, 1.185)
+texture = ExtResource("1_bg")
+centered = false
+
+[node name="Markers2D" type="Node2D" parent="." unique_id=468515979]
+
+[node name="entreePrincipale" type="Marker2D" parent="Markers2D" unique_id=845621181]
+position = Vector2(1400, 780)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
