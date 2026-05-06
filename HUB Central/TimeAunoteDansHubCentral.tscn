@@ -12,7 +12,7 @@ script = ExtResource("1_iim1y")
 [node name="TimeAunote" parent="." unique_id=966323830 instance=ExtResource("3_iim1y")]
 
 [node name="timerSortie" type="Timer" parent="." unique_id=534462567]
-wait_time = 3.0
+wait_time = 1.5
 one_shot = true
 
 [connection signal="timeout" from="timerSortie" to="." method="_on_timer_sortie_timeout"]

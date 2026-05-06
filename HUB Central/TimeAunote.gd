@@ -16,14 +16,19 @@ func _ready():
 	timerAttente = $timerAttente
 	timerAttente.start()
 
-func _process(delta):
+func _process(_delta):
 	pass
 
-func apparition(position):
+func apparition(pos):
+	modulate.a = 1.0
 	timeAunoteAnimation.animation = "idle_face"
-	self.position = position
+	self.position = pos
 	show()
 	timeAunoteCollision.disabled = false
+
+func fade_out():
+	var tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, 1.2)
 
 func animation(mouvement):
 	if mouvement == Vector2.ZERO:
@@ -38,13 +43,6 @@ func animation(mouvement):
 			"gauche":
 				timeAunoteAnimation.animation = "idle_cote"
 				timeAunoteAnimation.flip_h = true
-	
-	#if mouvement == Vector2.ZERO:
-		#if timerAttente.is_stopped():
-			#timeAunoteAnimation.animation = "attente"
-		#else:
-			#timeAunoteAnimation.animation = "repos"
-		#return
 	
 	if mouvement.x != 0:
 		timeAunoteAnimation.animation = "marche_cote"

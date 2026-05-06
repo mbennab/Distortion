@@ -18,8 +18,8 @@ func _ready():
 	timerAttente = $timerAttente
 	timerAttente.start()
 
-func _process(delta):
-	deplacement(delta)
+func _process(_delta):
+	deplacement(_delta)
 
 func apparition(pos):
 	timeAunoteAnimation.animation = "repos"
@@ -32,16 +32,16 @@ func apparition(pos):
 	timeAunoteCollision.disabled = false
 
 func deplacement(delta):
-	var velocity = Vector2.ZERO
+	var vel = Vector2.ZERO
 	if Input.is_action_pressed("ui_up"):
-		velocity.y -= 1
+		vel.y -= 1
 	if Input.is_action_pressed("ui_down"):
-		velocity.y += 1
+		vel.y += 1
 	if Input.is_action_pressed("ui_right"):
-		velocity.x += 1
+		vel.x += 1
 	if Input.is_action_pressed("ui_left"):
-		velocity.x -= 1
-	avance(velocity.normalized() * speed * delta)
+		vel.x -= 1
+	avance(vel.normalized() * speed * delta)
 
 func avance(mouvement):
 	if mouvement == Vector2.ZERO:
@@ -58,5 +58,5 @@ func avance(mouvement):
 			timeAunoteAnimation.animation = "marche_bas"
 		else:
 			timeAunoteAnimation.animation = "marche_haut"
-	var collision = move_and_collide(mouvement)
+	move_and_collide(mouvement)
 	timerAttente.start()

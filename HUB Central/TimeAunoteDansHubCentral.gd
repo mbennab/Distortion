@@ -5,28 +5,93 @@ var positionEntreePrincipale
 var started = false
 var stopped = true
 var limites
-var porteJaune
-var porteBleue
-var porteRouge
+var zonePorteJaune
+var zonePorteBleue
+var zonePorteRouge
 var porteGauche
 var porteDroite
 var timerSortie
 var speed = 350
+var particles
 
 func _ready():
 	hide()
 	positionEntreePrincipale = $"fondHubCentral/Markers2D/entreePrincipale".position
 	limites = $"fondHubCentral/limitesDeplacament"
-	porteJaune = $"fondHubCentral/portesVoyageTemps/porteJaune"
-	porteBleue = $"fondHubCentral/portesVoyageTemps/porteBleue"
-	porteRouge = $"fondHubCentral/portesVoyageTemps/porteRouge"
+	zonePorteJaune = $"fondHubCentral/portesVoyageTemps/zonePorteJaune"
+	zonePorteBleue = $"fondHubCentral/portesVoyageTemps/zonePorteBleue"
+	zonePorteRouge = $"fondHubCentral/portesVoyageTemps/zonePorteRouge"
 	porteGauche = $"fondHubCentral/portesVoyageSalles/porteGauche"
 	porteDroite = $"fondHubCentral/portesVoyageSalles/porteDroite"
 	timerSortie = $timerSortie
 	timeAunote = $TimeAunote
+	_setup_particles()
+	_connect_portal_signals()
 
-func _process(delta):
-	deplacement(delta)
+func _setup_particles():
+	particles = CPUParticles2D.new()
+	particles.emitting = false
+	particles.one_shot = true
+	particles.amount = 50
+	particles.lifetime = 0.7
+	particles.explosiveness = 1.0
+	particles.speed_scale = 1.5
+	particles.texture = _create_particle_texture()
+	particles.z_index = 20
+	particles.spread = 60.0
+	particles.gravity = Vector2(0, -50)
+	particles.initial_velocity_min = 70.0
+	particles.initial_velocity_max = 140.0
+	particles.scale_amount_min = 0.3
+	particles.scale_amount_max = 1.0
+	particles.angular_velocity_min = -360.0
+	particles.angular_velocity_max = 360.0
+	add_child(particles)
+
+func _create_particle_texture():
+	var image = Image.create(32, 32, false, Image.FORMAT_RGBA8)
+	var center = Vector2(16, 16)
+	for y in range(32):
+		for x in range(32):
+			var dist = Vector2(x, y).distance_to(center) / 16.0
+			var alpha = clamp(1.0 - dist, 0.0, 1.0)
+			alpha = ease(alpha, 2.0)
+			image.set_pixel(x, y, Color(1, 1, 1, alpha))
+	return ImageTexture.create_from_image(image)
+
+func _create_color_ramp(color):
+	var gradient = Gradient.new()
+	gradient.set_color(0, color)
+	gradient.set_color(1, Color(color, 0.0))
+	return gradient
+
+func _connect_portal_signals():
+	zonePorteJaune.body_entered.connect(_on_porte_jaune_entered)
+	zonePorteBleue.body_entered.connect(_on_porte_bleue_entered)
+	zonePorteRouge.body_entered.connect(_on_porte_rouge_entered)
+
+func _on_porte_jaune_entered(body):
+	if body == timeAunote and not timerSortie.time_left > 0:
+		_trigger_portal("jaune", zonePorteJaune.global_position, Color.YELLOW)
+
+func _on_porte_bleue_entered(body):
+	if body == timeAunote and not timerSortie.time_left > 0:
+		_trigger_portal("bleue", zonePorteBleue.global_position, Color.DODGER_BLUE)
+
+func _on_porte_rouge_entered(body):
+	if body == timeAunote and not timerSortie.time_left > 0:
+		_trigger_portal("rouge", zonePorteRouge.global_position, Color.RED)
+
+func _trigger_portal(porte_name, pos, color):
+	print(porte_name)
+	particles.global_position = pos
+	particles.color_ramp = _create_color_ramp(color)
+	particles.restart()
+	timeAunote.fade_out()
+	timerSortie.start()
+
+func _process(_delta):
+	deplacement(_delta)
 
 func start():
 	show()
@@ -58,34 +123,12 @@ func deplacement(delta):
 	timeAunote.animation(velocity.normalized())
 	avance(velocity.normalized() * speed * delta)
 
-func _handle_porte_animation(porte_name, porte_animee_path):
-	print(porte_name)
-	var animationPorte = get_node(porte_animee_path + "/AnimationPlayer")
-	var animationPlayer = $"TimeAunote/animationTimeAunote"
-	var destination_pos = get_node(porte_animee_path).position
-	var anim = animationPlayer.get_animation("animationPlayer")
-	var track_id = anim.find_track(".:position", 0)
-	anim.track_set_key_value(track_id, 0, timeAunote.position)
-	anim.track_set_key_value(track_id, 1, destination_pos)
-	animationPorte.play("animationPorte")
-	animationPlayer.play("animationPlayer")
-	timerSortie.start()
-
 func avance(mouvement):
 	var collision = timeAunote.move_and_collide(mouvement)
 	if collision:
 		var collisioneur = collision.get_collider()
 		if collisioneur == limites:
 			print("limites")
-			return
-		if collisioneur == porteJaune:
-			_handle_porte_animation("porteJaune", "fondHubCentral/porteJauneAnimee")
-			return
-		if collisioneur == porteBleue:
-			_handle_porte_animation("porteBleue", "fondHubCentral/porteBleueAnimee")
-			return
-		if collisioneur == porteRouge:
-			_handle_porte_animation("porteRouge", "fondHubCentral/porteRougeAnimee")
 			return
 		if collisioneur == porteGauche:
 			print("porteGauche")

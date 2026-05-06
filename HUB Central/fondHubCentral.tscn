@@ -1,21 +1,15 @@
 [gd_scene format=3 uid="uid://1le7qkl4cyvh"]
 
 [ext_resource type="Texture2D" uid="uid://dva7q74571ua3" path="res://art/hub final.png" id="1_lhw6m"]
-[ext_resource type="Texture2D" uid="uid://cbj2uw5a3n3u1" path="res://art/porteJaune.png" id="2_p81bx"]
-[ext_resource type="Texture2D" uid="uid://cm2rhbs8hf8m1" path="res://art/porteBleue.png" id="3_vqek8"]
-[ext_resource type="Texture2D" uid="uid://clj7hunfmamuw" path="res://art/porteRouge.png" id="4_0tk11"]
 
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_0tk11"]
-a = Vector2(922, 230)
-b = Vector2(987, 230)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jaune"]
+size = Vector2(60, 60)
 
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_p81bx"]
-a = Vector2(305, 227)
-b = Vector2(367, 227)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bleue"]
+size = Vector2(60, 60)
 
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_vqek8"]
-a = Vector2(605, 228)
-b = Vector2(680, 228)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rouge"]
+size = Vector2(60, 60)
 
 [sub_resource type="SegmentShape2D" id="SegmentShape2D_tbeiy"]
 a = Vector2(92, 483)
@@ -24,141 +18,6 @@ b = Vector2(92, 406)
 [sub_resource type="SegmentShape2D" id="SegmentShape2D_uchnh"]
 a = Vector2(1066, 460)
 b = Vector2(1187, 476)
-
-[sub_resource type="Animation" id="Animation_ftlh1"]
-resource_name = "animationPorteJaune"
-length = 3.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = false
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(332.99994, 233.99997)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:scale")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(1.185, 1.185), Vector2(0, 0)]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:rotation")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [0.0, 18.84955592153876]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_4q80p"]
-_data = {
-&"animationPorte": SubResource("Animation_ftlh1")
-}
-
-[sub_resource type="Animation" id="Animation_0tk11"]
-resource_name = "new_animation"
-length = 3.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = false
-tracks/0/path = NodePath("porteBleueAnimee:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(332.99997, 234.99998)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("porteBleueAnimee:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [0.0, 6.283185307179586]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("porteBleueAnimee:scale")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(1.185, 1.185), Vector2(0, 0)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_uchnh"]
-_data = {
-&"animationPorte": SubResource("Animation_0tk11")
-}
-
-[sub_resource type="Animation" id="Animation_4q80p"]
-resource_name = "animationPorteRouge"
-length = 3.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = false
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(947.00006, 235.00002)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [0.0, 18.84955592153876]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:scale")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(1.185, 1.185), Vector2(0, 0)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_xy2t1"]
-_data = {
-&"animationPorte": SubResource("Animation_4q80p")
-}
 
 [node name="fondHubCentral" type="Node2D" unique_id=358863711]
 position = Vector2(1, -11)
@@ -187,25 +46,25 @@ position = Vector2(549, 870)
 build_mode = 1
 polygon = PackedVector2Array(478, 705, 640.6875, 705.99994, 786, 706, 653, 708)
 
-[node name="portesVoyageTemps" type="StaticBody2D" parent="." unique_id=49501331]
+[node name="portesVoyageTemps" type="Node2D" parent="." unique_id=49501331]
 
-[node name="porteRouge" type="StaticBody2D" parent="portesVoyageTemps" unique_id=785808025]
+[node name="zonePorteJaune" type="Area2D" parent="portesVoyageTemps" unique_id=435895642]
+position = Vector2(1653, 284)
 
-[node name="porte rouge" type="CollisionShape2D" parent="portesVoyageTemps/porteRouge" unique_id=1489336345]
-position = Vector2(-224, 71)
-shape = SubResource("SegmentShape2D_0tk11")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteJaune"]
+shape = SubResource("RectangleShape2D_jaune")
 
-[node name="porteJaune" type="StaticBody2D" parent="portesVoyageTemps" unique_id=435895642]
+[node name="zonePorteBleue" type="Area2D" parent="portesVoyageTemps" unique_id=166651461]
+position = Vector2(1197, 276)
 
-[node name="porte jaune" type="CollisionShape2D" parent="portesVoyageTemps/porteJaune" unique_id=1175967145]
-position = Vector2(1321, 69)
-shape = SubResource("SegmentShape2D_p81bx")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteBleue"]
+shape = SubResource("RectangleShape2D_bleue")
 
-[node name="porteBleue" type="StaticBody2D" parent="portesVoyageTemps" unique_id=166651461]
+[node name="zonePorteRouge" type="Area2D" parent="portesVoyageTemps" unique_id=785808025]
+position = Vector2(733, 282)
 
-[node name="porte bleue" type="CollisionShape2D" parent="portesVoyageTemps/porteBleue" unique_id=2047654810]
-position = Vector2(561, 63)
-shape = SubResource("SegmentShape2D_vqek8")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteRouge"]
+shape = SubResource("RectangleShape2D_rouge")
 
 [node name="portesVoyageSalles" type="StaticBody2D" parent="." unique_id=1397184758]
 
@@ -240,34 +99,6 @@ position = Vector2(150, 453)
 
 [node name="retourDroite" type="Marker2D" parent="Markers2D" unique_id=799009682]
 position = Vector2(229, 532)
-
-[node name="porteJauneAnimee" type="Sprite2D" parent="." unique_id=734240421]
-z_index = 1
-position = Vector2(1652.9998, 284)
-scale = Vector2(1.185, 1.185)
-texture = ExtResource("2_p81bx")
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="porteJauneAnimee" unique_id=1343430915]
-libraries/ = SubResource("AnimationLibrary_4q80p")
-
-[node name="porteBleueAnimee" type="Sprite2D" parent="." unique_id=1279370560]
-z_index = 1
-position = Vector2(1197, 276.00003)
-scale = Vector2(1.185, 1.185)
-texture = ExtResource("3_vqek8")
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="porteBleueAnimee" unique_id=280023141]
-root_node = NodePath("../..")
-libraries/ = SubResource("AnimationLibrary_uchnh")
-
-[node name="porteRougeAnimee" type="Sprite2D" parent="." unique_id=957196635]
-z_index = 1
-position = Vector2(733.0001, 282.0001)
-scale = Vector2(1.185, 1.185)
-texture = ExtResource("4_0tk11")
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="porteRougeAnimee" unique_id=470176453]
-libraries/ = SubResource("AnimationLibrary_xy2t1")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
 position = Vector2(0, 1)

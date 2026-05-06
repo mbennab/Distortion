@@ -8,7 +8,7 @@ func _ready():
 	sceneHUB.start()
 	scenePrehistoire = $TimeOnauteDansPrehistoire
 
-func _process(delta):
+func _process(_delta):
 	if not sceneHUB.started and not sceneHUB.stopped:
 		sceneHUB.stop()
 		scenePrehistoire.start()
