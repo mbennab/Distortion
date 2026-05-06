@@ -112,13 +112,23 @@ func start():
 	timeAunote.apparition(positionEntreePrincipale)
 	pnjHub.apparition(pnjPos)
 	chienHub.apparition(chienPos)
+	_set_collisions_enabled(true)
 	started = true
 	stopped = false
 
 func stop():
 	hide()
+	_set_collisions_enabled(false)
 	started = false
 	stopped = true
+
+func _set_collisions_enabled(enable: bool) -> void:
+	limites.collision_layer = 1 if enable else 0
+	porteGauche.collision_layer = 1 if enable else 0
+	porteDroite.collision_layer = 1 if enable else 0
+	zonePorteJaune.monitoring = enable
+	zonePorteBleue.monitoring = enable
+	zonePorteRouge.monitoring = enable
 
 func _on_timer_sortie_timeout():
 	print("stop")
