@@ -54,7 +54,7 @@ func animation(mouvement):
 		else:
 			timeAunoteAnimation.flip_h = false
 			direction = "droite"
-	if mouvement.y != 0:
+	elif mouvement.y != 0:
 		if mouvement.y > 0:
 			timeAunoteAnimation.animation = "marche_face"
 			direction = "bas"
