@@ -18,12 +18,12 @@ Le joueur incarne un **Time-Aunote** qui voyage dans le temps en traversant des 
 
 | Action | Clavier |
 |--------|---------|
-| Déplacement haut | `↑` / `Z` |
+| Déplacement haut | `↑` / `Z` / `W` |
 | Déplacement bas | `↓` / `S` |
-| Déplacement gauche | `←` / `Q` |
+| Déplacement gauche | `←` / `Q` / `A` |
 | Déplacement droite | `→` / `D` |
 
-Les actions `marche_haut/bas/gauche/droite` (ZQSD) sont définies dans `project.godot`. Les flèches utilisent les actions intégrées `ui_up/down/left/right`.
+Les actions `marche_haut/bas/gauche/droite` (ZQSD/WASD) sont définies dans `project.godot`.
 
 ---
 
@@ -32,104 +32,72 @@ Les actions `marche_haut/bas/gauche/droite` (ZQSD) sont définies dans `project.
 ```
 Main.tscn (Node2D)
 ├── TimeAunoteDansHUBCentral (Node2D) — scène du HUB central
-│   ├── fondHubCentral (fond + collisions + portes + markers)
-│   ├── TimeAunote (CharacterBody2D) — le personnage dans le HUB
-│   └── timerSortie (Timer) — déclenche la sortie après une porte
+│   ├── fondHubCentral (fond + collisions + portes + markers + Camera2D)
+│   ├── TimeAunote (CharacterBody2D) — instance de Personnage/TimeAunote.tscn
+│   ├── pnj-hub (Node2D) — PNJ du HUB
+│   └── timerSortie (Timer) — déclenche le changement de niveau
 │
-└── TimeOnauteDansPrehistoire (Node2D) — scène préhistoire
-    ├── fondPrehistoire (fond + animations + markers)
-    └── TimeOnautePrehistoire (CharacterBody2D) — le personnage préhistorique
+├── MoyenAge (Node2D) — ère médiévale (portail jaune)
+│   ├── fondMoyenAge (fond + markers + Camera2D)
+│   └── TimeAunote (CharacterBody2D) — instance de Personnage/TimeAunote.tscn
+│
+├── Present (Node2D) — ère nucléaire (portail bleu)
+│   ├── fondPresent (fond + markers + Camera2D)
+│   └── TimeAunote (CharacterBody2D) — instance de Personnage/TimeAunote.tscn
+│
+└── Futur (Node2D) — ère futuriste (portail rouge)
+    ├── fondFutur (fond + markers + Camera2D)
+    └── TimeAunote (CharacterBody2D) — instance de Personnage/TimeAunote.tscn
 ```
 
-**Flux de jeu :**  
-1. Le HUB central s'affiche en premier. Le personnage apparaît à `entreePrincipale`.  
-2. Le joueur se déplace et peut entrer en collision avec :
-   - Les **portes de voyage temporel** (jaune, bleue, rouge) → déclenchent une animation de sortie puis basculent vers le niveau suivant
-   - Les **portes de voyage de salle** (gauche, droite) → téléportent le personnage de l'autre côté du HUB
-   - Les **limites de déplacement** → bloquent le personnage (murs, tables)
-3. Quand le HUB est terminé, la scène **Préhistoire** s'affiche.
+**Flux de jeu :**
+1. Le HUB central s'affiche. Le personnage apparaît à l'entrée principale.
+2. Le joueur se déplace dans le HUB :
+   - **Portes de voyage temporel** (jaune → Moyen-Âge, bleue → Présent, rouge → Futur) : particules + fade-out → transition vers l'ère
+   - **Portes de salle** (gauche/droite) : téléportent le personnage de l'autre côté du HUB
+   - **Limites de déplacement** : bloquent le personnage (murs, tables)
+3. Dans chaque ère, le personnage apparaît avec une animation de spin-in et peut se déplacer librement.
 
-### Scènes
+### Personnage partagé
 
-| Fichier | Rôle |
-|---------|------|
-| `Main.tscn` | Orchestrateur : lance le HUB, puis la Préhistoire |
-| `HUB Central/TimeAunoteDansHubCentral.tscn` | Conteneur du HUB : fond, portes, collisions, personnage |
-| `HUB Central/TimeAunote.tscn` | Le personnage principal (CharacterBody2D) avec animations |
-| `HUB Central/fondHubCentral.tscn` | Fond du HUB : image, collisions, portes animées, markers |
-| `PorteJaune/TimeOnauteDansPrehistoire.tscn` | Conteneur de l'ère préhistorique |
-| `PorteJaune/TimeOnautePrehistoire.tscn` | Personnage version préhistorique (CharacterBody2D) |
-| `PorteJaune/fondPrehistoire.tscn` | Fond préhistorique avec porte d'arrivée animée |
+Le personnage `Personnage/TimeAunote.tscn` est instancié dans **toutes** les scènes (HUB + 3 ères). C'est le même CharacterBody2D avec les mêmes sprites et animations.
 
-### Scripts GDScript
+### Portails
 
-| Fichier | Classe | Description |
-|---------|--------|-------------|
-| `Main.gd` | `Node2D` | Orchestrateur : démarre le HUB, puis switch vers Préhistoire quand le HUB se termine |
-| `HUB Central/TimeAunoteDansHubCentral.gd` | `Node2D` | Gère le HUB : déplacements, collisions avec portes et murs, animations de sortie |
-| `HUB Central/TimeAunote.gd` | `CharacterBody2D` | Personnage du HUB : apparition, animations (marche/repos/attente), collisions |
-| `PorteJaune/TimeOnauteDansPrehistoire.gd` | `Node2D` | Gère la Préhistoire : apparition du personnage, gestion start/stop |
-| `PorteJaune/TimeOnautePrehistoire.gd` | `CharacterBody2D` | Personnage préhistorique : déplacements, animations, collisions |
+| Portail | Destination | Fond |
+|---------|-------------|------|
+| Jaune | Moyen-Âge | `art/MoyenAge/fond_moyen-age.png` |
+| Bleu | Présent | `art/Present/fond_nucleaire.png` |
+| Rouge | Futur | `art/Futur/fond_futur.png` |
 
----
+### Animation d'arrivée
 
-## Systèmes implémentés
-
-### Déplacement
-
-- **Dans le HUB :** `TimeAunoteDansHubCentral.gd` lit les entrées, normalise le vecteur, puis appelle `move_and_collide()` sur le personnage. Vitesse = **350** px/s.
-- **En Préhistoire :** `TimeOnautePrehistoire.gd` gère ses propres déplacements en interne. Vitesse = **200** px/s.
-
-### Collisions
-
-Le HUB possède un système de collisions complet dans `fondHubCentral.tscn` :
-
-| Corps de collision | Effet |
-|--------------------|-------|
-| `limitesDeplacament` (table + contour) | Bloque le personnage |
-| `porteJaune` | Animation de sortie → switch vers Préhistoire |
-| `porteBleue` | Animation de sortie (niveau à venir) |
-| `porteRouge` | Animation de sortie (niveau à venir) |
-| `porteGauche` | Téléporte le personnage à `retourDroite` |
-| `porteDroite` | Téléporte le personnage à `retourGauche` |
-
-Les collisions de portes déclenchent chacune une animation :
-1. L'`AnimationPlayer` de la porte joue `"animationPorte"` (rotation + scale → 0)
-2. L'`AnimationPlayer` du personnage joue `"animationPlayer"` (déplacement vers le centre de la porte + rotation)
-3. Un `Timer` de 3 secondes déclenche le changement de niveau
-
-### Animations
-
-**Personnage du HUB** (`TimeAunote.tscn`) :
-- `idle_face` / `idle_dos` / `idle_cote` — repos selon la direction
-- `marche_face` / `marche_dos` / `marche_cote` — marche 4 directions
-- `attente` — animation quand le personnage est immobile depuis +3s
-- `animationPlayer` — animation de sortie (rotation + scale vers 0)
-
-**Personnage préhistorique** (`TimeOnautePrehistoire.tscn`) :
-- `repos` — immobile
-- `marche_haut` / `marche_bas` / `marche_droite` — marche 4 directions
-- `attente` — immobilité prolongée
-- `animationPlayer` — animation d'arrivée (scale de 0 → 0.8 + rotation)
-
-### Portes animées
-
-Chaque porte voyage-temps (`porteJauneAnimee`, `porteBleueAnimee`, `porteRougeAnimee`) possède un `AnimationPlayer` avec une animation `"animationPorte"` qui réduit son `scale` à (0,0) et applique une rotation de ~360° sur 3 secondes.
+Chaque ère joue une animation d'apparition :
+1. Burst de particules (couleur propre à l'ère) à la position d'entrée
+2. Le personnage apparaît en spin-in : scale 0→0.8 avec overshoot, rotation 360°→0, fade-in
+3. Les contrôles sont débloqués après l'animation (~1s)
 
 ---
 
 ## Assets graphiques
 
-Tous les sprites sont dans `art/` :
-- `art/` — personnage HUB (idle face/dos/côté, marche) + portes + fond HUB
-- `art/prehistoire/` — personnage préhistorique (marche 4 dirs, repos) + fond + coffres
+```
+art/
+├── perso_*.png          — sprites du personnage (idle/marche face/dos/côté)
+├── pnj-hub.png          — sprite du PNJ du HUB
+├── hub final.png        — fond du HUB
+├── porteJaune/Bleue/Rouge.png — sprites des portails
+├── MoyenAge/fond_moyen-age.png — fond ère médiévale
+├── Present/fond_nucleaire.png  — fond ère nucléaire
+└── Futur/fond_futur.png        — fond ère futuriste
+```
 
 ---
 
 ## Limitations actuelles
 
-- Seul le portail **jaune** (Préhistoire) a un niveau jouable derrière lui ; bleu et rouge déclenchent l'animation mais n'ont pas de scène cible
-- La Préhistoire n'a pas encore de collisions (pas de murs ni de portes de sortie)
+- Pas de retour des ères vers le HUB (one-way pour l'instant)
+- Pas de collisions/murs dans les ères
 - Pas de menu principal, pas de sauvegarde
 
 ---
@@ -138,6 +106,6 @@ Tous les sprites sont dans `art/` :
 
 - Ne **jamais** ajouter de fichiers `.cs` ou `.csproj` (le projet a été migré de C# vers GDScript)
 - Le dossier `.godot/` est dans `.gitignore` — ne pas le committer
-- Les signaux dans les `.tscn` utilisent la convention snake_case (`_on_timer_sortie_timeout`)
-- Les animations utilisent le format `".:property"` dans `find_track()`
+- Le personnage est dans `Personnage/` — toute modif doit y être faite, pas dupliquée
+- Utiliser `clampf()` / `clampi()` plutôt que `clamp()` quand le type est inféré avec `:=`
 - Lire `AGENTS.md` pour les conventions techniques
