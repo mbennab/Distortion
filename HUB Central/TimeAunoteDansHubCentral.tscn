@@ -5,6 +5,30 @@
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_iim1y"]
 [ext_resource type="PackedScene" uid="uid://cdbextbddujbd" path="res://HUB Central/pnj_hub.tscn" id="4_l1upj"]
 [ext_resource type="Script" uid="uid://bp22n8tog4j0g" path="res://HUB Central/pnj_hub.gd" id="5_fu3hc"]
+[ext_resource type="Script" uid="uid://rart0ycc8m8p" path="res://HUB Central/chien_hub.gd" id="6_fu3hc"]
+[ext_resource type="Texture2D" uid="uid://c6mi733scvivc" path="res://art/chien-hub.png" id="7_pfj0h"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vgvcy"]
+atlas = ExtResource("7_pfj0h")
+region = Rect2(0, 0, 471, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3vecq"]
+atlas = ExtResource("7_pfj0h")
+region = Rect2(471, 0, 471, 641)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ko3p5"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vgvcy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3vecq")
+}],
+"loop": true,
+"name": &"idle-dog",
+"speed": 1.0
+}]
 
 [node name="TimeAunoteDansHUBCentral" type="Node2D" unique_id=1349946414]
 script = ExtResource("1_iim1y")
@@ -20,5 +44,13 @@ one_shot = true
 [node name="pnj-hub" parent="." unique_id=526112262 instance=ExtResource("4_l1upj")]
 position = Vector2(1195, 860)
 script = ExtResource("5_fu3hc")
+
+[node name="chien-hub" type="Node2D" parent="." unique_id=1034956542]
+script = ExtResource("6_fu3hc")
+
+[node name="animation_chien_hub" type="AnimatedSprite2D" parent="chien-hub" unique_id=1240581489]
+scale = Vector2(0.22, 0.22)
+sprite_frames = SubResource("SpriteFrames_ko3p5")
+animation = &"idle-dog"
 
 [connection signal="timeout" from="timerSortie" to="." method="_on_timer_sortie_timeout"]

@@ -2,8 +2,10 @@ extends Node2D
 
 var timeAunote
 var pnjHub
+var chienHub
 var positionEntreePrincipale
 var pnjPos
+var chienPos
 var started = false
 var stopped = true
 var limites
@@ -31,6 +33,8 @@ func _ready():
 	timeAunote = $TimeAunote
 	pnjHub = $"pnj-hub"
 	pnjPos = $"fondHubCentral/Markers2D/pnjPos".position
+	chienHub = $"chien-hub"
+	chienPos = $"fondHubCentral/Markers2D/chienPos".position
 	_setup_particles()
 	_connect_portal_signals()
 
@@ -107,6 +111,7 @@ func start():
 	timeAunote = $TimeAunote
 	timeAunote.apparition(positionEntreePrincipale)
 	pnjHub.apparition(pnjPos)
+	chienHub.apparition(chienPos)
 	started = true
 	stopped = false
 
