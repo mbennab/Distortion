@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://cdbextbddujbd"]
+
+[ext_resource type="Texture2D" uid="uid://dlpnh7prpln22" path="res://art/pnj-hub.png" id="1_65o4k"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ufppd"]
+atlas = ExtResource("1_65o4k")
+region = Rect2(0, 0, 377, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wiq3o"]
+atlas = ExtResource("1_65o4k")
+region = Rect2(377, 0, 377, 640)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_munl3"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ufppd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wiq3o")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 2.0
+}]
+
+[node name="pnj-hub" type="Node2D" unique_id=526112262]
+
+[node name="animation_pnj_hub" type="AnimatedSprite2D" parent="." unique_id=436515787]
+scale = Vector2(0.4, 0.4)
+sprite_frames = SubResource("SpriteFrames_munl3")
+animation = &"idle"
+frame_progress = 0.71192783

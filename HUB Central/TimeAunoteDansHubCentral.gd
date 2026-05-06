@@ -1,7 +1,9 @@
 extends Node2D
 
 var timeAunote
+var pnjHub
 var positionEntreePrincipale
+var pnjPos
 var started = false
 var stopped = true
 var limites
@@ -14,6 +16,7 @@ var timerSortie
 var speed = 350
 var particles
 
+
 func _ready():
 	hide()
 	positionEntreePrincipale = $"fondHubCentral/Markers2D/entreePrincipale".position
@@ -25,6 +28,8 @@ func _ready():
 	porteDroite = $"fondHubCentral/portesVoyageSalles/porteDroite"
 	timerSortie = $timerSortie
 	timeAunote = $TimeAunote
+	pnjHub = $"pnj-hub"
+	pnjPos = $"fondHubCentral/Markers2D/pnjPos".position
 	_setup_particles()
 	_connect_portal_signals()
 
@@ -97,6 +102,7 @@ func start():
 	show()
 	timeAunote = $TimeAunote
 	timeAunote.apparition(positionEntreePrincipale)
+	pnjHub.apparition(pnjPos)
 	started = true
 	stopped = false
 
