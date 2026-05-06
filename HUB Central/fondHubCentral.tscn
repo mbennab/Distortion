@@ -51,19 +51,19 @@ polygon = PackedVector2Array(478, 705, 640.6875, 705.99994, 786, 706, 653, 708)
 [node name="zonePorteJaune" type="Area2D" parent="portesVoyageTemps" unique_id=435895642]
 position = Vector2(1653, 284)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteJaune"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteJaune" unique_id=1999502784]
 shape = SubResource("RectangleShape2D_jaune")
 
 [node name="zonePorteBleue" type="Area2D" parent="portesVoyageTemps" unique_id=166651461]
 position = Vector2(1197, 276)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteBleue"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteBleue" unique_id=183154580]
 shape = SubResource("RectangleShape2D_bleue")
 
 [node name="zonePorteRouge" type="Area2D" parent="portesVoyageTemps" unique_id=785808025]
 position = Vector2(733, 282)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteRouge"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteRouge" unique_id=1234719812]
 shape = SubResource("RectangleShape2D_rouge")
 
 [node name="portesVoyageSalles" type="StaticBody2D" parent="." unique_id=1397184758]
@@ -83,7 +83,7 @@ shape = SubResource("SegmentShape2D_uchnh")
 [node name="Markers2D" type="Node2D" parent="." unique_id=462566541]
 
 [node name="entreePrincipale" type="Marker2D" parent="Markers2D" unique_id=1319892942]
-position = Vector2(1190, 1496)
+position = Vector2(1199, 1496)
 
 [node name="retourJaune" type="Marker2D" parent="Markers2D" unique_id=426627246]
 position = Vector2(1664, 482)
@@ -102,6 +102,7 @@ position = Vector2(229, 532)
 
 [node name="pnjPos" type="Marker2D" parent="Markers2D" unique_id=210872974]
 position = Vector2(1195, 870)
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
 position = Vector2(0, 1)
 anchor_mode = 0
