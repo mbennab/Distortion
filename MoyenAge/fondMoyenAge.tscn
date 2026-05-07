@@ -22,7 +22,23 @@ zoom = Vector2(0.422, 0.422)
 [node name="limitesDeplacements" type="StaticBody2D" parent="." unique_id=49598548]
 collision_layer = 4
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=1661348984]
+[node name="contour" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=1661348984]
 position = Vector2(695, 346)
 build_mode = 1
-polygon = PackedVector2Array(-2, 149, -433, 143, -440, 166, -458, 165, -91, 1047, -71, 1265, 1195, 1269, 1216, 1194, 1205, 1111, 1220, 1045, 1284, 1041, 1284, 993, 1293, 951, 1336, 956, 1361, 983, 1365, 1269, 1503, 1268, 1501, 164, 1478, 164, 1476, 143, 1163, 141, 1167, 214, 904, 217, 901, 144, 861, 141, 859, 251, 773, 251, 771, 121, 601, 121, 600, 309, 457, 308, 456, 116, 296, 119, 295, 251, 210, 252, 210, 150, 117, 150, 115, 91, -5, 91)
+polygon = PackedVector2Array(-2, 149, -433, 143, -440, 166, -458, 165, -460, 1270, -236, 1270, -230, 983, -213, 955, -178, 955, -160, 981, -158, 1036, -91, 1047, -87, 1113, -102, 1201, -84, 1226, -83, 1270, 1199, 1270, 1210, 1224, 1229, 1205, 1227, 1142, 1205, 1111, 1220, 1045, 1284, 1041, 1284, 993, 1304, 957, 1336, 956, 1361, 983, 1365, 1270, 1502, 1270, 1501, 164, 1478, 164, 1476, 143, 1163, 141, 1167, 214, 904, 217, 901, 144, 861, 141, 859, 251, 773, 251, 771, 121, 601, 121, 600, 309, 457, 308, 456, 116, 296, 119, 295, 251, 210, 252, 210, 150, 117, 150, 115, 91, -5, 91)
+
+[node name="bancs1" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=1300739391]
+build_mode = 1
+polygon = PackedVector2Array(785, 967, 784, 1557, 1016, 1556, 1017, 967)
+
+[node name="bancs2" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=156285643]
+build_mode = 1
+polygon = PackedVector2Array(1496, 968, 1495, 1558, 1727, 1557, 1728, 968)
+
+[node name="colonnes1" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=287827992]
+build_mode = 1
+polygon = PackedVector2Array(458, 1251, 472, 1261, 531, 1260, 590, 1249, 614, 1233, 594, 1204, 608, 1149, 598, 1092, 575, 1097, 535, 1098, 533, 967, 592, 951, 611, 935, 595, 911, 596, 862, 611, 836, 611, 794, 591, 749, 538, 751, 535, 658, 516, 632, 485, 632, 467, 653, 462, 885)
+
+[node name="colonnes2" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=484591221]
+build_mode = 1
+polygon = PackedVector2Array(1926, 1251, 1905, 1236, 1923, 1208, 1920, 1148, 1907, 1107, 1929, 1049, 1981, 1049, 1981, 960, 1929, 954, 1905, 934, 1924, 909, 1920, 857, 1907, 836, 1908, 811, 1929, 764, 1983, 767, 1982, 660, 1999, 633, 2037, 636, 2053, 659, 2058, 954, 2059, 1254, 2046, 1262, 1983, 1260)
