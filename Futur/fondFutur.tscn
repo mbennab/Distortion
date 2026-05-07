@@ -4,6 +4,31 @@
 
 [node name="fondFutur" type="Node2D" unique_id=358863711]
 
+[node name="limite-futur" type="StaticBody2D" parent="." unique_id=1712014447]
+collision_layer = 16
+
+[node name="voiture-collision" type="CollisionPolygon2D" parent="limite-futur" unique_id=163268512]
+build_mode = 1
+polygon = PackedVector2Array(946, 623, 1029, 582, 1140, 566, 1301, 553, 1465, 569, 1584, 590, 1568, 828, 1467, 888, 1387, 906, 1185, 872, 1044, 875, 917, 857, 910, 753, 923, 675)
+
+[node name="table-collision" type="CollisionPolygon2D" parent="limite-futur" unique_id=450797917]
+build_mode = 1
+polygon = PackedVector2Array(1028, 1388, 931, 1334, 937, 1251, 1020, 1163, 1228, 1171, 1413, 1174, 1405, 1385, 1399, 1454, 1199, 1468, 1034, 1459)
+
+[node name="murs-collision" type="CollisionPolygon2D" parent="limite-futur" unique_id=894564863]
+build_mode = 1
+polygon = PackedVector2Array(952, 409, 838, 453, 828, 507, 669, 507, 267, 502, 246, 612, 469, 618, 462, 754, 602, 751, 602, 998, 501, 1062, 423, 1078, 382, 1062, 379, 987, 358, 1003, 375, 1180, 366, 1317, 472, 1302, 745, 1306, 732, 1527, 752, 1566, 1349, 1555, 1772, 1550, 1920, 1545, 2208, 1542, 2316, 1529, 2306, 969, 2021, 977, 1997, 904, 1992, 850, 2130, 834, 2132, 741, 2223, 736, 2223, 513, 1959, 515, 1855, 562, 1720, 554, 1629, 489, 1502, 481, 1453, 393)
+
+[node name="canape" type="CollisionPolygon2D" parent="limite-futur" unique_id=1511637255]
+build_mode = 1
+polygon = PackedVector2Array(1546, 1426, 1551, 1135, 1686, 1140, 1686, 1047, 1821, 1049, 1826, 1156, 1831, 1228, 1824, 1355, 1811, 1524, 1634, 1514, 1572, 1496)
+
+[node name="escaliers1" type="CollisionPolygon2D" parent="limite-futur" unique_id=2110474712]
+polygon = PackedVector2Array(1901, 1131, 1910, 1525, 1904, 1215)
+
+[node name="escaliers2" type="CollisionPolygon2D" parent="limite-futur" unique_id=717478078]
+polygon = PackedVector2Array(2173, 1137, 2173, 1536, 2173, 1329)
+
 [node name="image" type="Sprite2D" parent="." unique_id=1394868288]
 scale = Vector2(1.185, 1.185)
 texture = ExtResource("1_yp6m1")
