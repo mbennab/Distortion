@@ -35,6 +35,7 @@ Main.tscn (Node2D)
 │   ├── fondHubCentral (fond + collisions + portes + markers + Camera2D)
 │   ├── TimeAunote (CharacterBody2D) — instance de Personnage/TimeAunote.tscn
 │   ├── pnj-hub (Node2D) — PNJ du HUB
+│   ├── chien-hub (Node2D) — chien prankeur qui se balade dans le HUB
 │   └── timerSortie (Timer) — déclenche le changement de niveau
 │
 ├── MoyenAge (Node2D) — ère médiévale (portail jaune)
@@ -51,7 +52,7 @@ Main.tscn (Node2D)
 ```
 
 **Flux de jeu :**
-1. Le HUB central s'affiche. Le personnage apparaît à l'entrée principale.
+1. Le HUB central s'affiche. Le personnage, le PNJ et le chien prankeur apparaissent à leurs positions respectives.
 2. Le joueur se déplace dans le HUB :
    - **Portes de voyage temporel** (jaune → Moyen-Âge, bleue → Présent, rouge → Futur) : particules + fade-out → transition vers l'ère
    - **Portes de salle** (gauche/droite) : téléportent le personnage de l'autre côté du HUB
@@ -61,6 +62,14 @@ Main.tscn (Node2D)
 ### Personnage partagé
 
 Le personnage `Personnage/TimeAunote.tscn` est instancié dans **toutes** les scènes (HUB + 3 ères). C'est le même CharacterBody2D avec les mêmes sprites et animations.
+
+### PNJ et chien prankeur
+
+Le HUB contient deux entités animées :
+- **pnj-hub** — un PNJ statique avec animation idle, apparaît à `pnjPos`
+- **chien-hub** — un chien prankeur avec animation idle-dog (2 frames, sprite sheet), apparaît à `chienPos`
+
+Les deux sont cachés par défaut et rendus visibles via leur méthode `apparition(position)` appelée par `TimeAunoteDansHUBCentral.start()`.
 
 ### Portails
 
@@ -83,9 +92,11 @@ Chaque ère joue une animation d'apparition :
 
 ```
 art/
-├── perso_*.png          — sprites du personnage (idle/marche face/dos/côté)
-├── pnj-hub.png          — sprite du PNJ du HUB
-├── hub final.png        — fond du HUB
+├── perso_*.png              — sprites du personnage (idle/marche face/dos/côté)
+├── pnj-hub.png              — sprite du PNJ du HUB
+├── chien-hub.png            — sprite sheet du chien prankeur (2 frames)
+├── chien-hub-queue.png      — queue du chien prankeur (variante)
+├── hub final.png            — fond du HUB
 ├── porteJaune/Bleue/Rouge.png — sprites des portails
 ├── MoyenAge/fond_moyen-age.png — fond ère médiévale
 ├── Present/fond_nucleaire.png  — fond ère nucléaire
@@ -99,6 +110,7 @@ art/
 - Pas de retour des ères vers le HUB (one-way pour l'instant)
 - Pas de collisions/murs dans les ères
 - Pas de menu principal, pas de sauvegarde
+- Le chien prankeur est visuel uniquement (pas d'interaction)
 
 ---
 
