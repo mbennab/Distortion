@@ -20,6 +20,14 @@ config/icon="res://icon.svg"
 DialogueSystem="*res://Scripts/DialogueSystem.gd"
 DialogueUI="*res://Scripts/DialogueUI.tscn"
 
+[physics]
+
+2d_physics/layer_1="player"
+2d_physics/layer_2="hub_env"
+2d_physics/layer_3="moyenage_env"
+2d_physics/layer_4="present_env"
+2d_physics/layer_5="futur_env"
+
 [display]
 
 window/size/viewport_width=1024
