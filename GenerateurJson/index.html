@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distortion — Générateur de dimension</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#090c10;--surface:#101418;--surface-raised:#161b22;--card:#111418;--card-hover:#191d24;--border:#252a34;--accent:#00e5ff;--accent-dim:rgba(0,229,255,.12);--accent-glow:0 0 20px rgba(0,229,255,.15);--text:#e2e8f0;--muted:#728197;--danger:#ff4060;--warning:#f0b429;--success:#34d399;--sidebar-w:280px;--panel-w:380px;--header-h:52px;--radius:8px;--radius-sm:6px;--font:"Inter","SF Pro","Segoe UI",system-ui,sans-serif;--mono:"JetBrains Mono","SF Mono","Fira Code","Cascadia Code",monospace}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;overflow:hidden}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,.012) 2px,rgba(0,229,255,.012) 4px);animation:scanDrift 20s linear infinite}
+@keyframes scanDrift{0%{transform:translateY(0)}100%{transform:translateY(4px)}}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,229,255,.03),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(240,180,41,.02),transparent 50%);pointer-events:none;z-index:0}
+input,textarea,select,button{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none;color:var(--text)}
+input,textarea,select{background:#0a0d14;border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;color:var(--text);outline:none;width:100%;transition:border-color .2s,box-shadow .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.1)}
+textarea{resize:vertical;min-height:60px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23728197' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:32px}
+label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;font-weight:500;letter-spacing:.2px;text-transform:uppercase}
+form>div{margin-bottom:14px}
+
+/* Tooltip info icon */
+.field-hint{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:rgba(114,129,151,.2);color:var(--muted);font-size:9px;font-weight:700;font-family:serif;font-style:italic;cursor:help;position:relative;margin-left:5px;vertical-align:middle;transition:background .2s,color .2s,transform .2s}
+.field-hint::before{content:"i"}
+.field-hint:hover{background:var(--accent);color:#000;transform:scale(1.15)}
+#global-tooltip{position:fixed;z-index:99999;pointer-events:none;background:#151a24;color:var(--text);padding:7px 11px;border-radius:var(--radius-sm);font-size:12px;font-weight:400;white-space:normal;width:max-content;max-width:260px;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.5);line-height:1.4;opacity:0;transform:translateX(-50%) translateY(4px);transition:opacity .15s,transform .15s}
+#global-tooltip.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+#global-tooltip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--border)}
+.field-hint[data-tip]:hover::after,.field-hint[data-tip]:hover::before{display:none}
+@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(4px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+.mono{font-family:var(--mono);font-size:13px}
+.btn{padding:7px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#000;font-weight:600}
+.btn-primary:hover{box-shadow:var(--accent-glow);transform:translateY(-1px)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{box-shadow:0 0 16px rgba(255,64,96,.3);transform:translateY(-1px)}
+.btn-outline{border:1px solid var(--border);background:transparent;color:var(--text)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,.04)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-icon{padding:4px;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);transition:all .15s}
+.btn-icon:hover{background:rgba(255,255,255,.06);transform:scale(1.1)}
+.btn-icon:active{transform:scale(.95)}
+input[type=checkbox]{width:auto;accent-color:var(--accent);cursor:pointer}
+input[disabled],button:disabled,select:disabled,textarea:disabled{cursor:not-allowed;opacity:.4;border-style:dashed}
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:10.5px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.badge-gray{background:rgba(114,129,151,.15);color:var(--muted)}
+.badge-orange{background:rgba(240,180,41,.15);color:var(--warning)}
+.badge-green{background:rgba(52,211,153,.15);color:var(--success)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-gray{background:var(--muted)}
+.dot-yellow{background:#f0b429}
+.dot-orange{background:var(--warning)}
+.dot-green{background:var(--success)}
+.status-indicator{display:flex;align-items:center;gap:6px;font-size:12px}
+.status-indicator .dot{width:7px;height:7px}
+.saved{color:var(--success)}
+.unsaved{color:var(--warning)}
+@keyframes savePulse{0%,100%{box-shadow:0 0 0 0 rgba(0,229,255,.4)}50%{box-shadow:0 0 0 6px rgba(0,229,255,0)}}
+@keyframes saveRing{0%{transform:scale(1);opacity:1}100%{transform:scale(2.5);opacity:0}}
+.status-indicator.saving .dot{animation:savePulse 1.2s ease-in-out infinite}
+.status-indicator.error .dot{background:#ff4060!important}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* Layout */
+.app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:1}
+.header{height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--border);background:rgba(17,20,24,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);flex-shrink:0;gap:12px}
+.header-left{display:flex;align-items:center;gap:14px}
+.header-title{font-size:15px;font-weight:700;white-space:nowrap;letter-spacing:-.3px;background:linear-gradient(135deg,var(--text),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:1px 0 0 rgba(0,229,255,.25),-1px 0 0 rgba(255,140,0,.2)}
+.header-center{flex:1;display:flex;align-items:center;justify-content:center;gap:16px;position:relative}
+.header-right{display:flex;align-items:center;gap:12px}
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:var(--sidebar-w);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;background:var(--surface)}
+.sidebar-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-header h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.sidebar-actions{display:flex;gap:4px}
+.sidebar-list{flex:1;overflow-y:auto;padding:6px 0}
+.dim-item{padding:11px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;display:flex;align-items:center;gap:10px;position:relative}
+.dim-item:hover{background:rgba(255,255,255,.03)}
+.dim-item.selected{border-left-color:var(--accent);background:rgba(0,229,255,.06)}
+.dim-item.selected::after{content:"";position:absolute;inset:4px 4px 4px 0;border:1px solid rgba(0,229,255,.1);border-radius:0 var(--radius-sm) var(--radius-sm) 0;pointer-events:none}
+.dim-item-info{flex:1;min-width:0}
+.dim-item-name{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dim-item-era{font-size:11px;color:var(--muted);margin-top:2px}
+.dim-item-actions{display:none;gap:4px;flex-shrink:0}
+.dim-item:hover .dim-item-actions{display:flex}
+.editor{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg);position:relative}
+.tab-content{position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;padding:24px;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .2s ease-out,transform .2s ease-out}
+.tab-content.active{position:relative;overflow-y:auto;opacity:1;transform:translateY(0);pointer-events:auto}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.panel{width:var(--panel-w);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;background:var(--surface);overflow:hidden}
+.panel.hidden{display:none}
+.panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;padding:0 8px}
+.panel-tab{padding:10px 14px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;background:none}
+.panel-tab:hover{color:var(--text)}
+.panel-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.panel-content{flex:1;overflow-y:auto;padding:16px;display:none}
+.panel-content.active{display:block;animation:fadeIn .15s ease-out}
+
+/* Main tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;padding:0 8px;gap:2px}
+.tab{padding:10px 14px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;background:none;border-radius:0;letter-spacing:.2px}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.02)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Forms */
+.form-row{display:flex;gap:14px}
+.form-row>div{flex:1}
+.form-inline{display:flex;align-items:center;gap:8px}
+.multi-select{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#0a0d14;min-height:38px}
+.multi-select-item{display:flex;align-items:center;gap:6px;padding:6px 12px;min-height:30px;background:rgba(0,229,255,.08);border-radius:5px;font-size:12px;cursor:pointer;transition:all .15s;border:1px solid transparent}
+.multi-select-item:hover{background:rgba(0,229,255,.18);border-color:rgba(0,229,255,.2)}
+.multi-select-item.selected{background:rgba(0,229,255,.15);border-color:var(--accent)}
+@keyframes selectPop{0%{transform:scale(1)}30%{transform:scale(.88)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+.multi-select-item.popping{animation:selectPop .35s cubic-bezier(.34,1.56,.64,1)}
+.multi-select-placeholder{color:var(--muted);font-size:12px}
+
+/* Tables */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;position:sticky;top:0;background:var(--bg);z-index:1}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.03)}
+.table-scroll{overflow-x:auto;max-width:100%;position:relative}
+.table-scroll::after{content:"";position:absolute;top:0;right:0;bottom:0;width:20px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none}
+
+/* Cards / Sections */
+.section{margin-bottom:24px}
+.section-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;letter-spacing:-.2px}
+.section-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:12px;background:var(--surface-raised);transition:border-color .2s}
+.section-card:hover{border-color:rgba(0,229,255,.15)}
+
+/* Items in lists */
+.item-list{display:flex;flex-direction:column;gap:4px}
+.item-entry{padding:9px 14px;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;border:1px solid transparent}
+.item-entry:hover{background:rgba(255,255,255,.03);border-color:var(--border)}
+.item-entry.selected{border-color:var(--accent);background:rgba(0,229,255,.06);box-shadow:0 0 0 1px rgba(0,229,255,.1)}
+.item-entry .name{font-weight:500;font-size:13px}
+
+/* Toggle switch */
+.toggle{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border);transition:.25s;border-radius:11px}
+.toggle .slider::before{content:"";position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:var(--text);transition:.25s;border-radius:50%}
+.toggle input:checked+.slider{background:var(--accent);box-shadow:0 0 8px rgba(0,229,255,.3)}
+.toggle input:checked+.slider::before{transform:translateX(16px);background:#000}
+
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(2,4,8,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);visibility:hidden;opacity:0;display:flex;align-items:center;justify-content:center;z-index:1000;transition:visibility .2s,opacity .2s}
+.modal-overlay.open{visibility:visible;opacity:1}
+.modal{background:rgba(17,20,24,.95);border:1px solid var(--border);border-radius:12px;width:580px;max-width:90vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 0 1px rgba(0,229,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);animation:modalIn .2s ease-out}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-header h3{font-size:16px;font-weight:600;letter-spacing:-.2px}
+.modal-close{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;transition:all .15s}
+.modal-close:hover{background:rgba(255,255,255,.08);transform:scale(1.1)}
+.modal-body{padding:22px;overflow-y:auto;flex:1}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:16px 22px;border-top:1px solid var(--border);flex-shrink:0}
+
+/* Toast */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 18px;border-radius:var(--radius-sm);font-size:13px;background:rgba(17,20,24,.95);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.5);animation:toastIn .25s ease-out;max-width:360px;backdrop-filter:blur(12px)}
+.toast-success{border-left:3px solid var(--success)}
+.toast-error{border-left:3px solid var(--danger)}
+.toast-info{border-left:3px solid var(--accent)}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(12px)}}
+.toast.removing{animation:toastOut .25s ease-in forwards}
+
+/* Tree */
+.tree-node{margin:3px 0}
+.tree-node-header{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:13px;transition:all .12s}
+.tree-node-header:hover{background:rgba(255,255,255,.03)}
+.tree-children{margin-left:18px;border-left:1px solid rgba(37,42,52,.6);padding-left:10px}
+.tree-arrow{font-size:10px;color:var(--muted);width:14px;text-align:center;flex-shrink:0}
+.anomaly-card{padding:11px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:10px;background:var(--surface-raised)}
+.anomaly-card:hover{background:rgba(255,255,255,.03);border-color:rgba(0,229,255,.15);transform:translateX(2px)}
+.anomaly-icon{font-size:15px;flex-shrink:0;margin-top:2px}
+.anomaly-msg{font-size:13px;flex:1;line-height:1.4}
+.anomaly-path{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:4px;opacity:.7}
+
+/* Step ordering */
+.step-item{padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;background:var(--surface-raised);transition:border-color .2s;cursor:grab}
+.step-item.dragging{opacity:.5;transform:scale(.97)}
+.step-item.drag-over{border-color:var(--accent);box-shadow:0 0 12px rgba(0,229,255,.15)}
+.step-item:hover{border-color:rgba(0,229,255,.12)}
+.step-item-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.step-title{font-weight:600;font-size:13px;flex:1;font-family:var(--mono)}
+.step-actions{display:flex;gap:4px}
+.step-actions .btn-icon{width:32px;height:32px}
+.step-actions .btn-icon.delete-step{position:relative}
+.step-actions .btn-icon.delete-step::before{content:"";position:absolute;left:-5px;top:6px;bottom:6px;width:1px;background:var(--border);border-radius:1px}
+.step-body{padding-left:4px}
+.step-triggers{margin-top:10px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#0a0d14}
+.step-triggers-title{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-weight:600}
+
+/* Validation summary */
+.validation-summary{padding:14px;border-radius:var(--radius-sm);margin-bottom:14px;font-weight:500;text-align:center;font-size:13px}
+.validation-summary.ok{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:var(--success)}
+.validation-summary.err{background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.2);color:var(--danger)}
+
+/* Warning icon in header */
+.warning-badge{position:absolute;right:0;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;background:rgba(240,180,41,.1);color:var(--warning);font-size:12px;cursor:pointer;transition:all .2s}
+.warning-badge:hover{background:rgba(240,180,41,.2);transform:scale(1.02)}
+.warning-badge.valid{background:rgba(52,211,153,.1);color:var(--success)}
+.warning-badge.valid:hover{background:rgba(52,211,153,.2)}
+.warning-badge svg{width:14px;height:14px}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;color:var(--muted);gap:12px;font-size:13px}
+.empty-state .empty-icon{font-size:40px;opacity:.4}
+.loading-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(9,12,16,.7);z-index:100;backdrop-filter:blur(2px)}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="header-left">
+      <div class="header-title">Distortion — Générateur de dimension</div>
+    </div>
+    <div class="header-center">
+      <div class="status-indicator" id="statusIndicator">
+        <span class="dot dot-green"></span>
+        <span id="statusText">Sauvegardé</span>
+      </div>
+      <div class="warning-badge" id="warningBadge" onclick="togglePanel('validation')" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span id="warningCount">0</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" onclick="togglePanel('tree')" title="Arbre de visualisation">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="main">
+    <aside class="sidebar scrollbar">
+      <div class="sidebar-header">
+        <h3>Dimensions</h3>
+        <div class="sidebar-actions">
+          <button class="btn-icon" onclick="openModal('newDim')" title="Nouvelle dimension">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="btn-icon" onclick="openModal('import')" title="Importer un JSON">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <input type="search" id="dimSearch" placeholder="Rechercher..." style="margin:8px 12px;width:calc(100% - 24px)" oninput="renderSidebar()">
+      <div class="sidebar-list scrollbar" id="dimensionList"></div>
+    </aside>
+    <main class="editor">
+      <div class="loading-overlay" id="loadingOverlay" style="display:none"><div class="spinner"></div></div>
+      <div class="tabs" id="mainTabs">
+        <button class="tab active" data-tab="meta">Meta</button>
+        <button class="tab" data-tab="npcs">PNJ</button>
+        <button class="tab" data-tab="quests">Quêtes</button>
+        <button class="tab" data-tab="mini-games">Mini-jeux</button>
+        <button class="tab" data-tab="items">Items</button>
+        <button class="tab" data-tab="fallbacks">Fallbacks globaux</button>
+      </div>
+      <div class="tab-content active" id="tabMeta">
+        <div class="section">
+          <h3 class="section-title">Meta</h3>
+          <form id="formMeta" onchange="markDirty()">
+            <div class="form-row">
+              <div><label>ID <span class="field-hint" data-tip="identifiant unique, snake_case"></span></label><input type="text" id="metaId" class="mono" onchange="markDirty()"></div>
+              <div><label>Nom <span class="field-hint" data-tip="nom affiché dans le hub"></span></label><input type="text" id="metaName" onchange="markDirty()"></div>
+            </div>
+            <div class="form-row">
+              <div><label>Époque <span class="field-hint" data-tip="date ou période historique"></span></label><input type="text" id="metaEra" onchange="markDirty()"></div>
+            </div>
+            <div><label>Description <span class="field-hint" data-tip="texte narratif affiché dans le hub"></span></label><textarea id="metaDescription" rows="3" onchange="markDirty()"></textarea></div>
+          </form>
+        </div>
+      </div>
+      <div class="tab-content" id="tabNpcs">
+        <div class="section" style="display:flex;gap:20px">
+          <div style="width:220px;flex-shrink:0">
+            <div class="section-title">
+              <span>PNJ</span>
+              <button class="btn btn-primary btn-sm" onclick="addNpc()">+ Ajouter PNJ</button>
+            </div>
+            <div class="item-list" id="npcList"></div>
+          </div>
+          <div style="flex:1;min-width:0" id="npcFormContainer">
+            <div style="color:var(--muted);padding:20px;text-align:center">Sélectionnez un PNJ pour l'éditer</div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="tabQuests">
+        <div class="section" style="display:flex;gap:20px">
+          <div style="width:220px;flex-shrink:0">
+            <div class="section-title">
+              <span>Quêtes</span>
+              <button class="btn btn-primary btn-sm" onclick="addQuest()">+ Ajouter quête</button>
+            </div>
+            <div class="item-list" id="questList"></div>
+          </div>
+          <div style="flex:1;min-width:0" id="questFormContainer">
+            <div style="color:var(--muted);padding:20px;text-align:center">Sélectionnez une quête pour l'éditer</div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="tabMiniGames">
+        <div class="section" style="display:flex;gap:20px">
+          <div style="width:220px;flex-shrink:0">
+            <div class="section-title">
+              <span>Mini-jeux</span>
+              <button class="btn btn-primary btn-sm" onclick="addMiniGame()">+ Ajouter mini-jeu</button>
+            </div>
+            <div class="item-list" id="miniGameList"></div>
+          </div>
+          <div style="flex:1;min-width:0" id="miniGameFormContainer">
+            <div style="color:var(--muted);padding:20px;text-align:center">Sélectionnez un mini-jeu pour l'éditer</div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="tabItems">
+        <div class="section" style="display:flex;gap:20px">
+          <div style="width:220px;flex-shrink:0">
+            <div class="section-title">
+              <span>Items</span>
+              <button class="btn btn-primary btn-sm" onclick="addItem()">+ Ajouter item</button>
+            </div>
+            <div class="item-list" id="itemsList"></div>
+          </div>
+          <div style="flex:1;min-width:0" id="itemFormContainer">
+            <div style="color:var(--muted);padding:20px;text-align:center">Sélectionnez un item pour l'éditer</div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="tabFallbacks">
+        <div class="section">
+          <h3 class="section-title">Fallbacks globaux</h3>
+          <form id="formFallbacks" onchange="markDirty()">
+            <div><label>Off-topic <span class="field-hint" data-tip="message si le joueur est hors-sujet"></span></label><textarea id="fbOffTopic" rows="2" onchange="markDirty()"></textarea></div>
+            <div><label>Insult <span class="field-hint" data-tip="message si le joueur insulte"></span></label><textarea id="fbInsult" rows="2" onchange="markDirty()"></textarea></div>
+            <div><label>Timeout <span class="field-hint" data-tip="message si l'API Mistral ne répond pas"></span></label><textarea id="fbTimeout" rows="2" onchange="markDirty()"></textarea></div>
+            <div><label>Unknown <span class="field-hint" data-tip="message si aucun ID de réplique trouvé"></span></label><textarea id="fbUnknown" rows="2" onchange="markDirty()"></textarea></div>
+            <div><label>Template par défaut <span class="field-hint" data-tip="dernier recours, doit contenir {name}"></span></label><textarea id="fbDefaultTemplate" rows="2" onchange="markDirty()"></textarea></div>
+          </form>
+        </div>
+      </div>
+    </main>
+    <aside class="panel hidden" id="rightPanel">
+      <div class="panel-tabs">
+        <button class="panel-tab active" data-ptab="tree">Arbre</button>
+        <button class="panel-tab" data-ptab="validation">Validation</button>
+      </div>
+      <div class="panel-content active" id="pTreeContent"></div>
+      <div class="panel-content" id="pValidationContent"></div>
+    </aside>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalNewDim">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nouvelle dimension</h3>
+      <div class="modal-close" onclick="closeModal('newDim')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="formNewDim">
+        <div><label>ID <span class="field-hint" data-tip="identifiant unique, snake_case"></span></label><input type="text" id="newDimId" class="mono" placeholder="ex: egypte"></div>
+        <div><label>Nom <span class="field-hint" data-tip="nom affiché dans le hub"></span></label><input type="text" id="newDimName" placeholder="ex: Égypte antique"></div>
+        <div><label>Époque <span class="field-hint" data-tip="date ou période historique"></span></label><input type="text" id="newDimEra" placeholder="ex: -1350"></div>
+        <div><label>Description <span class="field-hint" data-tip="texte narratif affiché dans le hub"></span></label><textarea id="newDimDesc" rows="3" placeholder="Description narrative courte"></textarea></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('newDim')">Annuler</button>
+      <button class="btn btn-primary" onclick="submitNewDimension()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalImport">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Importer un JSON</h3>
+      <div class="modal-close" onclick="closeModal('import')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div><label>Fichier JSON</label><input type="file" id="importFile" accept=".json"></div>
+      <div id="importValidationResult" style="margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('import')">Annuler</button>
+      <button class="btn btn-primary" onclick="submitImport()">Importer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalAddReply">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Ajouter une réplique</h3>
+      <div class="modal-close" onclick="closeModal('addReply')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="formAddReply">
+        <div><label>ID <span class="field-hint" data-tip="auto-généré, modifiable"></span></label><input type="text" id="replyId" class="mono"></div>
+        <div><label>Quest ID <span class="field-hint" data-tip="quête concernée par cette réplique"></span></label><select id="replyQuestId" onchange="onReplyConditionChange()"></select></div>
+        <div class="form-row">
+          <div><label>Condition <span class="field-hint" data-tip="statut ou étape de la quête"></span></label><select id="replyCondition" onchange="onReplyConditionChange()"><option value="not_started">not_started</option></select></div>
+        </div>
+        <div><label>Intention du joueur</label><input type="text" id="replyIntention" placeholder="Ce que le joueur cherche à faire / exprime"></div>
+        <div><label>Réponse du PNJ</label><textarea id="replyText" rows="4" placeholder="Ce que le PNJ répond au joueur"></textarea></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addReply')">Annuler</button>
+      <button class="btn btn-primary" onclick="submitAddReply()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const API = '/api/dimensions';
+let currentDimension = null;
+let currentDimId = null;
+let dimensions = [];
+let selectedNpcId = null;
+let selectedQuestId = null;
+let selectedMiniGameId = null;
+let selectedItemId = null;
+let dirty = false;
+let autoSaveTimer = null;
+let pendingReplyNpcId = null;
+let editingReplyIndex = null;
+let panelMode = null;
+
+function apiUrl(path){return API+path}
+
+async function apiFetch(url,opts={}){
+  showLoading();
+  try{
+    const r=await fetch(url,{headers:{'Content-Type':'application/json',...opts.headers},...opts});
+    if(!r.ok){const e=await r.text();throw new Error(e||r.statusText)}
+    return opts.raw?r:await r.json()
+  }catch(e){showToast(e.message,'error');throw e}
+  finally{hideLoading()}
+}
+
+function showLoading(){
+  document.getElementById('loadingOverlay').style.display='flex'
+}
+function hideLoading(){
+  document.getElementById('loadingOverlay').style.display='none'
+}
+
+async function loadDimensionList(){
+  try{
+    dimensions=await apiFetch(API);
+    renderSidebar()
+  }catch(e){dimensions=[];renderSidebar()}
+}
+
+function renderSidebar(){
+  const el=document.getElementById('dimensionList');
+  const searchTerm=(document.getElementById('dimSearch')?.value||'').toLowerCase();
+  const filtered=dimensions.filter(d=>{
+    if(!searchTerm)return true;
+    const name=(d.name||d.id||'').toLowerCase();
+    const id=(d.id||'').toLowerCase();
+    return name.includes(searchTerm)||id.includes(searchTerm)
+  });
+  el.innerHTML=filtered.map(d=>{
+    const name=d.name||d.id;
+    const selected=d.id===currentDimId?' selected':'';
+    const dotColor=d.completed?'dot-green':d.status==='in_progress'?'dot-orange':'dot-gray';
+    return `<div class="dim-item${selected}" data-id="${d.id}" onclick="loadDimension('${d.id}')">
+      <span class="dot ${dotColor}"></span>
+      <div class="dim-item-info">
+        <div class="dim-item-name">${escHtml(name)}</div>
+        <div class="dim-item-era">${escHtml(d.era||'')}</div>
+      </div>
+      <div class="dim-item-actions">
+        <button class="btn-icon" onclick="event.stopPropagation();exportDimension('${d.id}')" title="Exporter">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button class="btn-icon" onclick="event.stopPropagation();deleteDimension('${d.id}')" title="Supprimer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        </button>
+      </div>
+    </div>`
+  }).join('')
+}
+
+async function loadDimension(id){
+  if(dirty && currentDimId){
+    if(!confirm('Modifications non sauvegardées. Sauvegarder avant de changer ?'))return;
+    await saveDimension()
+  }
+  try{
+    currentDimension=await apiFetch(API+'/'+encodeURIComponent(id));
+    currentDimId=id;
+    selectedNpcId=null;
+    selectedQuestId=null;
+    selectedMiniGameId=null;
+    selectedItemId=null;
+    dirty=false;
+    updateStatusIndicator();
+    populateAllForms();
+    renderSidebar();
+    runValidation();
+    if(panelMode)renderPanelContent()
+  }catch(e){showToast('Erreur chargement: '+e.message,'error')}
+}
+
+function populateAllForms(){
+  if(!currentDimension)return;
+  const m=currentDimension.meta||{};
+  document.getElementById('metaId').value=m.id||'';
+  document.getElementById('metaName').value=m.name||'';
+  document.getElementById('metaEra').value=m.era||'';
+  document.getElementById('metaDescription').value=m.description||'';
+  populateNpcs();
+  populateQuests();
+  populateMiniGames();
+  populateItems();
+  populateFallbacks();
+}
+
+function populateNpcs(){
+  const el=document.getElementById('npcList');
+  const npcs=currentDimension.npcs||[];
+  el.innerHTML=npcs.map((n,i)=>`<div class="item-entry${n.id===selectedNpcId?' selected':''}" onclick="selectNpc('${escHtml(n.id)}')">
+    <span class="name">${escHtml(n.name||n.id)}</span>
+    <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">${escHtml(n.id)}</span>
+    <span class="badge badge-gray" style="margin-left:auto;font-size:10px">${(n.dialogue_bank||[]).length} 💬</span>
+  </div>`).join('');
+  if(selectedNpcId&&npcs.some(n=>n.id===selectedNpcId))renderNpcForm(selectedNpcId);
+  else if(npcs.length){selectedNpcId=npcs[0].id;renderNpcForm(selectedNpcId)}
+  else document.getElementById('npcFormContainer').innerHTML='<div style="color:var(--muted);padding:20px;text-align:center">Aucun PNJ. Cliquez "Ajouter PNJ"</div>'
+}
+
+function selectNpc(id){
+  selectedNpcId=id;
+  populateNpcs();
+  renderNpcForm(id)
+}
+
+function getNpc(id){
+  return (currentDimension.npcs||[]).find(n=>n.id===id)
+}
+
+function renderNpcForm(id){
+  const npc=getNpc(id);
+  if(!npc){document.getElementById('npcFormContainer').innerHTML='<div style="color:var(--muted);padding:20px;text-align:center">PNJ introuvable</div>';return}
+  const p=npc.personality||{};
+  const f=npc.fallbacks||{};
+  const db=npc.dialogue_bank||[];
+  const quests=currentDimension.quests||[];
+  const getStatusLabel=s=>{if(s==='not_started')return'badge-gray';if(s==='done')return'badge-green';return'badge-orange'};
+  const getStatusText=s=>s==='not_started'?'NS':s==='done'?'Done':'Étape';
+  document.getElementById('npcFormContainer').innerHTML=`
+    <form onchange="markDirty()">
+      <div class="form-row">
+        <div><label>ID <span class="field-hint" data-tip="identifiant unique du PNJ"></span></label><input type="text" id="npcId" class="mono" value="${escHtml(npc.id)}" onchange="updateNpcField('id',this.value)"></div>
+        <div><label>Nom <span class="field-hint" data-tip="nom affiché en jeu"></span></label><input type="text" id="npcName" value="${escHtml(npc.name||'')}" onchange="updateNpcField('name',this.value)"></div>
+      </div>
+      <div><label>Tone <span class="field-hint" data-tip="style de parole et registre de langue du PNJ"></span></label><input type="text" id="npcTone" value="${escHtml(p.tone||'')}" onchange="updateNpcPersonality('tone',this.value)"></div>
+      <div><label>Prompt Context <span class="field-hint" data-tip="instruction système injectée dans le prompt Mistral"></span></label><textarea id="npcPromptContext" rows="3" onchange="updateNpcPersonality('prompt_context',this.value)">${escHtml(p.prompt_context||'')}</textarea></div>
+    </form>
+    <div style="margin-top:12px">
+      <div class="section-title">
+        <span>Fallbacks <span class="field-hint" data-tip="réponses de secours du PNJ"></span></span>
+      </div>
+      <form onchange="markDirty()">
+        <div><label>Off-topic <span class="field-hint" data-tip="si le joueur est hors-sujet"></span></label><input type="text" value="${escHtml(f.off_topic||'')}" onchange="updateNpcFallback('off_topic',this.value)"></div>
+        <div><label>Insult <span class="field-hint" data-tip="si le joueur insulte"></span></label><input type="text" value="${escHtml(f.insult||'')}" onchange="updateNpcFallback('insult',this.value)"></div>
+        <div><label>Default Template <span class="field-hint" data-tip="dernier recours, doit contenir {name}"></span></label><input type="text" value="${escHtml(f.default_template||'')}" onchange="updateNpcFallback('default_template',this.value)"></div>
+      </form>
+    </div>
+    <div style="margin-top:12px">
+      <div class="section-title">
+        <span>Dialogue Bank</span>
+        <button class="btn btn-primary btn-sm" onclick="openAddReplyModal('${escHtml(npc.id)}')">+ Ajouter réplique</button>
+      </div>
+      <table>
+        <thead><tr><th>ID</th><th>Quest</th><th>Status</th><th>Step</th><th>Intention joueur</th><th></th></tr></thead>
+        <tbody>
+          ${db.map((r,i)=>`<tr>
+            <td class="mono" style="font-size:12px">${escHtml(r.id)}</td>
+            <td class="mono" style="font-size:12px">${escHtml(r.condition?.quest_id||'')}</td>
+            <td><span class="badge ${getStatusLabel(r.condition?.quest_status)}">${getStatusText(r.condition?.quest_status)}</span></td>
+            <td class="mono" style="font-size:12px">${escHtml(r.condition?.quest_step||'—')}</td>
+            <td style="font-size:12px" title="${escHtml(r.text||'')}">${escHtml(r.intention||'')}</td>
+            <td>
+              <button class="btn-icon" onclick="editReply('${escHtml(npc.id)}',${i})" title="Modifier">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="btn-icon" onclick="deleteReply('${escHtml(npc.id)}',${i})" title="Supprimer">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-danger" onclick="deleteNpc('${escHtml(npc.id)}')">Supprimer ce PNJ</button>
+    </div>
+  `
+}
+
+function updateNpcField(field,val){
+  const npc=getNpc(selectedNpcId);
+  if(!npc)return;
+  if(field==='id'){
+    const oldId=npc.id;
+    npc.id=val;
+    currentDimension.npcs.forEach(n=>{if(n.id===oldId)n.id=val});
+    (currentDimension.quests||[]).forEach(q=>(q.steps||[]).forEach(s=>{
+    }));
+    selectedNpcId=val;
+    populateNpcs()
+  }else npc[field]=val;
+  markDirty()
+}
+
+function updateNpcPersonality(field,val){
+  const npc=getNpc(selectedNpcId);
+  if(!npc)return;
+  if(!npc.personality)npc.personality={};
+  npc.personality[field]=val;
+  markDirty()
+}
+
+function updateNpcFallback(key,val){
+  const npc=getNpc(selectedNpcId);
+  if(!npc)return;
+  if(!npc.fallbacks)npc.fallbacks={};
+  npc.fallbacks[key]=val;
+  markDirty()
+}
+
+function addNpc(){
+  if(!currentDimension)return;
+  if(!currentDimension.npcs)currentDimension.npcs=[];
+  const id='npc_'+(currentDimension.npcs.length+1);
+  const npc={id,name:'Nouveau PNJ',personality:{tone:'',prompt_context:'Tu es Nouveau PNJ. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l\'ID de la réplique la plus adaptée parmi celles listées ci-dessous. Réponds avec un JSON : {"id": "<id_replique>"}.'},dialogue_bank:[],fallbacks:{off_topic:'',insult:'',default_template:''}};
+  currentDimension.npcs.push(npc);
+  selectedNpcId=npc.id;
+  populateNpcs();
+  markDirty()
+}
+
+function deleteNpc(id){
+  const npc=getNpc(id);
+  const label=npc?(npc.name||npc.id):id;
+  const npcsSnapshot=[...(currentDimension.npcs||[])];
+  const performDelete=()=>{
+    currentDimension.npcs=(currentDimension.npcs||[]).filter(n=>n.id!==id);
+    selectedNpcId=null;
+    populateNpcs();
+    markDirty()
+  };
+  const undo=()=>{
+    currentDimension.npcs=npcsSnapshot;
+    if(npcsSnapshot.some(n=>n.id===id))selectedNpcId=id;
+    populateNpcs();
+    markDirty()
+  };
+  performDelete();
+  confirmDeleteWithUndo(label,()=>{},undo)
+}
+
+function deleteReply(npcId,idx){
+  const npc=getNpc(npcId);
+  if(!npc||!npc.dialogue_bank)return;
+  const reply=npc.dialogue_bank[idx];
+  const label=reply?reply.id:'réplique '+idx;
+  const dbSnapshot=[...npc.dialogue_bank];
+  const performDelete=()=>{
+    npc.dialogue_bank.splice(idx,1);
+    renderNpcForm(npcId);
+    markDirty()
+  };
+  const undo=()=>{
+    npc.dialogue_bank=dbSnapshot;
+    renderNpcForm(npcId);
+    markDirty()
+  };
+  performDelete();
+  confirmDeleteWithUndo(label,()=>{},undo)
+}
+
+function editReply(npcId,idx){
+  editingReplyIndex=idx;
+  const npc=getNpc(npcId);
+  if(!npc||!npc.dialogue_bank||!npc.dialogue_bank[idx])return;
+  const r=npc.dialogue_bank[idx];
+  pendingReplyNpcId=npcId;
+  const quests=currentDimension.quests||[];
+  const sel=document.getElementById('replyQuestId');
+  sel.innerHTML=quests.map(q=>`<option value="${escHtml(q.id)}"${r.condition?.quest_id===q.id?' selected':''}>${escHtml(q.title||q.id)}</option>`).join('');
+  onReplyConditionChange();
+  const cs=r.condition?.quest_status||null;
+  const cstep=r.condition?.quest_step||null;
+  if(cstep)document.getElementById('replyCondition').value='step:'+cstep;
+  else document.getElementById('replyCondition').value='status:'+(cs||'not_started');
+  document.getElementById('replyId').value=r.id||'';
+  document.getElementById('replyIntention').value=r.intention||'';
+  document.getElementById('replyText').value=r.text||'';
+  // Update modal title
+  document.querySelector('#modalAddReply .modal-header h3').textContent='Modifier la réplique';
+  document.querySelector('#modalAddReply .btn-primary').textContent='Modifier';
+  openModal('addReply')
+}
+
+function openAddReplyModal(npcId){
+  editingReplyIndex=null;
+  pendingReplyNpcId=npcId;
+  const quests=currentDimension.quests||[];
+  const sel=document.getElementById('replyQuestId');
+  sel.innerHTML=quests.map(q=>`<option value="${escHtml(q.id)}">${escHtml(q.title||q.id)}</option>`).join('');
+  const npc=getNpc(npcId);
+  const db=npc?.dialogue_bank||[];
+  const idx=db.filter(r=>r.condition?.quest_status==='not_started').length+1;
+  document.getElementById('replyId').value=npcId+'_not_started_'+String(idx).padStart(2,'0');
+  document.getElementById('replyIntention').value='';
+  document.getElementById('replyText').value='';
+  onReplyConditionChange();
+  document.getElementById('replyCondition').value='status:not_started';
+  document.querySelector('#modalAddReply .modal-header h3').textContent='Ajouter une réplique';
+  document.querySelector('#modalAddReply .btn-primary').textContent='Ajouter';
+  openModal('addReply')
+}
+
+function onReplyConditionChange(){
+  const qid=document.getElementById('replyQuestId').value;
+  const quest=(currentDimension.quests||[]).find(q=>q.id===qid);
+  const steps=quest?.steps||[];
+  const sel=document.getElementById('replyCondition');
+  sel.innerHTML='<option value="status:not_started">not_started</option>'+
+    steps.map(s=>`<option value="step:${escHtml(s.id)}">Étape: ${escHtml(s.id)}</option>`).join('')+
+    '<option value="status:done">done</option>';
+  updateReplyId()
+}
+
+function updateReplyId(){
+  const npcId=pendingReplyNpcId;
+  const cond=document.getElementById('replyCondition').value;
+  const npc=getNpc(npcId);
+  const db=npc?.dialogue_bank||[];
+  let status=cond,step=null;
+  if(cond.startsWith('status:')){status=cond.slice(7);step=null}
+  else if(cond.startsWith('step:')){status=null;step=cond.slice(5)}
+  const matchCond=r=>{
+    const cs=r.condition?.quest_status||null;
+    const cstep=r.condition?.quest_step||null;
+    return cs===status&&cstep===step
+  };
+  const idx=db.filter(matchCond).length+1;
+  const label=step?step:status||'?';
+  document.getElementById('replyId').value=npcId+'_'+label+'_'+String(idx).padStart(2,'0')
+}
+
+function submitAddReply(){
+  const npcId=pendingReplyNpcId;
+  const npc=getNpc(npcId);
+  if(!npc){showToast('PNJ introuvable','error');return}
+  if(!npc.dialogue_bank)npc.dialogue_bank=[];
+  const id=document.getElementById('replyId').value.trim();
+  if(!id){showToast('ID requis','error');return}
+  const cond=document.getElementById('replyCondition').value;
+  let quest_status=null,quest_step=null;
+  if(cond.startsWith('status:')){quest_status=cond.slice(7);quest_step=null}
+  else if(cond.startsWith('step:')){quest_status=null;quest_step=cond.slice(5)}
+  const replyData={
+    id,
+    condition:{quest_id:document.getElementById('replyQuestId').value,quest_status,quest_step},
+    intention:document.getElementById('replyIntention').value,
+    text:document.getElementById('replyText').value
+  };
+  if(editingReplyIndex!==null){
+    npc.dialogue_bank[editingReplyIndex]=replyData;
+    editingReplyIndex=null;
+    showToast('Réplique modifiée','success')
+  }else{
+    npc.dialogue_bank.push(replyData);
+    showToast('Réplique ajoutée','success')
+  }
+  closeModal('addReply');
+  renderNpcForm(npcId);
+  markDirty()
+}
+
+function populateQuests(){
+  const el=document.getElementById('questList');
+  const quests=currentDimension.quests||[];
+  el.innerHTML=quests.map(q=>{
+    const statusClass=q.status==='not_started'?'badge-gray':'badge-green';
+    return `<div class="item-entry${q.id===selectedQuestId?' selected':''}" onclick="selectQuest('${escHtml(q.id)}')">
+      <span class="badge ${statusClass}" style="font-size:10px">${escHtml(q.status||'not_started')}</span>
+      <span class="name">${escHtml(q.title||q.id)}</span>
+      <span class="badge badge-gray" style="margin-left:auto;font-size:10px">${(q.steps||[]).length} 📋</span>
+    </div>`
+  }).join('');
+  if(selectedQuestId&&quests.some(q=>q.id===selectedQuestId))renderQuestForm(selectedQuestId);
+  else if(quests.length){selectedQuestId=quests[0].id;renderQuestForm(selectedQuestId)}
+  else document.getElementById('questFormContainer').innerHTML='<div style="color:var(--muted);padding:20px;text-align:center">Aucune quête. Cliquez "Ajouter quête"</div>'
+}
+
+function selectQuest(id){
+  selectedQuestId=id;
+  populateQuests();
+  renderQuestForm(id)
+}
+
+function getQuest(id){
+  return (currentDimension.quests||[]).find(q=>q.id===id)
+}
+
+function renderQuestForm(id){
+  const quest=getQuest(id);
+  if(!quest){document.getElementById('questFormContainer').innerHTML='<div style="color:var(--muted);padding:20px;text-align:center">Quête introuvable</div>';return}
+  const allQuests=currentDimension.quests||[];
+  const steps=quest.steps||[];
+  document.getElementById('questFormContainer').innerHTML=`
+    <form onchange="markDirty()">
+      <div class="form-row">
+        <div><label>ID <span class="field-hint" data-tip="identifiant unique de la quête"></span></label><input type="text" id="questId" class="mono" value="${escHtml(quest.id)}" onchange="updateQuestField('id',this.value)"></div>
+        <div><label>Titre <span class="field-hint" data-tip="titre affiché dans le journal du joueur"></span></label><input type="text" id="questTitle" value="${escHtml(quest.title||'')}" onchange="updateQuestField('title',this.value)"></div>
+      </div>
+      <div><label>Status <span class="field-hint" data-tip="état actuel de la quête"></span></label>
+        <select id="questStatus" onchange="updateQuestField('status',this.value)">
+          <option value="not_started"${quest.status==='not_started'?' selected':''}>not_started</option>
+          <option value="done"${quest.status==='done'?' selected':''}>done</option>
+        </select>
+      </div>
+      <div><label>Requiert les quêtes <span class="field-hint" data-tip="prérequis avant activation"></span></label>
+        <div id="questRequiresContainer" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg)">${allQuests.filter(q=>q.id!==quest.id).map(q=>`<span class="multi-select-item${(quest.requires_quests||[]).includes(q.id)?' selected':''}" onclick="toggleQuestRequire('${escHtml(quest.id)}','${escHtml(q.id)}')">${escHtml(q.id)}</span>`).join('')||'<span style="color:var(--muted);font-size:12px">Aucune autre quête</span>'}</div>
+      </div>
+    </form>
+    <div style="margin-top:16px">
+      <div class="section-title">
+        <span>Étapes (${steps.length})</span>
+        <button class="btn btn-primary btn-sm" onclick="addStep('${escHtml(quest.id)}')">+ Ajouter étape</button>
+      </div>
+      ${steps.map((s,i)=>renderStepHtml(quest.id,s,i)).join('')}
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-danger" onclick="deleteQuest('${escHtml(quest.id)}')">Supprimer cette quête</button>
+    </div>
+  `
+}
+
+function renderStepHtml(questId,step,idx,total){
+  return `<div class="step-item" draggable="true" data-step-idx="${idx}" ondragstart="handleStepDragStart(event,'${escHtml(questId)}',${idx})" ondragend="handleStepDragEnd(event)" ondragover="handleStepDragOver(event)" ondragleave="handleStepDragLeave(event)" ondrop="handleStepDrop(event,'${escHtml(questId)}',${idx})">
+    <div class="step-item-header">
+      <span class="step-drag-handle" style="cursor:grab;display:flex;align-items:center;color:var(--muted);font-size:14px;padding:2px 4px;user-select:none" title="Glisser pour réordonner">⋮⋮</span>
+      <span class="step-title">${escHtml(step.id)}</span>
+      <div class="step-actions">
+        <button class="btn-icon delete-step" onclick="event.stopPropagation();deleteStep('${escHtml(questId)}',${idx})" title="Supprimer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="form-row">
+        <div><label>ID <span class="field-hint" data-tip="identifiant de l'étape"></span></label><input type="text" class="mono" value="${escHtml(step.id)}" onchange="updateStepField('${escHtml(questId)}',${idx},'id',this.value)"></div>
+        <div><label>Description <span class="field-hint" data-tip="texte dans le journal du joueur"></span></label><input type="text" value="${escHtml(step.description||'')}" onchange="updateStepField('${escHtml(questId)}',${idx},'description',this.value)"></div>
+      </div>
+      <div><label>Completed <span class="field-hint" data-tip="lecture seule — Godot écrit ce champ"></span></label><input type="checkbox" ${step.completed?'checked':''} disabled></div>
+    </div>
+  </div>`
+}
+
+function updateQuestField(field,val){
+  const quest=getQuest(selectedQuestId);
+  if(!quest)return;
+  if(field==='id'){
+    const oldId=quest.id;
+    quest.id=val;
+    (currentDimension.quests||[]).forEach(q=>{
+      if(q.requires_quests)q.requires_quests=q.requires_quests.map(r=>r===oldId?val:r)
+    });
+    (currentDimension.mini_games||[]).forEach(m=>{if(m.linked_quest_id===oldId)m.linked_quest_id=val});
+    (currentDimension.items||[]).forEach(it=>{if(it.required_by_quest===oldId)it.required_by_quest=val});
+    (currentDimension.npcs||[]).forEach(n=>(n.dialogue_bank||[]).forEach(r=>{if(r.condition?.quest_id===oldId)r.condition.quest_id=val}));
+    selectedQuestId=val;
+    populateQuests()
+  }else quest[field]=val;
+  markDirty()
+}
+
+function toggleQuestRequire(questId,reqId){
+  const quest=getQuest(questId);
+  if(!quest)return;
+  if(!quest.requires_quests)quest.requires_quests=[];
+  const idx=quest.requires_quests.indexOf(reqId);
+  if(idx>-1)quest.requires_quests.splice(idx,1);
+  else quest.requires_quests.push(reqId);
+  // Immediate DOM update with pop animation
+  const item=document.querySelector(`.multi-select-item[onclick*="${reqId}"]`);
+  if(item){
+    item.classList.toggle('selected');
+    item.classList.add('popping');
+    item.addEventListener('animationend',function h(){item.classList.remove('popping');item.removeEventListener('animationend',h)},{once:true})
+  }
+  markDirty();
+  setTimeout(()=>renderQuestForm(questId),400)
+}
+
+function addStep(questId){
+  try{
+    if(!currentDimension){showToast('Aucune dimension chargée','error');return}
+    const quest=getQuest(questId);
+    if(!quest){showToast('Quête '+questId+' introuvable','error');return}
+    if(!quest.steps)quest.steps=[];
+    const idx=quest.steps.length+1;
+    quest.steps.push({id:'etape_'+idx,description:'',completed:false});
+    renderQuestForm(questId);
+    markDirty()
+  }catch(e){console.error('addStep error:',e);showToast('Erreur ajout étape: '+e.message,'error')}
+}
+
+function moveStep(questId,idx,dir){
+  const quest=getQuest(questId);
+  if(!quest||!quest.steps)return;
+  const newIdx=idx+dir;
+  if(newIdx<0||newIdx>=quest.steps.length)return;
+  [quest.steps[idx],quest.steps[newIdx]]=[quest.steps[newIdx],quest.steps[idx]];
+  renderQuestForm(questId);
+  markDirty()
+}
+
+let dragSrcQuestId=null;
+let dragSrcIdx=-1;
+function handleStepDragStart(e,questId,idx){
+  dragSrcQuestId=questId;
+  dragSrcIdx=idx;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain','')
+}
+function handleStepDragEnd(e){
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.step-item.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  dragSrcQuestId=null;
+  dragSrcIdx=-1
+}
+function handleStepDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.target.closest('.step-item')?.classList.add('drag-over')
+}
+function handleStepDragLeave(e){
+  e.target.closest('.step-item')?.classList.remove('drag-over')
+}
+function handleStepDrop(e,questId,dstIdx){
+  e.preventDefault();
+  e.target.closest('.step-item')?.classList.remove('drag-over');
+  if(dragSrcQuestId!==questId||dragSrcIdx===dstIdx||dragSrcIdx<0)return;
+  const quest=getQuest(questId);
+  if(!quest||!quest.steps)return;
+  const steps=quest.steps;
+  const [moved]=steps.splice(dragSrcIdx,1);
+  const adjustedDst=dragSrcIdx<dstIdx?dstIdx-1:dstIdx;
+  steps.splice(adjustedDst,0,moved);
+  renderQuestForm(questId);
+  markDirty()
+}
+
+function deleteStep(questId,idx){
+  const quest=getQuest(questId);
+  if(!quest||!quest.steps)return;
+  const step=quest.steps[idx];
+  const label=step?step.id:'étape '+idx;
+  const stepsSnapshot=[...quest.steps];
+  const performDelete=()=>{
+    quest.steps.splice(idx,1);
+    renderQuestForm(questId);
+    markDirty()
+  };
+  const undo=()=>{
+    quest.steps=stepsSnapshot;
+    renderQuestForm(questId);
+    markDirty()
+  };
+  performDelete();
+  confirmDeleteWithUndo(label,()=>{},undo)
+}
+
+function updateStepField(questId,idx,field,val){
+  const quest=getQuest(questId);
+  if(!quest||!quest.steps[idx])return;
+  quest.steps[idx][field]=val;
+  markDirty()
+}
+
+function addQuest(){
+  if(!currentDimension)return;
+  if(!currentDimension.quests)currentDimension.quests=[];
+  const id='quete_'+(currentDimension.quests.length+1);
+  currentDimension.quests.push({id,title:'Nouvelle quête',status:'not_started',requires_quests:[],steps:[]});
+  selectedQuestId=id;
+  populateQuests();
+  markDirty()
+}
+
+function deleteQuest(id){
+  const quest=getQuest(id);
+  const label=quest?(quest.title||quest.id):id;
+  const questsSnapshot=[...(currentDimension.quests||[])];
+  const miniGamesSnapshot=[...(currentDimension.mini_games||[])];
+  const itemsSnapshot=[...(currentDimension.items||[])];
+  const performDelete=()=>{
+    currentDimension.quests=(currentDimension.quests||[]).filter(q=>q.id!==id);
+    (currentDimension.quests||[]).forEach(q=>{if(q.requires_quests)q.requires_quests=q.requires_quests.filter(r=>r!==id)});
+    (currentDimension.mini_games||[]).forEach(m=>{if(m.linked_quest_id===id)m.linked_quest_id=''});
+    (currentDimension.items||[]).forEach(it=>{if(it.required_by_quest===id)it.required_by_quest=''});
+    selectedQuestId=null;
+    populateQuests();
+    markDirty()
+  };
+  const undo=()=>{
+    currentDimension.quests=questsSnapshot;
+    currentDimension.mini_games=miniGamesSnapshot;
+    currentDimension.items=itemsSnapshot;
+    if(questsSnapshot.some(q=>q.id===id))selectedQuestId=id;
+    populateQuests();
+    markDirty()
+  };
+  performDelete();
+  confirmDeleteWithUndo(label,()=>{},undo)
+}
+
+function populateMiniGames(){
+  const el=document.getElementById('miniGameList');
+  const mg=currentDimension.mini_games||[];
+  el.innerHTML=mg.map(m=>`<div class="item-entry${m.id===selectedMiniGameId?' selected':''}" onclick="selectMiniGame('${escHtml(m.id)}')">
+    <span class="name">${escHtml(m.id)}</span>
+  </div>`).join('');
+  if(selectedMiniGameId&&mg.some(m=>m.id===selectedMiniGameId))renderMiniGameForm(selectedMiniGameId);
+  else if(mg.length){selectedMiniGameId=mg[0].id;renderMiniGameForm(selectedMiniGameId)}
+  else document.getElementById('miniGameFormContainer').innerHTML='<div style="color:var(--muted);padding:20px;text-align:center">Aucun mini-jeu</div>'
+}
+
+function selectMiniGame(id){
+  selectedMiniGameId=id;
+  populateMiniGames();
+  renderMiniGameForm(id)
+}
+
+function getMiniGame(id){
+  return (currentDimension.mini_games||[]).find(m=>m.id===id)
+}
+
+function renderMiniGameForm(id){
+  const mg=getMiniGame(id);
+  if(!mg)return;
+  const quests=currentDimension.quests||[];
+  const allSteps=quests.flatMap(q=>(q.steps||[]).map(s=>({questId:q.id,stepId:s.id})));
+  const linkedQuest=quests.find(q=>q.id===mg.linked_quest_id);
+  const linkedSteps=linkedQuest?.steps||[];
+  document.getElementById('miniGameFormContainer').innerHTML=`
+    <form onchange="markDirty()">
+      <div><label>ID <span class="field-hint" data-tip="identifiant unique du mini-jeu"></span></label><input type="text" class="mono" value="${escHtml(mg.id)}" onchange="updateMiniGameField('id',this.value)"></div>
+      <div><label>Linked Quest <span class="field-hint" data-tip="quête à laquelle ce mini-jeu est lié"></span></label>
+        <select onchange="updateMiniGameField('linked_quest_id',this.value);renderMiniGameForm('${escHtml(mg.id)}')">
+          <option value="">—</option>
+          ${quests.map(q=>`<option value="${escHtml(q.id)}"${mg.linked_quest_id===q.id?' selected':''}>${escHtml(q.title||q.id)}</option>`).join('')}
+        </select>
+      </div>
+      <div><label>Requires Quest Step <span class="field-hint" data-tip="étape requise pour débloquer"></span></label>
+        <select onchange="updateMiniGameField('requires_quest_step',this.value||null)">
+          <option value="">null</option>
+          ${linkedSteps.map(s=>`<option value="${escHtml(s.id)}"${mg.requires_quest_step===s.id?' selected':''}>${escHtml(s.id)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <div><label>Unlocked <span class="field-hint" data-tip="débloqué par le joueur"></span></label><div><input type="checkbox" ${mg.unlocked?'checked':''} onchange="updateMiniGameField('unlocked',this.checked)"></div></div>
+        <div><label>Completed <span class="field-hint" data-tip="complété par le joueur"></span></label><div><input type="checkbox" ${mg.completed?'checked':''} onchange="updateMiniGameField('completed',this.checked)"></div></div>
+      </div>
+    </form>
+    <div style="margin-top:12px">
+      <button class="btn btn-danger" onclick="deleteMiniGame('${escHtml(mg.id)}')">Supprimer</button>
+    </div>
+  `
+}
+
+function updateMiniGameField(field,val){
+  const mg=getMiniGame(selectedMiniGameId);
+  if(!mg)return;
+  mg[field]=val;
+  if(field==='id'){selectedMiniGameId=val;populateMiniGames()}
+  markDirty()
+}
+
+function addMiniGame(){
+  if(!currentDimension)return;
+  if(!currentDimension.mini_games)currentDimension.mini_games=[];
+  const id='mini_jeu_'+(currentDimension.mini_games.length+1);
+  currentDimension.mini_games.push({id,linked_quest_id:'',requires_quest_step:null,unlocked:false,completed:false});
+  selectedMiniGameId=id;
+  populateMiniGames();
+  markDirty()
+}
+
+function deleteMiniGame(id){
+  const mg=getMiniGame(id);
+  const label=mg?mg.id:id;
+  const mgSnapshot=[...(currentDimension.mini_games||[])];
+  const performDelete=()=>{
+    currentDimension.mini_games=(currentDimension.mini_games||[]).filter(m=>m.id!==id);
+    selectedMiniGameId=null;
+    populateMiniGames();
+    markDirty()
+  };
+  const undo=()=>{
+    currentDimension.mini_games=mgSnapshot;
+    if(mgSnapshot.some(m=>m.id===id))selectedMiniGameId=id;
+    populateMiniGames();
+    markDirty()
+  };
+  performDelete();
+  confirmDeleteWithUndo(label,()=>{},undo)
+}
+
+function populateItems(){
+  const el=document.getElementById('itemsList');
+  const items=currentDimension.items||[];
+  el.innerHTML=items.map(it=>`<div class="item-entry${it.id===selectedItemId?' selected':''}" onclick="selectItem('${escHtml(it.id)}')">
+    <span>${it.picked_up?'📦':'🎒'}</span>
+    <span class="name">${escHtml(it.id)}</span>
+  </div>`).join('');
+  if(selectedItemId&&items.some(it=>it.id===selectedItemId))renderItemForm(selectedItemId);
+  else if(items.length){selectedItemId=items[0].id;renderItemForm(selectedItemId)}
+  else document.getElementById('itemFormContainer').innerHTML='<div style="color:var(--muted);padding:20px;text-align:center">Aucun item</div>'
+}
+
+function selectItem(id){
+  selectedItemId=id;
+  populateItems();
+  renderItemForm(id)
+}
+
+function getItem(id){
+  return (currentDimension.items||[]).find(it=>it.id===id)
+}
+
+function renderItemForm(id){
+  const it=getItem(id);
+  if(!it)return;
+  const quests=currentDimension.quests||[];
+  document.getElementById('itemFormContainer').innerHTML=`
+    <form onchange="markDirty()">
+      <div><label>ID <span class="field-hint" data-tip="identifiant unique de l'objet"></span></label><input type="text" class="mono" value="${escHtml(it.id)}" onchange="updateItemField('id',this.value)"></div>
+      <div><label>Picked Up <span class="field-hint" data-tip="ramassé par le joueur"></span></label><div><input type="checkbox" ${it.picked_up?'checked':''} onchange="updateItemField('picked_up',this.checked)"></div></div>
+      <div><label>Required By Quest <span class="field-hint" data-tip="quête qui nécessite cet objet"></span></label>
+        <select onchange="updateItemField('required_by_quest',this.value||null)">
+          <option value="">—</option>
+          ${quests.map(q=>`<option value="${escHtml(q.id)}"${it.required_by_quest===q.id?' selected':''}>${escHtml(q.title||q.id)}</option>`).join('')}
+        </select>
+      </div>
+    </form>
+    <div style="margin-top:12px">
+      <button class="btn btn-danger" onclick="deleteItem('${escHtml(it.id)}')">Supprimer</button>
+    </div>
+  `
+}
+
+function updateItemField(field,val){
+  const it=getItem(selectedItemId);
+  if(!it)return;
+  it[field]=val;
+  if(field==='id'){selectedItemId=val;populateItems()}
+  markDirty()
+}
+function addItem(){
+  if(!currentDimension)return;
+  if(!currentDimension.items)currentDimension.items=[];
+  const id='item_'+(currentDimension.items.length+1);
+  currentDimension.items.push({id,picked_up:false,required_by_quest:null});
+  selectedItemId=id;populateItems();markDirty()
+}
+function deleteItem(id){
+  const item=getItem(id);
+  const label=item?item.id:id;
+  const itemsSnapshot=[...(currentDimension.items||[])];
+  const performDelete=()=>{
+    currentDimension.items=(currentDimension.items||[]).filter(it=>it.id!==id);
+    selectedItemId=null;populateItems();markDirty()
+  };
+  const undo=()=>{
+    currentDimension.items=itemsSnapshot;
+    if(itemsSnapshot.some(it=>it.id===id))selectedItemId=id;
+    populateItems();markDirty()
+  };
+  performDelete();
+  confirmDeleteWithUndo(label,()=>{},undo)
+}
+
+function populateFallbacks(){
+  const fb=currentDimension.global_fallbacks||{};
+  document.getElementById('fbOffTopic').value=fb.off_topic||'';
+  document.getElementById('fbInsult').value=fb.insult||'';
+  document.getElementById('fbTimeout').value=fb.timeout||'';
+  document.getElementById('fbUnknown').value=fb.unknown||'';
+  document.getElementById('fbDefaultTemplate').value=fb.default_template||''
+}
+
+function collectAllFormData(){
+  const m=currentDimension.meta||{};
+  m.id=document.getElementById('metaId').value;
+  m.name=document.getElementById('metaName').value;
+  m.era=document.getElementById('metaEra').value;
+  m.description=document.getElementById('metaDescription').value;
+  currentDimension.global_fallbacks={
+    off_topic:document.getElementById('fbOffTopic').value,
+    insult:document.getElementById('fbInsult').value,
+    timeout:document.getElementById('fbTimeout').value,
+    unknown:document.getElementById('fbUnknown').value,
+    default_template:document.getElementById('fbDefaultTemplate').value
+  };
+  return currentDimension
+}
+
+function markDirty(){
+  dirty=true;
+  updateStatusIndicator();
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(saveDimension,1500);
+  runValidation()
+}
+
+function updateStatusIndicator(){
+  const el=document.getElementById('statusIndicator');
+  const txt=document.getElementById('statusText');
+  if(!currentDimId){el.style.display='none';return}
+  el.style.display='flex';
+  const state=el.dataset.saveState||'saved';
+  const dot=el.querySelector('.dot');
+  if(state==='pending'){
+    dot.className='dot dot-yellow';
+    txt.textContent='Sauvegarde en attente...';
+    txt.style.color='var(--warning)';
+    el.classList.add('saving');
+    el.classList.remove('error')
+  }else if(state==='error'){
+    dot.className='dot';
+    dot.style.background='#ff4060';
+    txt.innerHTML='Erreur de sauvegarde <span style="cursor:pointer;text-decoration:underline;margin-left:4px" onclick="retrySave()">Réessayer</span>';
+    txt.style.color='var(--danger)';
+    el.classList.add('error');
+    el.classList.remove('saving')
+  }else{
+    dot.className='dot dot-green';
+    dot.style.background='';
+    txt.textContent='Sauvegardé';
+    txt.style.color='var(--success)';
+    el.classList.remove('saving','error')
+  }
+}
+
+async function saveDimension(){
+  if(!currentDimId||!currentDimension)return;
+  collectAllFormData();
+  const el=document.getElementById('statusIndicator');
+  el.dataset.saveState='pending';
+  updateStatusIndicator();
+  try{
+    await apiFetch(API+'/'+encodeURIComponent(currentDimId),{method:'POST',body:JSON.stringify(currentDimension)});
+    dirty=false;
+    el.dataset.saveState='saved';
+    updateStatusIndicator();
+    showToast('Sauvegardé','success')
+  }catch(e){
+    el.dataset.saveState='error';
+    updateStatusIndicator();
+    showToast('Erreur sauvegarde: '+e.message,'error');
+    throw e
+  }
+}
+
+function retrySave(){
+  const el=document.getElementById('statusIndicator');
+  el.dataset.saveState='pending';
+  updateStatusIndicator();
+  saveDimension()
+}
+
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();clearTimeout(autoSaveTimer);saveDimension()}
+  if((e.ctrlKey||e.metaKey)&&e.key>='1'&&e.key<='6'){
+    e.preventDefault();
+    const tabs=['meta','npcs','quests','mini-games','items','fallbacks'];
+    switchTab(tabs[parseInt(e.key)-1])
+  }
+  if(e.key==='Escape'){
+    const openModal=document.querySelector('.modal-overlay.open');
+    if(openModal){
+      const modalName=openModal.id.replace(/^modal/,'');
+      const camelName=modalName.charAt(0).toLowerCase()+modalName.slice(1);
+      closeModal(camelName)
+    }
+  }
+});
+
+function escHtml(s){
+  if(typeof s!=='string')return String(s||'');
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')
+}
+
+function showToast(msg,type='info'){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className='toast toast-'+(type||'info');
+  t.textContent=msg;
+  c.appendChild(t);
+  setTimeout(()=>{t.classList.add('removing');t.addEventListener('animationend',()=>t.remove())},3000)
+}
+
+function confirmDeleteWithUndo(label,performDelete,undoCallback){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className='toast toast-success';
+  t.innerHTML=`✅ Supprimé — ${label} <button style="margin-left:8px;font-weight:600;cursor:pointer;text-decoration:underline;background:none;border:none;color:var(--accent);font-size:13px" onclick="undoDelete(event)">Annuler</button>`;
+  c.appendChild(t);
+  let undone=false;
+  let timeoutId=setTimeout(()=>{
+    if(!undone){performDelete();t.classList.add('removing');t.addEventListener('animationend',()=>t.remove())}
+  },5000);
+  window.undoDelete=function(e){
+    e.stopPropagation();
+    undone=true;
+    clearTimeout(timeoutId);
+    undoCallback();
+    t.classList.add('removing');
+    t.addEventListener('animationend',()=>t.remove())
+  }
+}
+
+function openModal(id){
+  document.getElementById('modal'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('open')
+}
+function closeModal(id){
+  document.getElementById('modal'+id.charAt(0).toUpperCase()+id.slice(1)).classList.remove('open')
+}
+document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')})});
+
+async function submitNewDimension(){
+  const id=document.getElementById('newDimId').value.trim();
+  if(!id){showToast('ID requis','error');return}
+  const dim={meta:{id,name:document.getElementById('newDimName').value||id,era:document.getElementById('newDimEra').value,description:document.getElementById('newDimDesc').value},npcs:[],quests:[],mini_games:[],items:[],global_fallbacks:{off_topic:'',insult:'',timeout:'',unknown:'',default_template:''}};
+  try{
+    await apiFetch(API+'/'+encodeURIComponent(id),{method:'POST',body:JSON.stringify(dim)});
+    closeModal('newDim');
+    showToast('Dimension créée','success');
+    await loadDimensionList();
+    await loadDimension(id)
+  }catch(e){showToast('Erreur création: '+e.message,'error')}
+}
+
+let importJsonData=null;
+function submitImport(){
+  const file=document.getElementById('importFile').files[0];
+  if(!file){showToast('Sélectionnez un fichier','error');return}
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.meta||!data.meta.id){showToast('JSON invalide: meta.id manquant','error');return}
+      const id=data.meta.id;
+      await apiFetch(API+'/'+encodeURIComponent(id),{method:'POST',body:JSON.stringify(data)});
+      closeModal('import');
+      showToast('Dimension importée','success');
+      await loadDimensionList();
+      await loadDimension(id)
+    }catch(err){showToast('Erreur import: '+err.message,'error')}
+  };
+  reader.readAsText(file)
+}
+
+async function exportDimension(id){
+  try{
+    const r=await apiFetch(API+'/'+encodeURIComponent(id)+'/export',{raw:true});
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='dimension_'+(id||'export')+'.json';
+    a.click();URL.revokeObjectURL(url)
+  }catch(e){showToast('Erreur export: '+e.message,'error')}
+}
+
+async function deleteDimension(id){
+  if(!confirm('Supprimer définitivement la dimension '+id+' ?'))return;
+  try{
+    await apiFetch(API+'/'+encodeURIComponent(id),{method:'DELETE'});
+    if(currentDimId===id){currentDimId=null;currentDimension=null;dirty=false;updateStatusIndicator()}
+    await loadDimensionList();
+    showToast('Dimension supprimée','success')
+  }catch(e){showToast('Erreur suppression: '+e.message,'error')}
+}
+
+function togglePanel(mode){
+  const panel=document.getElementById('rightPanel');
+  if(panel.classList.contains('hidden')||mode!==panelMode){
+    panel.classList.remove('hidden');
+    panelMode=mode||'tree';
+    document.querySelectorAll('.panel-tab').forEach((t,i)=>{
+      t.classList.toggle('active',(i===0&&mode==='tree')||(i===1&&mode==='validation'))
+    });
+    document.getElementById('pTreeContent').classList.toggle('active',mode==='tree');
+    document.getElementById('pValidationContent').classList.toggle('active',mode==='validation');
+    renderPanelContent()
+  }else{panel.classList.add('hidden');panelMode=null}
+}
+
+document.querySelectorAll('.panel-tab').forEach(t=>{
+  t.addEventListener('click',function(){
+    const mode=this.dataset.ptab;
+    panelMode=mode;
+    document.querySelectorAll('.panel-tab').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('pTreeContent').classList.toggle('active',mode==='tree');
+    document.getElementById('pValidationContent').classList.toggle('active',mode==='validation');
+    renderPanelContent()
+  })
+});
+
+function renderPanelContent(){
+  if(panelMode==='tree')renderTreeView();
+  else if(panelMode==='validation')renderValidationView()
+}
+
+function renderTreeView(){
+  const el=document.getElementById('pTreeContent');
+  if(!currentDimension){el.innerHTML='<div style="color:var(--muted)">Aucune dimension chargée</div>';return}
+  const quests=currentDimension.quests||[];
+  const npcs=currentDimension.npcs||[];
+  let html='';
+
+  html+='<div class="section"><div class="section-title">Arbre des quêtes</div>';
+  if(!quests.length)html+='<div style="color:var(--muted);font-size:13px">Aucune quête</div>';
+  else{
+    const questNpcMap={};
+    const mgMap={};
+    npcs.forEach(npc=>{(npc.dialogue_bank||[]).forEach(r=>{
+      const qid=r.condition?.quest_id;if(!qid)return;
+      if(!questNpcMap[qid])questNpcMap[qid]={};
+      const step=r.condition?.quest_step||'__none__';
+      if(!questNpcMap[qid][step])questNpcMap[qid][step]=[];
+      questNpcMap[qid][step].push({npcName:npc.name||npc.id,reply:r})
+    })});
+    (currentDimension.mini_games||[]).forEach(mg=>{
+      if(!mgMap[mg.linked_quest_id])mgMap[mg.linked_quest_id]=[];
+      mgMap[mg.linked_quest_id].push(mg)
+    });
+    const roots=quests.filter(q=>!q.requires_quests||!q.requires_quests.length);
+    const done=new Set();
+    function renderQuestNode(qid,indent){
+      if(done.has(qid))return '';
+      done.add(qid);
+      const q=getQuest(qid);if(!q)return '';
+      const sc=q.status==='not_started'?'dot-gray':'dot-green';
+      const steps=q.steps||[];
+      let h='<div class="tree-node"><div class="tree-node-header" onclick="selectQuestAndTab(\''+escHtml(qid)+'\')" style="padding-left:'+(indent*16+6)+'px"><span class="dot '+sc+'"></span><span>'+escHtml(q.title||q.id)+'</span></div>';
+      h+='<div class="tree-children">';
+      const deps=q.requires_quests||[];
+      if(deps.length)h+='<div class="tree-node-header" style="font-size:11px;color:var(--muted);padding-left:16px">← Dépend de: '+deps.map(d=>escHtml(d)).join(', ')+'</div>';
+      steps.forEach(step=>{
+        h+='<div class="tree-node"><div class="tree-node-header" style="font-size:12px;padding-left:16px"><span class="tree-arrow">›</span><span class="mono">'+escHtml(step.id)+'</span> <span style="color:var(--muted);font-weight:400">'+escHtml(step.description||'')+'</span></div>';
+        const npcEntries=questNpcMap[qid]?.[step.id]||[];
+        const npcGeneric=questNpcMap[qid]?.['__none__']||[];
+        const allNpc=[...npcEntries,...npcGeneric.filter(e=>!steps.some(s=>s.id!==step.id&&e.reply.condition?.quest_step===s.id))];
+        if(allNpc.length||(mgMap[qid]||[]).length){
+          h+='<div class="tree-children">';
+          allNpc.forEach(e=>{
+            h+='<div class="tree-node-header" style="font-size:11px;color:var(--accent);padding-left:24px" title="'+escHtml(e.reply.intention||'')+'">🗣️ '+escHtml(e.npcName)+' <span style="color:var(--muted);font-weight:400">— '+escHtml((e.reply.intention||'').substring(0,50))+'</span></div>'
+          });
+          (mgMap[qid]||[]).filter(m=>m.requires_quest_step===step.id).forEach(mg=>{
+            h+='<div class="tree-node-header" style="font-size:11px;color:var(--warning);padding-left:24px">🎮 '+escHtml(mg.id)+'</div>'
+          });
+          h+='</div>'
+        }
+        h+='</div>'
+      });
+      const children=quests.filter(c=>(c.requires_quests||[]).includes(qid));
+      children.forEach(c=>h+=renderQuestNode(c.id,indent+1));
+      h+='</div></div>'
+    }
+    roots.forEach(r=>html+=renderQuestNode(r.id,0));
+    quests.filter(q=>!roots.includes(q)).forEach(q=>{if(!done.has(q.id))html+=renderQuestNode(q.id,0)})
+  }
+  html+='</div>';
+
+  html+='<div class="section" style="margin-top:16px"><div class="section-title">Arbre des dialogues (PNJ)</div>';
+  if(!npcs.length)html+='<div style="color:var(--muted);font-size:13px">Aucun PNJ</div>';
+  else npcs.forEach(npc=>{
+    const db=npc.dialogue_bank||[];
+    html+='<div class="tree-node"><div class="tree-node-header" onclick="selectNpcAndTab(\''+escHtml(npc.id)+'\')" style="font-weight:500">👤 '+escHtml(npc.name||npc.id)+' <span style="color:var(--muted);font-weight:400">('+db.length+' répliques)</span></div>';
+    if(!db.length){html+='<div class="tree-children"><div style="color:var(--muted);font-size:11px;padding:4px 16px">Aucune réplique</div></div></div>';return}
+    html+='<div class="tree-children">';
+    const byQuest={};
+    db.forEach(r=>{
+      const qid=r.condition?.quest_id||'__unknown__';
+      if(!byQuest[qid])byQuest[qid]={not_started:[],etape:[],done:[]};
+      const qs=r.condition?.quest_status;
+      if(qs==='done')byQuest[qid].done.push(r);
+      else if(qs==='not_started')byQuest[qid].not_started.push(r);
+      else byQuest[qid].etape.push(r)
+    });
+    Object.entries(byQuest).forEach(([qid,statusGroups])=>{
+      const q=getQuest(qid);
+      const qLabel=q?escHtml(q.title||q.id):escHtml(qid);
+      html+='<div class="tree-node"><div class="tree-node-header" style="font-size:12px;padding-left:8px"><span class="tree-arrow">›</span>'+qLabel+'</div><div class="tree-children">';
+      ['not_started','etape','done'].forEach(status=>{
+        const items=statusGroups[status];
+        if(!items.length)return;
+        const sc=status==='not_started'?'badge-gray':status==='etape'?'badge-orange':'badge-green';
+        const statusLabel=status==='not_started'?'not_started':status==='etape'?'étape en cours':'done';
+        html+='<div class="tree-node"><div class="tree-node-header" style="font-size:11px"><span class="badge '+sc+'" style="font-size:9px">'+statusLabel+'</span></div><div class="tree-children">';
+        const byStep={};
+        items.forEach(r=>{const s=r.condition?.quest_step||'__none__';if(!byStep[s])byStep[s]=[];byStep[s].push(r)});
+        Object.entries(byStep).forEach(([step,replies])=>{
+          if(step==='__none__')replies.forEach(r=>html+='<div class="tree-node-header" style="font-size:11px;color:var(--muted);padding-left:16px"><span>'+escHtml(r.id)+'</span> <span style="color:var(--muted)">— '+escHtml((r.intention||'').substring(0,40))+'</span></div>');
+          else{
+            html+='<div class="tree-node"><div class="tree-node-header" style="font-size:11px;padding-left:16px"><span class="tree-arrow">›</span><span class="mono">'+escHtml(step)+'</span></div><div class="tree-children">';
+            replies.forEach(r=>html+='<div class="tree-node-header" style="font-size:11px;color:var(--muted);padding-left:24px"><span>'+escHtml(r.id)+'</span></div>');
+            html+='</div></div>'
+          }
+        });
+        html+='</div></div>'
+      });
+      html+='</div></div>'
+    });
+    html+='</div></div>'
+  });
+  html+='</div>';
+  el.innerHTML=html
+}
+
+function selectNpcAndTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tab[data-tab="npcs"]').classList.add('active');
+  document.getElementById('tabNpcs').classList.add('active');
+  selectNpc(id)
+}
+
+function selectQuestAndTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tab[data-tab="quests"]').classList.add('active');
+  document.getElementById('tabQuests').classList.add('active');
+  selectQuest(id)
+}
+
+function renderValidationView(){
+  const el=document.getElementById('pValidationContent');
+  if(!currentDimension){el.innerHTML='<div style="color:var(--muted)">Aucune dimension chargée</div>';return}
+  const anomalies=runValidation();
+  if(!anomalies.length){
+    el.innerHTML='<div class="validation-summary ok">✅ Tout est valide</div>';
+    return
+  }
+  el.innerHTML='<div class="validation-summary err">⚠️ '+anomalies.length+' anomalies détectées</div>';
+  anomalies.forEach(a=>{
+    el.innerHTML+=`<div class="anomaly-card" onclick="${a.nav||''}">
+      <span class="anomaly-icon">⚠️</span>
+      <div><div class="anomaly-msg">${escHtml(a.msg)}</div>${a.path?'<div class="anomaly-path">'+escHtml(a.path)+'</div>':''}</div>
+    </div>`
+  })
+}
+
+function runValidation(){
+  if(!currentDimension){updateWarningBadge(0);return[]}
+  const anomalies=[];
+  const quests=currentDimension.quests||[];
+  const npcs=currentDimension.npcs||[];
+  const miniGames=currentDimension.mini_games||[];
+  const allQuestIds=new Set(quests.map(q=>q.id));
+  npcs.forEach(n=>{
+    const db=n.dialogue_bank||[];
+    const covered=new Set();
+    db.forEach(r=>{
+      const cs=r.condition;
+      if(cs)covered.add(cs.quest_id+'|'+cs.quest_status)
+    });
+    quests.forEach(q=>{
+      ['not_started','done'].forEach(st=>{
+        if(!covered.has(q.id+'|'+st))anomalies.push({msg:'PNJ "'+n.id+'" sans réplique pour '+q.id+' ['+st+']',path:'npcs → '+n.id,nav:`switchTab('npcs');selectNpc('${escHtml(n.id)}')`})
+      })
+    })
+  });
+  quests.forEach(q=>{
+    const visited=new Set();
+    function hasCycle(qid,chain){
+      if(chain.includes(qid))return true;
+      if(visited.has(qid))return false;
+      visited.add(qid);
+      const qq=getQuest(qid);
+      if(!qq||!qq.requires_quests)return false;
+      for(const r of qq.requires_quests){
+        if(hasCycle(r,[...chain,qid]))return true
+      }
+      return false
+    }
+    if(hasCycle(q.id,[]))anomalies.push({msg:'Cycle de dépendances détecté dans "'+q.id+'"',path:'quests → '+q.id,nav:`switchTab('quests');selectQuest('${escHtml(q.id)}')`})
+  });
+  const fb=currentDimension.global_fallbacks||{};
+  if(fb.default_template&&!fb.default_template.includes('{name}'))anomalies.push({msg:'default_template ne contient pas {name}',path:'global_fallbacks',nav:"switchTab('fallbacks')"});
+  miniGames.forEach(mg=>{
+    if(mg.linked_quest_id&&!allQuestIds.has(mg.linked_quest_id))anomalies.push({msg:'Mini-jeu "'+mg.id+'" linked_quest_id "'+mg.linked_quest_id+'" inexistant',path:'mini_games → '+mg.id,nav:`switchTab('mini-games');selectMiniGame('${escHtml(mg.id)}')`})
+  });
+  quests.forEach(q=>{if(!q.steps||!q.steps.length)anomalies.push({msg:'Quête "'+q.id+'" sans étapes',path:'quests → '+q.id,nav:`switchTab('quests');selectQuest('${escHtml(q.id)}')`})});
+  npcs.forEach(n=>{if(!n.dialogue_bank||!n.dialogue_bank.length)anomalies.push({msg:'PNJ "'+n.id+'" sans dialogue_bank',path:'npcs → '+n.id,nav:`switchTab('npcs');selectNpc('${escHtml(n.id)}')`})});
+  const idPattern=/^[a-z][a-z0-9_]*$/;
+  [...npcs,...items,...quests,...miniGames].forEach(e=>{if(e.id&&!idPattern.test(e.id))anomalies.push({msg:'ID non snake_case: "'+e.id+'"',path:''})});
+  updateWarningBadge(anomalies.length);
+  return anomalies
+}
+
+function updateWarningBadge(count){
+  const badge=document.getElementById('warningBadge');
+  if(count>0){
+    badge.style.display='inline-flex';
+    badge.classList.remove('valid');
+    document.getElementById('warningCount').textContent=count
+  }else{
+    badge.style.display='inline-flex';
+    badge.classList.add('valid');
+    document.getElementById('warningCount').textContent='✓'
+  }
+}
+
+function switchTab(tabId){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  const tab=document.querySelector(`.tab[data-tab="${tabId}"]`);
+  if(tab)tab.classList.add('active');
+  const content=document.getElementById('tab'+tabId.charAt(0).toUpperCase()+tabId.slice(1).replace(/-./g,c=>c[1].toUpperCase()));
+  if(content)content.classList.add('active')
+}
+
+function getAllQuestIds(){return(currentDimension.quests||[]).map(q=>q.id)};
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+    const tc=document.getElementById('tab'+this.dataset.tab.charAt(0).toUpperCase()+this.dataset.tab.slice(1).replace(/-./g,c=>c[1].toUpperCase()));
+    if(tc)tc.classList.add('active')
+  })
+});
+
+(function(){
+  const tip = document.createElement('div');
+  tip.id = 'global-tooltip';
+  document.body.appendChild(tip);
+  let rafId = null;
+  function positionTip(hint) {
+    tip.textContent = hint.dataset.tip || '';
+    tip.classList.add('visible');
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      const rect = hint.getBoundingClientRect();
+      const tipRect = tip.getBoundingClientRect();
+      let left = rect.left + rect.width / 2;
+      let top = rect.top - tipRect.height - 8;
+      left = Math.max(tipRect.width / 2 + 8, Math.min(left, window.innerWidth - tipRect.width / 2 - 8));
+      top = Math.max(8, top);
+      tip.style.left = left + 'px';
+      tip.style.top = top + 'px';
+    });
+  }
+  document.body.addEventListener('mouseover', function(e) {
+    const hint = e.target.closest('.field-hint[data-tip]');
+    if (!hint) return;
+    positionTip(hint);
+  });
+  document.body.addEventListener('mouseout', function(e) {
+    const hint = e.target.closest('.field-hint[data-tip]');
+    if (!hint) return;
+    tip.classList.remove('visible');
+  });
+})();
+
+loadDimensionList()
+</script>
+</body>
+</html>
