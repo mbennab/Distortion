@@ -109,6 +109,7 @@ func _process(_delta):
 func start():
 	show()
 	timeAunote = $TimeAunote
+	timeAunote.collision_mask = 2
 	timeAunote.apparition(positionEntreePrincipale)
 	pnjHub.apparition(pnjPos)
 	chienHub.apparition(chienPos)
@@ -124,13 +125,14 @@ func stop():
 	stopped = true
 
 func _set_collisions_enabled(enable: bool) -> void:
-	limites.collision_layer = 1 if enable else 0
-	porteGauche.collision_layer = 1 if enable else 0
-	porteDroite.collision_layer = 1 if enable else 0
+	limites.collision_layer = 2 if enable else 0
+	porteGauche.collision_layer = 2 if enable else 0
+	porteDroite.collision_layer = 2 if enable else 0
 	zonePorteJaune.monitoring = enable
 	zonePorteBleue.monitoring = enable
 	zonePorteRouge.monitoring = enable
 	pnjHub.get_node("ZoneDialogue").monitoring = enable
+	timeAunote.get_node("collision").disabled = not enable
 
 func _on_timer_sortie_timeout():
 	print("stop")

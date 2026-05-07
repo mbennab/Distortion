@@ -78,6 +78,7 @@ func _handle_movement(delta: float) -> void:
 func start() -> void:
 	show()
 	time_aunote = $TimeAunote
+	time_aunote.collision_mask = 16
 	pnjfutur = $"pnj-futur"
 	pnjfutur.apparition(pnjfuturPos)
 	time_aunote.position = position_entree_principale

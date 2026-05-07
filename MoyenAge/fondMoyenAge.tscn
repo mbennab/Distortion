@@ -1,19 +1,28 @@
-[gd_scene format=3 uid="uid://cfznq8bk1pvxm"]
+[gd_scene format=3 uid="uid://cf0nq8bk1pvxm"]
 
-[ext_resource type="Texture2D" path="res://art/MoyenAge/fond_moyen-age.png" id="1_bg"]
+[ext_resource type="Texture2D" uid="uid://ri7m227i1bxn" path="res://art/MoyenAge/fond_moyen-age.png" id="1_bg"]
 
 [node name="fondMoyenAge" type="Node2D" unique_id=358863711]
 
 [node name="image" type="Sprite2D" parent="." unique_id=1394868288]
-scale = Vector2(1.185, 1.185)
+position = Vector2(-64.99999, -86.00001)
+scale = Vector2(0.90909076, 1.108073)
 texture = ExtResource("1_bg")
 centered = false
 
 [node name="Markers2D" type="Node2D" parent="." unique_id=468515979]
 
 [node name="entreePrincipale" type="Marker2D" parent="Markers2D" unique_id=845621181]
-position = Vector2(1400, 780)
+position = Vector2(1688, 787)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
+
+[node name="limitesDeplacements" type="StaticBody2D" parent="." unique_id=49598548]
+collision_layer = 4
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=1661348984]
+position = Vector2(695, 346)
+build_mode = 1
+polygon = PackedVector2Array(-2, 149, -433, 143, -440, 166, -458, 165, -91, 1047, -71, 1265, 1195, 1269, 1216, 1194, 1205, 1111, 1220, 1045, 1284, 1041, 1284, 993, 1293, 951, 1336, 956, 1361, 983, 1365, 1269, 1503, 1268, 1501, 164, 1478, 164, 1476, 143, 1163, 141, 1167, 214, 904, 217, 901, 144, 861, 141, 859, 251, 773, 251, 771, 121, 601, 121, 600, 309, 457, 308, 456, 116, 296, 119, 295, 251, 210, 252, 210, 150, 117, 150, 115, 91, -5, 91)

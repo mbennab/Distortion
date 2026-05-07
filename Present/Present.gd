@@ -73,6 +73,7 @@ func _handle_movement(delta: float) -> void:
 func start() -> void:
 	show()
 	time_aunote = $TimeAunote
+	time_aunote.collision_mask = 8
 	time_aunote.position = position_entree_principale
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0

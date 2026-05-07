@@ -1,14 +1,14 @@
 [gd_scene format=3 uid="uid://cawtmw06g6os5"]
 
-[ext_resource type="Texture2D" uid="uid://c6mi733scvivc" path="res://art/chien-hub.png" id="1_elf7j"]
+[ext_resource type="Texture2D" uid="uid://b1hwjmw8hu2o7" path="res://art/chien-hub.png" id="1_elf7j"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_elf7j"]
 atlas = ExtResource("1_elf7j")
-region = Rect2(0, 0, 471, 641)
+region = Rect2(0, 0, 468, 641)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vl72q"]
 atlas = ExtResource("1_elf7j")
-region = Rect2(471, 0, 471, 641)
+region = Rect2(468, 0, 468, 641)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_oyg6i"]
 animations = [{
@@ -24,10 +24,21 @@ animations = [{
 "speed": 1.0
 }]
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_oyg6i"]
+radius = 45.0
+height = 90.0
+
 [node name="chien-hub" type="Node2D" unique_id=1396482398]
 
 [node name="animation_chien_hub" type="AnimatedSprite2D" parent="." unique_id=1684280811]
 scale = Vector2(0.1, 0.1)
 sprite_frames = SubResource("SpriteFrames_oyg6i")
 animation = &"idle-dog"
-frame_progress = 0.17198786
+frame_progress = 0.26572314
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1869259090]
+position = Vector2(33, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1233040]
+position = Vector2(-33, -1)
+shape = SubResource("CapsuleShape2D_oyg6i")

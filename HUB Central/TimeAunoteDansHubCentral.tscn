@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://cdbextbddujbd" path="res://HUB Central/pnj_hub.tscn" id="4_l1upj"]
 [ext_resource type="Script" uid="uid://bp22n8tog4j0g" path="res://HUB Central/pnj_hub.gd" id="5_fu3hc"]
 [ext_resource type="Script" uid="uid://rart0ycc8m8p" path="res://HUB Central/chien_hub.gd" id="6_fu3hc"]
-[ext_resource type="Texture2D" uid="uid://c6mi733scvivc" path="res://art/chien-hub.png" id="7_pfj0h"]
+[ext_resource type="Texture2D" uid="uid://b1hwjmw8hu2o7" path="res://art/chien-hub.png" id="7_pfj0h"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vgvcy"]
 atlas = ExtResource("7_pfj0h")
@@ -30,6 +30,8 @@ animations = [{
 "speed": 1.0
 }]
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_pfj0h"]
+
 [node name="TimeAunoteDansHUBCentral" type="Node2D" unique_id=1349946414]
 script = ExtResource("1_iim1y")
 
@@ -52,5 +54,10 @@ script = ExtResource("6_fu3hc")
 scale = Vector2(0.22, 0.22)
 sprite_frames = SubResource("SpriteFrames_ko3p5")
 animation = &"idle-dog"
+
+[node name="Area2D" type="Area2D" parent="chien-hub" unique_id=1085388317]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="chien-hub/Area2D" unique_id=1617608115]
+shape = SubResource("CapsuleShape2D_pfj0h")
 
 [connection signal="timeout" from="timerSortie" to="." method="_on_timer_sortie_timeout"]
