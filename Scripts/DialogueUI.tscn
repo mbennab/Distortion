@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="GDScript" path="res://Scripts/DialogueUI.gd" id="1_script"]
+
+[node name="DialogueUI" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_script")

@@ -118,6 +118,7 @@ func start():
 
 func stop():
 	hide()
+	DialogueUI.close_dialogue()
 	_set_collisions_enabled(false)
 	started = false
 	stopped = true
@@ -129,6 +130,7 @@ func _set_collisions_enabled(enable: bool) -> void:
 	zonePorteJaune.monitoring = enable
 	zonePorteBleue.monitoring = enable
 	zonePorteRouge.monitoring = enable
+	pnjHub.get_node("ZoneDialogue").monitoring = enable
 
 func _on_timer_sortie_timeout():
 	print("stop")
@@ -136,6 +138,9 @@ func _on_timer_sortie_timeout():
 	started = false
 
 func deplacement(delta):
+	if not started or DialogueUI.is_dialogue_active():
+		timeAunote.animation(Vector2.ZERO)
+		return
 	var velocity = Vector2.ZERO
 	if Input.is_action_pressed("marche_haut"):
 		velocity.y -= 1

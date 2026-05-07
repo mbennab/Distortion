@@ -5,6 +5,7 @@
 - 2D game, rendering method: mobile
 - Main scene: `res://Main.tscn`
 - `.godot/` is gitignored — never commit it
+- `.env` is gitignored — contains `OPENROUTER_API_KEY`, never commit it
 
 ## Architecture
 - `Main.tscn` → `Main.gd`: orchestrator — starts HUB, then switches to era on portal exit
@@ -23,29 +24,41 @@
 ## HUB Central details
 - `TimeAunoteDansHUBCentral.gd` manages the hub: character, PNJ, chien, portals, side doors, particles, and collision limits
 - `start()` shows the hub, places character/PNJ/chien at their markers, enables collisions
-- `stop()` hides the hub and disables all collisions (limits, side doors, portal monitoring) — prevents interference when an era is active
+- `stop()` hides the hub and disables all collisions (limits, side doors, portal monitoring, **and PNJ dialogue zone**) — prevents interference when an era is active
 - Portal bodies: `zonePorteJaune/Bleue/Rouge` — Area2D nodes with `body_entered` signals connected in `_connect_portal_signals()`
 - Side doors (`porteGauche`/`porteDroite`): teleport player to opposite side markers on collision
 - `_set_collisions_enabled(bool)`: toggles `collision_layer` for limits/doors and `monitoring` for portal zones
 - `timerSortie` (1.5s one-shot): triggers fade-out + transition; timeout calls `_on_timer_sortie_timeout()`
 
+## Dialogue System (new)
+- **Autoloads**: `DialogueSystem` (logic) + `DialogueUI` (overlay) — registered in `project.godot`
+- **Flow**: player walks near PNJ → "Appuyez sur E" prompt → press `interagir` (E) → dialogue panel opens → type message → OpenRouter API call → PNJ responds in bubble + chat history
+- **Data**: `HUB Central/dimension_hub.json` defines NPCs, dialogue_bank (replies with conditions), fallbacks, quests, and global_fallbacks
+- **API key**: `OPENROUTER_API_KEY` env var or `res://.env` file. Without it, dialogue shows an error message.
+- **PNJ detection**: `pnj_hub.tscn` has `ZoneDialogue` (Area2D + CircleShape2D, radius 120px). The hub's `_set_collisions_enabled()` toggles its `monitoring` to prevent prompts in other eras.
+- **Quest state**: `DialogueSystem` maintains game_state from the dimension JSON. Replies are filtered by `quest_status` and `quest_step` before being sent to the AI.
+
 ## Entities in HUB
-- **pnj-hub**: `Node2D` with `AnimatedSprite2D`, idle animation. Hidden by default, shown via `apparition(position)` called from `start()`
+- **pnj-hub**: `Node2D` with `AnimatedSprite2D`, idle animation. Hidden by default, shown via `apparition(position)` called from `start()`. Has a `show_bubble(text)` / `hide_bubble()` for dialogue responses.
 - **chien-hub**: `Node2D` with `AnimatedSprite2D` (sprite sheet, 2-frame atlas textures), idle-dog animation. Same apparition pattern
 - Both are instanced in `TimeAunoteDansHubCentral.tscn`, positions set from `fondHubCentral/Markers2D/pnjPos` and `chienPos`
 
 ## Input
 - `marche_haut/bas/gauche/droite` — WASD (ZQSD), used everywhere (HUB + eras)
+- `interagir` — **E** key, triggers dialogue when near a PNJ
+- `ui_cancel` — Escape, closes dialogue panel
 - `ui_up/down/left/right` — arrow keys (built-in, not used in current code)
 
 ## Key gotchas
-- This project was migrated from Godot.NET (C#) in commit `e817e44`. Never add `.cs` or `.csproj` files.
+- This project was migrated from Godot.NET (C#) in commit `e817e44`. **Never add `.cs` or `.csproj` files.**
 - `clamp()` returns `Variant` in GDScript — using `:=` for type inference triggers a parse error (warnings as errors). Use `clampf()` for float, `clampi()` for int, or explicit typing `var x: float = clamp(...)`.
 - Fake `uid://` strings in `.tscn` `ext_resource` lines cause warnings. Either omit the UID (path-only) or let Godot auto-generate it.
 - Scene scripts must use explicit `ext_resource type="GDScript"` in `.tscn` — they were auto-attached in the .NET version.
 - Signal connections in `.tscn` use snake_case method names (GDScript convention), not PascalCase.
 - Animation track paths in GDScript use `".:property"` format (e.g. `find_track(".:property", 0)`).
+- Autoload scripts are instantiated in tree order. `DialogueSystem` must load before `DialogueUI` because the UI connects to its signals in `_ready()`.
 
 ## Commands
 - Open the project: launch Godot standard (non-.NET), import `project.godot`
 - No build/test/lint steps — this is purely a Godot editor project
+- Run: F5 or ▶️ in Godot editor
