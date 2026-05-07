@@ -1,6 +1,8 @@
 extends Node2D
 
 var time_aunote: CharacterBody2D
+var pnjfutur
+var pnjfuturPos
 var position_entree_principale: Vector2
 var started: bool = false
 var stopped: bool = true
@@ -12,6 +14,9 @@ func _ready() -> void:
 	position_entree_principale = $"fondFutur/Markers2D/entreePrincipale".position
 	hide()
 	_setup_spawn_particles()
+	pnjfutur = $"pnj-futur"
+	pnjfuturPos = $"fondFutur/Markers2D/pnjfuturPos".position
+
 
 func _setup_spawn_particles() -> void:
 	spawn_particles = CPUParticles2D.new()
@@ -73,6 +78,8 @@ func _handle_movement(delta: float) -> void:
 func start() -> void:
 	show()
 	time_aunote = $TimeAunote
+	pnjfutur = $"pnj-futur"
+	pnjfutur.apparition(pnjfuturPos)
 	time_aunote.position = position_entree_principale
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0

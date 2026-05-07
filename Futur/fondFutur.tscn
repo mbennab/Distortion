@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://e2sc8lr3gqai4"]
+[gd_scene format=3 uid="uid://7ehnjutvjerd"]
 
-[ext_resource type="Texture2D" path="res://art/Futur/fond_futur.png" id="1_bg"]
+[ext_resource type="Texture2D" uid="uid://bby8b8pq102ba" path="res://art/Futur/fond_futur.png" id="1_bg"]
 
 [node name="fondFutur" type="Node2D" unique_id=358863711]
 
@@ -13,6 +13,9 @@ centered = false
 
 [node name="entreePrincipale" type="Marker2D" parent="Markers2D" unique_id=845621181]
 position = Vector2(1400, 780)
+
+[node name="pnjfuturPos" type="Marker2D" parent="Markers2D" unique_id=1536971535]
+position = Vector2(1279, 1143)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
 anchor_mode = 0
