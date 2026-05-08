@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://c22w2yp4lg1vk"]
+
+[ext_resource type="Texture2D" uid="uid://drvnlo4fv5hsv" path="res://art/Futur/sous-sol.png" id="1_bg"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p1y6m"]
+size = Vector2(113, 60)
+
+[node name="fondSousSol" type="Node2D" unique_id=1608877310]
+
+[node name="image" type="Sprite2D" parent="." unique_id=114902059]
+texture = ExtResource("1_bg")
+centered = false
+
+[node name="limite-sous-sol" type="StaticBody2D" parent="." unique_id=1865390137]
+collision_layer = 32
+
+[node name="mur-gauche" type="CollisionShape2D" parent="limite-sous-sol" unique_id=2022727788]
+position = Vector2(0, 341)
+scale = Vector2(1, 11.3667)
+shape = SubResource("RectangleShape2D_p1y6m")
+
+[node name="mur-droit" type="CollisionShape2D" parent="limite-sous-sol" unique_id=161900400]
+position = Vector2(1024, 341)
+scale = Vector2(1, 11.3667)
+shape = SubResource("RectangleShape2D_p1y6m")
+
+[node name="mur-haut" type="CollisionShape2D" parent="limite-sous-sol" unique_id=1246170128]
+position = Vector2(512, 0)
+shape = SubResource("RectangleShape2D_p1y6m")
+
+[node name="mur-bas" type="CollisionShape2D" parent="limite-sous-sol" unique_id=816524271]
+position = Vector2(505.5, 682)
+shape = SubResource("RectangleShape2D_p1y6m")
+
+[node name="Markers2D" type="Node2D" parent="." unique_id=979993664]
+
+[node name="entreeEscalier" type="Marker2D" parent="Markers2D" unique_id=966698038]
+position = Vector2(512, 600)
+
+[node name="pnjPos" type="Marker2D" parent="Markers2D" unique_id=608531473]
+position = Vector2(256, 500)
+
+[node name="escalier" type="Node2D" parent="." unique_id=473445642]
+
+[node name="zone_remontee" type="Area2D" parent="escalier" unique_id=2040945312]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="escalier/zone_remontee" unique_id=499795325]
+position = Vector2(875, 159)
+shape = SubResource("RectangleShape2D_p1y6m")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=510988406]
+position = Vector2(512, 341)
+anchor_mode = 0
+zoom = Vector2(1.125, 1.125)
