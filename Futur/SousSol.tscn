@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://dpnve3db7i0rp"]
+
+[ext_resource type="Script" uid="uid://p8yuanu5uus7" path="res://Futur/SousSol.gd" id="1_gd"]
+[ext_resource type="PackedScene" path="res://Futur/fondSousSol.tscn" id="2_fond"]
+[ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
+[ext_resource type="Script" uid="uid://ba0ytj6fhkxsq" path="res://Futur/pnj_futur.gd" id="4_pnj"]
+[ext_resource type="Texture2D" uid="uid://cepstrsda43py" path="res://art/Futur/pnj-futur-idle.png" id="5_png"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_at1"]
+atlas = ExtResource("5_png")
+region = Rect2(0, 0, 257, 433)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_at2"]
+atlas = ExtResource("5_png")
+region = Rect2(257, 0, 257, 433)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_pnj"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_at1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_at2")
+}],
+"loop": true,
+"name": &"idle-futur1",
+"speed": 2.0
+}]
+
+[node name="SousSol" type="Node2D" unique_id=1050132521]
+script = ExtResource("1_gd")
+
+[node name="fondSousSol" parent="." unique_id=37843814 instance=ExtResource("2_fond")]
+
+[node name="TimeAunote" parent="." unique_id=1308516530 instance=ExtResource("3_perso")]
+
+[node name="timerSortie" type="Timer" parent="." unique_id=2040953586]
+wait_time = 1.5
+one_shot = true
+
+[node name="pnj-futur" type="Node2D" parent="." unique_id=1326797147]
+script = ExtResource("4_pnj")
+
+[node name="pnjfuturAnimation" type="AnimatedSprite2D" parent="pnj-futur" unique_id=814833227]
+scale = Vector2(0.5, 0.5)
+sprite_frames = SubResource("SpriteFrames_pnj")
+animation = &"idle-futur1"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1595000072]
+anchor_mode = 0

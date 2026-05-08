@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
 [ext_resource type="Script" uid="uid://ba0ytj6fhkxsq" path="res://Futur/pnj_futur.gd" id="4_my58h"]
 [ext_resource type="Texture2D" uid="uid://cepstrsda43py" path="res://art/Futur/pnj-futur-idle.png" id="5_mfetk"]
+[ext_resource type="PackedScene" uid="uid://dpnve3db7i0rp" path="res://Futur/SousSol.tscn" id="6_soussol"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_my58h"]
 atlas = ExtResource("5_mfetk")
@@ -28,12 +29,18 @@ animations = [{
 "speed": 2.0
 }]
 
-[node name="Futur" type="Node2D" unique_id=1593019004]
+[node name="Futurrrrr" type="Node2D" unique_id=1593019004]
 script = ExtResource("1_gd")
 
 [node name="fondFutur" parent="." unique_id=358863711 instance=ExtResource("2_fond")]
 
 [node name="TimeAunote" parent="." unique_id=409968594 instance=ExtResource("3_perso")]
+
+[node name="timerSortie" type="Timer" parent="." unique_id=1773903034]
+wait_time = 1.5
+one_shot = true
+
+[node name="SousSol" parent="." unique_id=1032565229 instance=ExtResource("6_soussol")]
 
 [node name="pnj-futur" type="Node2D" parent="." unique_id=690371241]
 script = ExtResource("4_my58h")

@@ -2,6 +2,9 @@
 
 [ext_resource type="Texture2D" uid="uid://cebjyuqsmu8o6" path="res://art/Futur/fond-futur.png" id="1_yp6m1"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_esc"]
+size = Vector2(100, 60)
+
 [node name="fondFutur" type="Node2D" unique_id=358863711]
 
 [node name="limite-futur" type="StaticBody2D" parent="." unique_id=1712014447]
@@ -41,6 +44,17 @@ position = Vector2(1201, 437)
 
 [node name="pnjfuturPos" type="Marker2D" parent="Markers2D" unique_id=1536971535]
 position = Vector2(480, 1167)
+
+[node name="entreeEscalier" type="Marker2D" parent="Markers2D" unique_id=599228988]
+position = Vector2(2048, 1314)
+
+[node name="escalier" type="Node2D" parent="." unique_id=915031175]
+
+[node name="zone-escalier" type="Area2D" parent="escalier" unique_id=1065046573]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="escalier/zone-escalier" unique_id=531818562]
+position = Vector2(2041, 1430)
+shape = SubResource("RectangleShape2D_esc")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
 anchor_mode = 0
