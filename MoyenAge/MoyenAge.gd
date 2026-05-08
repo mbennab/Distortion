@@ -10,12 +10,17 @@ var can_move: bool = false
 var speed: float = 350.0
 var spawn_particles: CPUParticles2D
 
+var knight_scene = preload("res://MoyenAge/chevalier.tscn")
+var knights: Array = []
+var _roi_adieu_triggered: bool = false
+
 
 func _ready() -> void:
 	position_entree_principale = $"fondMoyenAge/Markers2D/entreePrincipale".position
 	roi_pos = $"fondMoyenAge/Markers2D/roiPos".position
 	hide()
 	_setup_spawn_particles()
+	DialogueSystem.reply_resolved.connect(_on_reply_resolved)
 
 func _setup_spawn_particles() -> void:
 	spawn_particles = CPUParticles2D.new()
@@ -128,3 +133,74 @@ func stop() -> void:
 		collision_node.disabled = true
 	if pnj_roi:
 		pnj_roi.get_node("ZoneDialogue").monitoring = false
+	_cleanup_knights()
+
+
+func _on_reply_resolved(reply_id: String) -> void:
+	if not started or _roi_adieu_triggered:
+		return
+	if reply_id == "roi_adieu":
+		_trigger_roi_adieu_sequence()
+
+
+func _trigger_roi_adieu_sequence() -> void:
+	_roi_adieu_triggered = true
+
+	await get_tree().create_timer(5.0).timeout
+	if not is_inside_tree():
+		return
+
+	DialogueUI.close_dialogue()
+	can_move = false
+
+	var pos1: Vector2 = $"fondMoyenAge/Markers2D/chevalier1".position
+	var pos2: Vector2 = $"fondMoyenAge/Markers2D/chevalier2".position
+
+	var knight1 = knight_scene.instantiate()
+	knight1.position = pos1
+	add_child(knight1)
+	knight1.get_node("AnimatedSprite2D").play("default")
+	knights.append(knight1)
+
+	await get_tree().create_timer(1.0).timeout
+
+	if not is_inside_tree():
+		return
+
+	var knight2 = knight_scene.instantiate()
+	knight2.position = pos2
+	add_child(knight2)
+	knight2.get_node("AnimatedSprite2D").play("default")
+	knights.append(knight2)
+
+	var label := Label.new()
+	label.text = "Le roi a été assassiné !\nPar cet homme c'est certain !\nATTRAPEZ-LE !"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(1, 0.2, 0.2))
+	label.custom_minimum_size = Vector2(500, 0)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.75)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	label.add_theme_stylebox_override("normal", style)
+	label.z_index = 100
+
+	var center: Vector2 = (pos1 + pos2) / 2.0
+	label.position = Vector2(center.x - 250, pos1.y - 280)
+	add_child(label)
+	knights.append(label)
+
+	can_move = true
+
+
+func _cleanup_knights() -> void:
+	for k in knights:
+		if is_instance_valid(k):
+			k.queue_free()
+	knights.clear()
+	_roi_adieu_triggered = false

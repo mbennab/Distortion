@@ -18,6 +18,12 @@ position = Vector2(1688, 787)
 [node name="roiPos" type="Marker2D" parent="Markers2D" unique_id=1658315840]
 position = Vector2(1215, 918)
 
+[node name="chevalier1" type="Marker2D" parent="Markers2D" unique_id=1314914260]
+position = Vector2(750, 480)
+
+[node name="chevalier2" type="Marker2D" parent="Markers2D" unique_id=153163934]
+position = Vector2(624, 537)
+
 [node name="limitesDeplacements" type="StaticBody2D" parent="." unique_id=49598548]
 collision_layer = 4
 

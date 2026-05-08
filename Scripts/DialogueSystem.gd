@@ -9,6 +9,7 @@ signal dialogue_ended
 signal dialogue_response(npc_name: String, text: String)
 signal dialogue_error(message: String)
 signal quest_updated(quest_id: String, status: String, current_step: String)
+signal reply_resolved(reply_id: String)
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 const MODEL = "mistralai/ministral-3b-2512"
@@ -198,6 +199,7 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 	print("[DialogueSystem] Resolved text: '%s'" % final_text.left(100))
 	var npc_name = current_npc.get("name", current_npc.get("id", "?"))
 	dialogue_response.emit(npc_name, final_text)
+	reply_resolved.emit(reply_id)
 
 
 func filter_dialogue_bank(npc_id: String) -> Array:
