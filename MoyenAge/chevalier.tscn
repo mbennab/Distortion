@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://c0sbf80e0w0yf"]
+
+[ext_resource type="Texture2D" uid="uid://b56os8usymbxo" path="res://art/MoyenAge/chevalier.png" id="1_rxwgd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a2tyh"]
+atlas = ExtResource("1_rxwgd")
+region = Rect2(0, 0, 265, 471)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3mncg"]
+atlas = ExtResource("1_rxwgd")
+region = Rect2(265, 0, 265, 471)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_blvrx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a2tyh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3mncg")
+}],
+"loop": true,
+"name": &"default",
+"speed": 2.0
+}]
+
+[node name="chevalier" type="Node2D" unique_id=110670680]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=199529334]
+scale = Vector2(0.5, 0.5)
+sprite_frames = SubResource("SpriteFrames_blvrx")
+frame_progress = 0.21432522
