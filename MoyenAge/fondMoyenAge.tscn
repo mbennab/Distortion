@@ -15,9 +15,8 @@ centered = false
 [node name="entreePrincipale" type="Marker2D" parent="Markers2D" unique_id=845621181]
 position = Vector2(1688, 787)
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
-anchor_mode = 0
-zoom = Vector2(0.422, 0.422)
+[node name="roiPos" type="Marker2D" parent="Markers2D" unique_id=1658315840]
+position = Vector2(1215, 918)
 
 [node name="limitesDeplacements" type="StaticBody2D" parent="." unique_id=49598548]
 collision_layer = 4
@@ -29,11 +28,11 @@ polygon = PackedVector2Array(-2, 149, -433, 143, -440, 166, -458, 165, -460, 127
 
 [node name="bancs1" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=1300739391]
 build_mode = 1
-polygon = PackedVector2Array(785, 967, 784, 1557, 1016, 1556, 1017, 967)
+polygon = PackedVector2Array(785, 967, 783, 1533, 1015, 1535, 1017, 967)
 
 [node name="bancs2" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=156285643]
 build_mode = 1
-polygon = PackedVector2Array(1496, 968, 1495, 1558, 1727, 1557, 1728, 968)
+polygon = PackedVector2Array(1496, 968, 1495, 1533, 1726, 1535, 1728, 968)
 
 [node name="colonnes1" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=287827992]
 build_mode = 1
@@ -42,3 +41,7 @@ polygon = PackedVector2Array(458, 1251, 472, 1261, 531, 1260, 590, 1249, 614, 12
 [node name="colonnes2" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=484591221]
 build_mode = 1
 polygon = PackedVector2Array(1926, 1251, 1905, 1236, 1923, 1208, 1920, 1148, 1907, 1107, 1929, 1049, 1981, 1049, 1981, 960, 1929, 954, 1905, 934, 1924, 909, 1920, 857, 1907, 836, 1908, 811, 1929, 764, 1983, 767, 1982, 660, 1999, 633, 2037, 636, 2053, 659, 2058, 954, 2059, 1254, 2046, 1262, 1983, 1260)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
