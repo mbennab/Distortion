@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://cgtwres8few4t"]
+
+[ext_resource type="Script" uid="uid://b32g0w4d1etj5" path="res://MoyenAge/pnj_roi.gd" id="1_gd"]
+[ext_resource type="Texture2D" uid="uid://bdbfw7hdwpewn" path="res://art/MoyenAge/roi.png" id="2_roi"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_detect"]
+radius = 120.0
+
+[node name="pnj-roi" type="Node2D" unique_id=2114431452]
+script = ExtResource("1_gd")
+
+[node name="sprite_roi" type="Sprite2D" parent="." unique_id=779938596]
+scale = Vector2(0.13, 0.13)
+texture = ExtResource("2_roi")
+
+[node name="ZoneDialogue" type="Area2D" parent="." unique_id=170125132]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue" unique_id=1404214656]
+shape = SubResource("CircleShape2D_detect")

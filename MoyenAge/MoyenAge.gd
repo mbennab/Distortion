@@ -1,6 +1,8 @@
 extends Node2D
 
 var time_aunote: CharacterBody2D
+var pnj_roi
+var roi_pos: Vector2
 var position_entree_principale: Vector2
 var started: bool = false
 var stopped: bool = true
@@ -8,8 +10,10 @@ var can_move: bool = false
 var speed: float = 350.0
 var spawn_particles: CPUParticles2D
 
+
 func _ready() -> void:
 	position_entree_principale = $"fondMoyenAge/Markers2D/entreePrincipale".position
+	roi_pos = $"fondMoyenAge/Markers2D/roiPos".position
 	hide()
 	_setup_spawn_particles()
 
@@ -57,6 +61,9 @@ func _process(delta: float) -> void:
 	_handle_movement(delta)
 
 func _handle_movement(delta: float) -> void:
+	if DialogueUI.is_dialogue_active():
+		time_aunote.animation(Vector2.ZERO)
+		return
 	var velocity := Vector2.ZERO
 	if Input.is_action_pressed("marche_haut"):
 		velocity.y -= 1
@@ -72,9 +79,13 @@ func _handle_movement(delta: float) -> void:
 
 func start() -> void:
 	show()
+	DialogueSystem.load_dimension("res://MoyenAge/dimension_moyenage.json")
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 4
 	time_aunote.position = position_entree_principale
+	pnj_roi = $"pnj-roi"
+	pnj_roi.apparition(roi_pos)
+	pnj_roi.get_node("ZoneDialogue").monitoring = true
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0
 	time_aunote.scale = Vector2.ZERO
@@ -108,9 +119,12 @@ func _play_spawn_animation() -> void:
 
 func stop() -> void:
 	hide()
+	DialogueUI.close_dialogue()
 	can_move = false
 	started = false
 	stopped = true
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
+	if pnj_roi:
+		pnj_roi.get_node("ZoneDialogue").monitoring = false

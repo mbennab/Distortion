@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "id": "moyenage",
+    "name": "Moyen Âge",
+    "era": "Médiévale",
+    "description": "Un château fort du Moyen Âge, entre ombres et lumières.",
+    "completed": false
+  },
+  "npcs": [
+    {
+      "id": "npc_roi_moyenage",
+      "name": "Le Roi du Château",
+      "personality": {
+        "tone": "noble, solennel, un peu las. Parle avec autorité mais uneonce de tristesse. Il en a vu des époques défiler.",
+        "prompt_context": "Tu es le Roi du Château, un souverain médiéval usé par les guerres et le poids de la couronne. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l'ID de la réplique la plus adaptée parmi celles listées ci-dessous, en fonction de l'intention du joueur. Réponds avec un JSON strict : {\"id\": \"<id_replique>\"}."
+      },
+      "dialogue_bank": [
+        {
+          "id": "roi_accueil",
+          "condition": {
+            "quest_id": null,
+            "quest_status": null,
+            "quest_step": null
+          },
+          "intention": "le joueur salue le roi ou se présente",
+          "text": "Sois le bienvenu, étranger. Il est rare de voir un visage nouveau par ici. Les temps sont troubles, et mon royaume vacille sur ses fondations. Dis-moi ce qui t'amène en ces terres."
+        },
+        {
+          "id": "roi_royaume",
+          "condition": {
+            "quest_id": null,
+            "quest_status": null,
+            "quest_step": null
+          },
+          "intention": "le joueur demande ce qui arrive au royaume ou s'il y a un problème",
+          "text": "Mon royaume se meurt à petit feu. Les récoltes pourrissent, les bêtes tombent malades sans raison, et mes conseillers parlent de sorcellerie. Je ne sais plus qui croire. Peut-être que la solution viendra d'ailleurs... d'un autre temps."
+        },
+        {
+          "id": "roi_quete",
+          "condition": {
+            "quest_id": null,
+            "quest_status": null,
+            "quest_step": null
+          },
+          "intention": "le joueur propose son aide ou demande une quête",
+          "text": "Tu veux m'aider ? Vraiment ? Alors commence par parler à mon conseiller, dans la grande salle. Il saura te dire par où commencer. Si tu réussis, je te couvrirai d'or et de terres."
+        },
+        {
+          "id": "roi_portails",
+          "condition": {
+            "quest_id": null,
+            "quest_status": null,
+            "quest_step": null
+          },
+          "intention": "le joueur demande si le roi sait quelque chose sur les portails temporels ou la distorsion",
+          "text": "Les portails... J'ai vu des choses étranges ces dernières nuits. Des lueurs jaunes dans la chapelle, des murmures qui viennent de nulle part. Je ne sais pas ce que c'est, mais ça sent la magie ancienne. Peut-être que le passé et le futur se mélangent, par ici."
+        },
+        {
+          "id": "roi_adieu",
+          "condition": {
+            "quest_id": null,
+            "quest_status": null,
+            "quest_step": null
+          },
+          "intention": "le joueur dit au revoir ou part",
+          "text": "Que les anciens te protègent, voyageur. Si tu croises la Mort sur ton chemin, dis-lui que le Roi n'a pas fini de régner."
+        }
+      ],
+      "fallbacks": {
+        "off_topic": "Par la couronne ! Tu parles de choses qui n'ont pas de sens en ces murs.",
+        "insult": "Garde ta langue, insolent ! Je suis ton roi, et un peu de respect ne ferait pas de mal.",
+        "default_template": "Écoute, {name}, je ne suis pas d'humeur à jouer aux devinettes. Que veux-tu vraiment ?"
+      }
+    }
+  ],
+  "quests": [],
+  "mini_games": [],
+  "items": [],
+  "global_fallbacks": {
+    "off_topic": "Les couloirs du temps résonnent de questions bien plus importantes. Concentre-toi sur ta quête.",
+    "insult": "Le Nexus ignore tes insultes.",
+    "timeout": "La connexion temporelle est rompue.",
+    "unknown": "Tes paroles se perdent dans le vortex temporel.",
+    "default_template": "Le Roi te regarde sans comprendre. {name}, que dis-tu ?"
+  }
+}

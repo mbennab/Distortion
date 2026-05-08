@@ -1,116 +1,116 @@
 {
   "meta": {
-    "id": "hub",
-    "name": "Hub Central",
-    "era": "Hors du temps",
-    "description": "Le Nexus temporel, point de convergence de toutes les époques. Trois portails se dressent devant vous.",
-    "completed": false
+	"id": "hub",
+	"name": "Hub Central",
+	"era": "Hors du temps",
+	"description": "Le Nexus temporel, point de convergence de toutes les époques. Trois portails se dressent devant vous.",
+	"completed": false
   },
   "npcs": [
-    {
-      "id": "npc_guide_hub",
-      "name": "Le Gardien du Nexus",
-      "personality": {
-        "tone": "énigmatique, bienveillant. Parle par énigmes et métaphores temporelles. Sait tout sur les portails.",
-        "prompt_context": "Tu es le Gardien du Nexus, une entité intemporelle qui veille sur les portails du Hub Central. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l'ID de la réplique la plus adaptée parmi celles listées ci-dessous, en fonction de l'intention du joueur. Réponds avec un JSON strict : {\"id\": \"<id_replique>\"}."
-      },
-      "dialogue_bank": [
-        {
-          "id": "guide_presentation",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur se présente ou demande qui est cet étrange personnage",
-          "text": "Je suis le Gardien. Ni vivant, ni mort, ni passé, ni futur. Je veille sur ce nexus depuis que le temps a commencé à se distordre. Tu n'es pas le premier voyageur... et tu ne seras pas le dernier."
-        },
-        {
-          "id": "guide_portails",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur demande ce que sont les portails ou comment voyager dans le temps",
-          "text": "Trois portails, trois époques. Le jaune mène au Moyen Âge, là où la foi déplaçait des montagnes. Le bleu te ramènera à ton présent — ou ce qu'il en reste. Le rouge... le rouge est un pari sur l'avenir. Choisis bien, voyageur."
-        },
-        {
-          "id": "guide_portail_jaune",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur s'intéresse au portail jaune ou au Moyen Âge",
-          "text": "Le Moyen Âge. Une époque de chevaliers, de peste et de cathédrales. Le passé a ses propres dangers, mais aussi ses trésors. La connaissance des anciens s'y cache encore."
-        },
-        {
-          "id": "guide_portail_bleu",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur s'intéresse au portail bleu ou au présent",
-          "text": "Le Présent. Ton époque, ou presque. Un monde au bord du gouffre, déchiré par ses propres créations. L'énergie nucléaire a tout ravagé... mais certains disent qu'un remède existe encore."
-        },
-        {
-          "id": "guide_portail_rouge",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur s'intéresse au portail rouge ou au futur",
-          "text": "Le Futur. Un monde de machines et de merveilles technologiques. Mais la technologie n'est pas toujours une alliée. Méfie-toi de ce que tu pourrais y réveiller."
-        },
-        {
-          "id": "guide_conseil",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur demande un conseil ou de l'aide",
-          "text": "Un conseil ? Dans chaque époque, cherche ceux qui savent. Les PNJ que tu rencontreras ont des quêtes à te confier. Accomplis-les, et le voile du temps se lèvera un peu plus."
-        },
-        {
-          "id": "guide_merci",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur remercie le Gardien",
-          "text": "Ne me remercie pas encore, voyageur. Le chemin est long et les distorsions temporelles sont imprévisibles. Reviens me voir quand tu auras besoin de réponses."
-        },
-        {
-          "id": "guide_mystere",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur demande pourquoi le temps se distord ou pose des questions sur l'histoire du monde",
-          "text": "La Distorsion... Personne ne sait vraiment ce qui l'a causée. Certains parlent d'une expérience qui a mal tourné, d'autres d'une fracture dans le tissu même de la réalité. Peut-être que la réponse se trouve à la croisée des trois époques."
-        }
-      ],
-      "fallbacks": {
-        "off_topic": "Le temps est une rivière, pas un étang. Concentre-toi sur ce qui compte vraiment, voyageur.",
-        "insult": "Les mots acérés ne blessent pas celui qui a vu défiler les siècles. Calme-toi, et parle-moi de ce qui te préoccupe vraiment.",
-        "default_template": "Je te regarde, {name}, et je vois un être perdu entre les époques. Que cherches-tu vraiment ?"
-      }
-    }
+	{
+	  "id": "npc_guide_hub",
+	  "name": "Le Gardien du Nexus",
+	  "personality": {
+		"tone": "énigmatique, bienveillant. Parle par énigmes et métaphores temporelles. Sait tout sur les portails.",
+		"prompt_context": "Tu es le Gardien du Nexus, une entité intemporelle qui veille sur les portails du Hub Central. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l'ID de la réplique la plus adaptée parmi celles listées ci-dessous, en fonction de l'intention du joueur. Réponds avec un JSON strict : {\"id\": \"<id_replique>\"}."
+	  },
+	  "dialogue_bank": [
+		{
+		  "id": "guide_presentation",
+		  "condition": {
+			"quest_id": null,
+			"quest_status": null,
+			"quest_step": null
+		  },
+		  "intention": "le joueur se présente ou demande qui est cet étrange personnage",
+		  "text": "Je suis le Gardien. Ni vivant, ni mort, ni passé, ni futur. Je veille sur ce nexus depuis que le temps a commencé à se distordre. Tu n'es pas le premier voyageur... et tu ne seras pas le dernier."
+		},
+		{
+		  "id": "guide_portails",
+		  "condition": {
+			"quest_id": null,
+			"quest_status": null,
+			"quest_step": null
+		  },
+		  "intention": "le joueur demande ce que sont les portails ou comment voyager dans le temps",
+		  "text": "Trois portails, trois époques. Le jaune mène au Moyen Âge, là où la foi déplaçait des montagnes. Le bleu te ramènera à ton présent — ou ce qu'il en reste. Le rouge... le rouge est un pari sur l'avenir. Choisis bien, voyageur."
+		},
+		{
+		  "id": "guide_portail_jaune",
+		  "condition": {
+			"quest_id": null,
+			"quest_status": null,
+			"quest_step": null
+		  },
+		  "intention": "le joueur s'intéresse au portail jaune ou au Moyen Âge",
+		  "text": "Le Moyen Âge. Une époque de chevaliers, de peste et de cathédrales. Le passé a ses propres dangers, mais aussi ses trésors. La connaissance des anciens s'y cache encore."
+		},
+		{
+		  "id": "guide_portail_bleu",
+		  "condition": {
+			"quest_id": null,
+			"quest_status": null,
+			"quest_step": null
+		  },
+		  "intention": "le joueur s'intéresse au portail bleu ou au présent",
+		  "text": "Le Présent. Ton époque, ou presque. Un monde au bord du gouffre, déchiré par ses propres créations. L'énergie nucléaire a tout ravagé... mais certains disent qu'un remède existe encore."
+		},
+		{
+		  "id": "guide_portail_rouge",
+		  "condition": {
+			"quest_id": null,
+			"quest_status": null,
+			"quest_step": null
+		  },
+		  "intention": "le joueur s'intéresse au portail rouge ou au futur",
+		  "text": "Le Futur. Un monde de machines et de merveilles technologiques. Mais la technologie n'est pas toujours une alliée. Méfie-toi de ce que tu pourrais y réveiller."
+		},
+		{
+		  "id": "guide_conseil",
+		  "condition": {
+			"quest_id": null,
+			"quest_status": null,
+			"quest_step": null
+		  },
+		  "intention": "le joueur demande un conseil ou de l'aide",
+		  "text": "Un conseil ? Dans chaque époque, cherche ceux qui savent. Les PNJ que tu rencontreras ont des quêtes à te confier. Accomplis-les, et le voile du temps se lèvera un peu plus."
+		},
+		{
+		  "id": "guide_merci",
+		  "condition": {
+			"quest_id": null,
+			"quest_status": null,
+			"quest_step": null
+		  },
+		  "intention": "le joueur remercie le Gardien",
+		  "text": "Ne me remercie pas encore, voyageur. Le chemin est long et les distorsions temporelles sont imprévisibles. Reviens me voir quand tu auras besoin de réponses."
+		},
+		{
+		  "id": "guide_mystere",
+		  "condition": {
+			"quest_id": null,
+			"quest_status": null,
+			"quest_step": null
+		  },
+		  "intention": "le joueur demande pourquoi le temps se distord ou pose des questions sur l'histoire du monde",
+		  "text": "La Distorsion... Personne ne sait vraiment ce qui l'a causée. Certains parlent d'une expérience qui a mal tourné, d'autres d'une fracture dans le tissu même de la réalité. Peut-être que la réponse se trouve à la croisée des trois époques."
+		}
+	  ],
+	  "fallbacks": {
+		"off_topic": "Le temps est une rivière, pas un étang. Concentre-toi sur ce qui compte vraiment, voyageur.",
+		"insult": "Les mots acérés ne blessent pas celui qui a vu défiler les siècles. Calme-toi, et parle-moi de ce qui te préoccupe vraiment.",
+		"default_template": "Je te regarde, {name}, et je vois un être perdu entre les époques. Que cherches-tu vraiment ?"
+	  }
+	}
   ],
   "quests": [],
   "mini_games": [],
   "items": [],
   "global_fallbacks": {
-    "off_topic": "Les couloirs du temps résonnent de questions bien plus importantes. Concentre-toi sur ta quête.",
-    "insult": "Le Nexus ignore tes insultes. Ici, seules les actions résonnent à travers les époques.",
-    "timeout": "La connexion temporelle est rompue. Le flux du temps reprendra bientôt.",
-    "unknown": "Tes paroles se perdent dans le vortex temporel. Essaie de t'exprimer autrement.",
-    "default_template": "Le Gardien du Nexus te regarde sans comprendre. {name}, tes mots n'ont pas de sens ici."
+	"off_topic": "Les couloirs du temps résonnent de questions bien plus importantes. Concentre-toi sur ta quête.",
+	"insult": "Le Nexus ignore tes insultes. Ici, seules les actions résonnent à travers les époques.",
+	"timeout": "La connexion temporelle est rompue. Le flux du temps reprendra bientôt.",
+	"unknown": "Tes paroles se perdent dans le vortex temporel. Essaie de t'exprimer autrement.",
+	"default_template": "Le Gardien du Nexus te regarde sans comprendre. {name}, tes mots n'ont pas de sens ici."
   }
 }
