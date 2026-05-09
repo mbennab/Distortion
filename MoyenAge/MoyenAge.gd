@@ -14,6 +14,10 @@ var knight_scene = preload("res://MoyenAge/chevalier.tscn")
 var knights: Array = []
 var _roi_adieu_triggered: bool = false
 
+var prison
+var fade_layer: CanvasLayer
+var fade_rect: ColorRect
+
 
 func _ready() -> void:
 	position_entree_principale = $"fondMoyenAge/Markers2D/entreePrincipale".position
@@ -21,6 +25,8 @@ func _ready() -> void:
 	hide()
 	_setup_spawn_particles()
 	DialogueSystem.reply_resolved.connect(_on_reply_resolved)
+	prison = $prison_moyen_age
+	_setup_fade_overlay()
 
 func _setup_spawn_particles() -> void:
 	spawn_particles = CPUParticles2D.new()
@@ -42,6 +48,19 @@ func _setup_spawn_particles() -> void:
 	spawn_particles.texture = _create_particle_texture()
 	spawn_particles.z_index = 20
 	add_child(spawn_particles)
+
+func _setup_fade_overlay() -> void:
+	fade_layer = CanvasLayer.new()
+	fade_layer.layer = 128
+	add_child(fade_layer)
+
+	fade_rect = ColorRect.new()
+	fade_rect.color = Color.BLACK
+	fade_rect.modulate.a = 0.0
+	fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fade_rect.size = get_viewport_rect().size
+	fade_layer.add_child(fade_rect)
+
 
 func _create_particle_texture() -> ImageTexture:
 	var image := Image.create(32, 32, false, Image.FORMAT_RGBA8)
@@ -194,6 +213,34 @@ func _trigger_roi_adieu_sequence() -> void:
 	label.position = Vector2(center.x - 250, pos1.y - 280)
 	add_child(label)
 	knights.append(label)
+
+	await get_tree().create_timer(5.0).timeout
+	if not is_inside_tree():
+		return
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	_cleanup_knights()
+
+	$fondMoyenAge.hide()
+	var limites_fond = $fondMoyenAge.get_node_or_null("limitesDeplacements")
+	if limites_fond:
+		limites_fond.collision_layer = 0
+
+	prison.show()
+	var limites_prison = prison.get_node_or_null("limiteDeplacement")
+	if limites_prison:
+		limites_prison.collision_layer = 4
+
+	time_aunote.global_position = prison.get_node("markers2d/apparition").global_position
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
 
 	can_move = true
 

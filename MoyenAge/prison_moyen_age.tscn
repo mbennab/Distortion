@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://cphdrnp2uds1l"]
+
+[ext_resource type="Texture2D" uid="uid://ka8k6htqsgs4" path="res://art/MoyenAge/prision_moyen-age.png" id="1_0txog"]
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_fjyxf"]
+a = Vector2(-253, 199)
+b = Vector2(11, 0)
+
+[node name="prison_moyen-age" type="Node2D" unique_id=1511540454]
+
+[node name="image" type="Sprite2D" parent="." unique_id=220167084]
+position = Vector2(1411, 770)
+texture = ExtResource("1_0txog")
+
+[node name="markers2d" type="Node2D" parent="." unique_id=1159531159]
+
+[node name="apparition" type="Marker2D" parent="markers2d" unique_id=245196762]
+position = Vector2(544, 418)
+
+[node name="teleportation" type="Marker2D" parent="markers2d" unique_id=2134233396]
+position = Vector2(563, 967)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=413258976]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="limiteDeplacement" type="StaticBody2D" parent="." unique_id=19033929]
+collision_layer = 4
+
+[node name="cellule" type="CollisionPolygon2D" parent="limiteDeplacement" unique_id=1341399030]
+build_mode = 1
+polygon = PackedVector2Array(99, 393, 100, 553, 960, 549, 958, 394)
+
+[node name="couloir" type="CollisionPolygon2D" parent="limiteDeplacement" unique_id=840574035]
+build_mode = 1
+polygon = PackedVector2Array(97, 936, 96, 1445, 2367, 1443, 2578, 1536, 2817, 1533, 2819, 1337, 2289, 1061, 2291, 620, 2723, 614, 2721, 431, 1982, 422, 1975, 945)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1112422576]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=494994193]
+position = Vector2(2808, 1338)
+shape = SubResource("SegmentShape2D_fjyxf")
