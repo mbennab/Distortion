@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="GDScript" path="res://Scripts/MiniJeuCrochetage.gd" id="1_script"]
+
+[node name="MiniJeuCrochetage" type="CanvasLayer"]
+layer = 129
+script = ExtResource("1_script")
+
+[node name="bg" type="ColorRect" parent="."]
+mouse_filter = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="draw_area" type="Node2D" parent="."]
+
+[node name="stage_label" type="Label" parent="."]
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 22)
+add_theme_color_override("font_color", Color(1, 1, 1))
+

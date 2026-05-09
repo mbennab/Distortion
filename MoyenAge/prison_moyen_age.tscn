@@ -1,42 +1,57 @@
 [gd_scene format=3 uid="uid://cphdrnp2uds1l"]
 
 [ext_resource type="Texture2D" uid="uid://ka8k6htqsgs4" path="res://art/MoyenAge/prision_moyen-age.png" id="1_0txog"]
+[ext_resource type="Script" uid="uid://di4cuj1aclenp" path="res://MoyenAge/prison_moyen_age.gd" id="2_script"]
 
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_fjyxf"]
-a = Vector2(-253, 199)
-b = Vector2(11, 0)
+[sub_resource type="CircleShape2D" id="CircleShape2D_porte"]
+radius = 80.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sortie"]
+radius = 100.0
 
 [node name="prison_moyen-age" type="Node2D" unique_id=1511540454]
+script = ExtResource("2_script")
 
 [node name="image" type="Sprite2D" parent="." unique_id=220167084]
-position = Vector2(1411, 770)
+position = Vector2(1214, 810)
+scale = Vector2(0.86008525, 1.0520834)
 texture = ExtResource("1_0txog")
 
 [node name="markers2d" type="Node2D" parent="." unique_id=1159531159]
 
 [node name="apparition" type="Marker2D" parent="markers2d" unique_id=245196762]
-position = Vector2(544, 418)
+position = Vector2(219, 434)
 
 [node name="teleportation" type="Marker2D" parent="markers2d" unique_id=2134233396]
-position = Vector2(563, 967)
+position = Vector2(490, 1002)
+
+[node name="porte" type="Marker2D" parent="markers2d" unique_id=737319500]
+position = Vector2(561, 568)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=413258976]
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
+
+[node name="ZonePorte" type="Area2D" parent="." unique_id=125467823]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZonePorte" unique_id=184579302]
+position = Vector2(481, 565)
+shape = SubResource("CircleShape2D_porte")
 
 [node name="limiteDeplacement" type="StaticBody2D" parent="." unique_id=19033929]
 collision_layer = 4
 
 [node name="cellule" type="CollisionPolygon2D" parent="limiteDeplacement" unique_id=1341399030]
 build_mode = 1
-polygon = PackedVector2Array(99, 393, 100, 553, 960, 549, 958, 394)
+polygon = PackedVector2Array(82, 399, 86, 573, 827, 580, 825, 399)
 
 [node name="couloir" type="CollisionPolygon2D" parent="limiteDeplacement" unique_id=840574035]
 build_mode = 1
-polygon = PackedVector2Array(97, 936, 96, 1445, 2367, 1443, 2578, 1536, 2817, 1533, 2819, 1337, 2289, 1061, 2291, 620, 2723, 614, 2721, 431, 1982, 422, 1975, 945)
+polygon = PackedVector2Array(84, 927, 86, 1521, 2043, 1524, 2204, 1622, 2419, 1619, 2419, 1412, 1976, 1123, 1824, 1108, 1891, 938, 1973, 917, 1976, 658, 2346, 643, 2343, 446, 1705, 449, 1703, 940)
 
-[node name="Area2D" type="Area2D" parent="." unique_id=1112422576]
+[node name="ZoneSortie" type="Area2D" parent="." unique_id=1112422576]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=494994193]
-position = Vector2(2808, 1338)
-shape = SubResource("SegmentShape2D_fjyxf")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneSortie" unique_id=494994193]
+position = Vector2(2307, 1496)
+shape = SubResource("CircleShape2D_sortie")

@@ -152,6 +152,13 @@ func stop() -> void:
 		collision_node.disabled = true
 	if pnj_roi:
 		pnj_roi.get_node("ZoneDialogue").monitoring = false
+	if prison:
+		var zone_porte = prison.get_node_or_null("ZonePorte")
+		if zone_porte:
+			zone_porte.monitoring = false
+		var zone_sortie = prison.get_node_or_null("ZoneSortie")
+		if zone_sortie:
+			zone_sortie.monitoring = false
 	_cleanup_knights()
 
 
@@ -232,6 +239,7 @@ func _trigger_roi_adieu_sequence() -> void:
 		limites_fond.collision_layer = 0
 
 	prison.show()
+	prison.get_node("ZonePorte").monitoring = true
 	var limites_prison = prison.get_node_or_null("limiteDeplacement")
 	if limites_prison:
 		limites_prison.collision_layer = 4
@@ -242,6 +250,15 @@ func _trigger_roi_adieu_sequence() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
 
+	can_move = true
+
+
+func _on_minigame_started() -> void:
+	can_move = false
+
+
+func _on_minigame_success() -> void:
+	time_aunote.global_position = prison.get_node("markers2d/teleportation").global_position
 	can_move = true
 
 
