@@ -20,7 +20,12 @@ position = Vector2(544, 418)
 [node name="teleportation" type="Marker2D" parent="markers2d" unique_id=2134233396]
 position = Vector2(563, 967)
 
+[node name="Camera2D" type="Camera2D" parent="." unique_id=413258976]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
 [node name="limiteDeplacement" type="StaticBody2D" parent="." unique_id=19033929]
+collision_layer = 4
 
 [node name="cellule" type="CollisionPolygon2D" parent="limiteDeplacement" unique_id=1341399030]
 build_mode = 1
