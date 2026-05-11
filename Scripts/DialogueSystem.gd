@@ -140,7 +140,7 @@ func send_message(player_message: String) -> void:
 	_send_api_request(system_prompt, user_prompt)
 
 
-func _send_api_request(system_prompt: String, user_prompt: String, replies: Array) -> void:
+func _send_api_request(system_prompt: String, user_prompt: String) -> void:
 	if pending:
 		return
 	pending = true
@@ -158,18 +158,18 @@ func _send_api_request(system_prompt: String, user_prompt: String, replies: Arra
 			{"role": "system", "content": system_prompt},
 			{"role": "user", "content": user_prompt},
 		],
-		"temperature": 0.1,
-		"max_tokens": 128,
+		"temperature": TEMPERATURE,
+		"max_tokens": MAX_TOKENS,
 		"response_format": {"type": "json_object"},
 	}
 
 	var json_string = JSON.stringify(body)
-	print("[DialogueSystem] Sending API request to OpenRouter...")
+	print("[DialogueSystem] Sending API request to OpenRouter (tokens=%d, temp=%.1f)..." % [MAX_TOKENS, TEMPERATURE])
 	var err = http_request.request(OPENROUTER_URL, headers, HTTPClient.METHOD_POST, json_string)
 	if err != OK:
 		pending = false
 		print("[DialogueSystem] ERROR: request() returned %d" % err)
-		dialogue_error.emit("Failed to send request: %d" % err)
+		dialogue_error.emit("Échec de l'envoi de la requête: %d" % err)
 		return
 	print("[DialogueSystem] Request sent, waiting for response...")
 
