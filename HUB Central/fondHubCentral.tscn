@@ -105,7 +105,7 @@ position = Vector2(229, 532)
 position = Vector2(1195, 870)
 
 [node name="chienPos" type="Marker2D" parent="Markers2D" unique_id=1760368016]
-position = Vector2(641, 897)
+position = Vector2(358, 409)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
 position = Vector2(0, 1)
