@@ -3,6 +3,7 @@ extends Node2D
 var player_near_door := false
 var player_near_sortie := false
 var minigame_running := false
+var _minigame: CanvasLayer = null
 var prompt_label: Label
 var sortie_label: Label
 
@@ -37,7 +38,7 @@ func _setup_prompt() -> void:
 
 func _setup_sortie_prompt() -> void:
 	sortie_label = Label.new()
-	sortie_label.text = "Verrouillé… accès futur"
+	sortie_label.text = "Sortie…"
 	sortie_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sortie_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	sortie_label.add_theme_font_size_override("font_size", 18)
@@ -47,8 +48,8 @@ func _setup_sortie_prompt() -> void:
 	sortie_label.z_index = 100
 
 	var sortie_pos: Vector2 = $ZoneSortie/CollisionShape2D.position
-	sortie_label.position = Vector2(sortie_pos.x - 150, sortie_pos.y - 80)
-	sortie_label.size = Vector2(300, 50)
+	sortie_label.position = Vector2(sortie_pos.x - 60, sortie_pos.y - 80)
+	sortie_label.size = Vector2(120, 50)
 	add_child(sortie_label)
 
 
@@ -78,6 +79,8 @@ func _on_body_exited_sortie(body: Node2D) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree():
+		return
 	if event.is_action_pressed("interagir") and player_near_door and not minigame_running:
 		get_viewport().set_input_as_handled()
 		_start_minigame()
@@ -92,13 +95,21 @@ func _start_minigame() -> void:
 		parent._on_minigame_started()
 
 	var mg_scene = preload("res://Scripts/MiniJeuCrochetage.tscn")
-	var mg = mg_scene.instantiate()
-	mg.done.connect(_on_minigame_done)
-	get_tree().root.add_child(mg)
+	_minigame = mg_scene.instantiate()
+	_minigame.done.connect(_on_minigame_done)
+	get_tree().root.add_child(_minigame)
+
+
+func stop_minigame() -> void:
+	if _minigame and is_instance_valid(_minigame):
+		_minigame.queue_free()
+		_minigame = null
+	minigame_running = false
 
 
 func _on_minigame_done(success: bool) -> void:
 	minigame_running = false
+	_minigame = null
 	if success:
 		prompt_label.visible = false
 		var parent = get_parent()

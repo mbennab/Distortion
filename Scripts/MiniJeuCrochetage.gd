@@ -67,7 +67,9 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("interagir") and running:
+	if not is_inside_tree() or not running:
+		return
+	if event.is_action_pressed("interagir"):
 		get_viewport().set_input_as_handled()
 		_check_hit()
 

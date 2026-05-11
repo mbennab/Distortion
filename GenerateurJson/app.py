@@ -1,5 +1,7 @@
 import json
+import os
 import re
+import sys
 import uuid
 from pathlib import Path
 
@@ -22,6 +24,14 @@ DIMENSIONS_DIR = BASE_DIR / "dimensions"
 DIMENSIONS_DIR.mkdir(exist_ok=True)
 
 SNAKE_CASE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+# Dossiers des eres du jeu Godot (chemin relatif depuis GenerateurJson/)
+GAME_FOLDERS = {
+    "hub":      BASE_DIR.parent / "HUB Central",
+    "moyenage": BASE_DIR.parent / "MoyenAge",
+    "nuclear":  BASE_DIR.parent / "Present",
+    "futur":    BASE_DIR.parent / "Futur",
+}
 
 
 def _dimension_path(dim_id: str) -> Path:
@@ -498,6 +508,385 @@ async def export_npc(dim_id: str, npc_id: str):
         if npc.get("id") == npc_id:
             return npc
     raise HTTPException(status_code=404, detail="NPC not found")
+
+
+# ─── AI Prompts ─────────────────────────────────────────────────────
+
+SYSTEM_CREATE = """Tu es un architecte de jeu video. Tu transformes les idees du createur en JSON structure pour le jeu Distortion.
+
+## FORMAT STRICT — toujours, sans exception
+{"text": "ton message", "data": {JSON complet}, "done": false}
+"done": true uniquement quand le createur valide tout (ok, parfait, c'est bon, termine).
+"data" commence vide et se remplit progressivement sans jamais perdre ce qui est deja valide.
+Squelette initial : {"meta":{},"npcs":[],"quests":[],"mini_games":[],"items":[],"global_fallbacks":{}}
+
+## COMPORTEMENT
+- Proactif : propose des valeurs pertinentes, le createur valide ou ajuste.
+- Concis : 2-4 phrases max. Va droit au but.
+- Si le createur dit "ok", "oui", "go", "parfait" -> passe directement a l'etape suivante.
+- Si vague -> une seule question de clarification. Si precis -> traite tout d'un coup.
+- IDs toujours en snake_case, jamais de doublons dans tout le document.
+
+## FLUX EN 4 PHASES
+
+### Phase 1 — PITCH
+Le createur decrit son jeu. Tu structures IMMEDIATEMENT :
+- meta : id (snake_case), name, era, description
+- PNJs detectes : id + nom + role en 5 mots chacun
+- Quetes pressenties : titre + etapes grossieres
+Termine par : "Je detaille les PNJ ?"
+
+### Phase 2 — PNJ (un par un, fiche complete)
+Pour chaque PNJ, proposes une fiche complete et attends validation :
+personality : tone, backstory (1 phrase), emotional_state
+personality.speech : vouvoiement (bool), vocatif (string), phrases (style), expressions (liste 2-3), interdits (liste 1-2)
+personality.knowledge : liste de 3-5 faits concrets
+personality.goals : liste de 2-3 objectifs de conversation
+personality.conversation_arc : liste de 2-4 phases {phase, until_message, focus}
+intentions : liste de 3-6 entrees {id (snake_case), condition (null ou {quest_id,quest_status,quest_step}), trigger, example, action (null ou {type,id,description})}
+fallbacks : off_topic, insult, timeout, unknown, default_template (doit contenir {name})
+Termine par : "PNJ suivant ?" ou "On passe aux quetes ?"
+
+### Phase 3 — QUETES
+Pour chaque quete :
+{id, title, status:"not_started", requires_quests:[], steps:[{id,description}]}
+Adapter les intentions des PNJ : ajouter les conditions quest_id/quest_status/quest_step.
+
+### Phase 4 — FINALISATION
+- global_fallbacks complet (off_topic, insult, timeout, unknown, default_template avec {name})
+- Proposer mini_games et items si pertinent
+- done:true quand le createur est satisfait
+
+## REGLES ABSOLUES
+- IDs snake_case (minuscules + underscores uniquement), jamais de doublons
+- default_template contient toujours {name}
+- Actions : {"type":"trigger","id":"...","description":"..."}
+- Inclure tous les champs meme vides : [], {}, null
+- Ne jamais supprimer de donnees deja validees dans "data"
+"""
+
+SYSTEM_MODIFY = """Tu es un expert en modification de dimensions JSON pour le jeu Distortion.
+
+## FORMAT STRICT — toujours respecte
+{"text": "description des changements effectues", "data": {JSON complet mis a jour}, "done": false}
+"done": true uniquement si l'utilisateur dit que c'est termine (ok, parfait, fini, c'est bon).
+
+## COMPORTEMENT
+- Tu recois le JSON actuel en contexte systeme.
+- Si l'utilisateur n'a pas precise ce qu'il veut modifier, demande-le en 1 question.
+- Applique les changements et renvoie le JSON COMPLET mis a jour.
+- Modifications chirurgicales : ne change que ce qui est demande.
+- Si la demande est ambigue -> 1 question de clarification.
+- Si l'utilisateur ajoute un PNJ -> genere une fiche complete (personality, intentions, fallbacks).
+- Si une quete change -> adapte les conditions dans les intentions des PNJ lies.
+
+## REGLES ABSOLUES
+- Conserve TOUS les champs existants non modifies.
+- IDs en snake_case, pas de doublons dans tout le document.
+- default_template doit contenir {name}.
+- Actions : {"type":"trigger","id":"...","description":"..."}.
+- Inclure tous les champs meme vides ([], {}, null).
+"""
+
+SYSTEM_TEST = """Tu es un PNJ de jeu video. Le contexte systeme decrit ton personnage : incarne-le avec rigueur.
+FORMAT JSON STRICT — toujours : {"text":"ta reponse en francais","action":null}
+Si la situation correspond a une action de tes intentions, inclus-la : {"text":"...","action":{"type":"trigger","id":"..."}}
+Pas d'astérisques, pas de narration. Que du dialogue en restant dans le personnage.
+"""
+
+DISTORTION_LORE = """## CONTEXTE DU PROJET — DISTORTION
+Jeu 2D de voyage temporel en Godot 4 (GDScript, pas .NET). Joueur : TimeAunote.
+4 eres reliees par des portails dans le HUB Central :
+
+HUB Central (hors du temps) — portails : jaune=MoyenAge, bleu=Present, rouge=Futur.
+  PNJs existants : Gardien du Nexus (enigmatique, parle par enigmes), Chien prankeur (visuel).
+  Dimension : dimension_hub.json — aucune quete, le gardien guide vers les portails.
+
+Moyen Age (ere medievale) — chateau fort.
+  PNJs existants : npc_roi_moyenage (mourant, action roi_adieu → declenche cinematique gardes).
+  Dimensions : dimension_moyenage.json — action roi_adieu est l'action cle.
+
+Present/Nucleaire (2087) — ruines radioactives, bunkers.
+  PNJs existants : Dr Helene Vasseur, Colonel Bravo, Zak l'Ecumeur (dimension_nuclear.json dans workshop).
+  A CREER : dimension pour le Present du jeu.
+
+Futur (futuriste) — cite hi-tech, androide, sous-sol accessible par escalier.
+  PNJs existants : pnj_futur.gd (visuel uniquement, pas de dialogue pour l'instant).
+  A CREER : premiere dimension pour le Futur, avec dialogue IA.
+
+MECANIQUES CLES :
+- Actions {type:"trigger","id":"...","description":"..."} envoient des signaux Godot (cinematiques, transitions scene).
+- Le systeme force l'action trigger apres 5 messages si elle n'a pas ete emise.
+- conversation_arc guide les phases de focus de l'IA a chaque echange.
+- Dialogues en francais. IDs en snake_case. Fallback default_template doit contenir {name}.
+"""
+
+
+def _build_dimension_prompt(dim: dict) -> str:
+    if not dim: return ""
+    parts = ["## DIMENSION ACTUELLE"]
+    m = dim.get("meta", {})
+    parts.append(f"ID: {m.get('id','?')} | {m.get('name','?')} | {m.get('era','?')}")
+    parts.append(f"Description: {m.get('description','')}")
+    for npc in dim.get("npcs", []):
+        p = npc.get("personality", {})
+        sp = p.get("speech", {})
+        parts.append(f"\n### PNJ: {npc.get('name','?')} [{npc.get('id','?')}]")
+        parts.append(f"Tone: {p.get('tone','')}")
+        parts.append(f"Etat: {p.get('emotional_state','')}")
+        parts.append(f"Backstory: {p.get('backstory','')}")
+        parts.append(f"Speech: v={sp.get('vouvoiement',True)}, voc={sp.get('vocatif','')}, {sp.get('phrases','')}")
+        if sp.get('expressions'): parts.append(f"Expressions: {sp['expressions']}")
+        if sp.get('interdits'): parts.append(f"Interdits: {sp['interdits']}")
+        if p.get('knowledge'): parts.append(f"Connaissances: {p['knowledge']}")
+        if p.get('goals'): parts.append(f"Objectifs: {p['goals']}")
+        arc = p.get('conversation_arc', [])
+        if arc: parts.append(f"Arc: {' → '.join(a.get('focus','') for a in arc)}")
+        for i in npc.get("intentions", []):
+            a = i.get("action")
+            act = f" ⚡{a['type']}/{a['id']}" if a else ""
+            cond = i.get("condition", {})
+            c = f" [{cond.get('quest_status','')}/{cond.get('quest_step','')}]" if cond and cond.get('quest_id') else ""
+            parts.append(f"  [{i.get('id','?')}{c}] {i.get('trigger','')} → \"{i.get('example','')[:60]}\"{act}")
+    for q in dim.get("quests", []):
+        steps = [s["id"] for s in q.get("steps", [])]
+        deps = q.get("requires_quests", [])
+        parts.append(f"\n### Quete: {q.get('id','?')} [{q.get('status','?')}] {q.get('title','')}")
+        if deps: parts.append(f"  Depends on: {deps}")
+        parts.append(f"  Steps: {' → '.join(steps)}")
+    return "\n".join(parts)
+
+
+# ─── API key ─────────────────────────────────────────────────────────
+
+def _load_api_key() -> str:
+    key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not key:
+        for p in [BASE_DIR.parent / ".env", BASE_DIR / ".env"]:
+            if p.exists():
+                with open(p) as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("OPENROUTER_API_KEY="):
+                            v = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            if v: key = v; break
+                if key: break
+    return key
+
+
+def _call_openrouter(messages: list, max_tokens: int = 1024, temperature: float = 0.7) -> dict:
+    import requests
+    api_key = _load_api_key()
+    if not api_key:
+        raise HTTPException(status_code=400, detail="No OPENROUTER_API_KEY")
+    hdrs = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:8000",
+        "X-OpenRouter-Title": "Distortion AI Builder",
+    }
+    payload = {
+        "model": os.environ.get("MODEL", "mistralai/mistral-small-3.2-24b-instruct"),
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "messages": messages,
+        "response_format": {"type": "json_object"},
+    }
+    try:
+        r = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=hdrs, json=payload, timeout=30)
+        if not r.ok: raise HTTPException(status_code=502, detail=f"OpenRouter {r.status_code}")
+        return r.json()
+    except requests.Timeout:
+        raise HTTPException(status_code=504, detail="Timeout")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── AI Endpoints ────────────────────────────────────────────────────
+
+def _clean_json_response(content: str) -> str:
+    """Nettoie les reponses IA : retire les blocs markdown ```json ... ```."""
+    content = content.strip()
+    if content.startswith("```"):
+        lines = content.split("\n")
+        # Retire la premiere ligne (```json ou ```) et la derniere (```)
+        start = 1
+        end = len(lines)
+        if lines[-1].strip() == "```":
+            end -= 1
+        content = "\n".join(lines[start:end]).strip()
+    return content
+
+
+def _parse_ai_response(content: str) -> dict:
+    """Parse la reponse IA avec nettoyage. Leve une exception si echec total."""
+    content = _clean_json_response(content)
+    return json.loads(content)
+
+
+@app.post("/api/ai-build")
+async def ai_build(req: dict):
+    """Mode create: l'IA construit une dimension en dialoguant avec le createur."""
+    msgs = [{"role": "system", "content": DISTORTION_LORE + "\n\n" + SYSTEM_CREATE}]
+    for m in req.get("messages", []):
+        if m.get("role") in ("user", "assistant"):
+            msgs.append({"role": m["role"], "content": m["content"]})
+    msg = req.get("user_message", "").strip()
+    if not msg and not msgs[1:]:
+        msg = "Bonjour, commençons la creation d'une dimension."
+    msgs.append({"role": "user", "content": msg})
+    if len(msgs) > 30:
+        msgs = [msgs[0]] + msgs[-29:]
+
+    resp = _call_openrouter(msgs, max_tokens=2048, temperature=0.7)
+    raw = resp["choices"][0]["message"]["content"].strip()
+    try:
+        ai = _parse_ai_response(raw)
+    except (json.JSONDecodeError, Exception) as e:
+        raise HTTPException(status_code=502, detail=f"Reponse IA invalide: {e}. Brut: {raw[:200]}")
+    return {"text": ai.get("text", ""), "data": ai.get("data", {}), "done": ai.get("done", False)}
+
+
+@app.post("/api/ai-modify")
+async def ai_modify(req: dict):
+    """Mode modify: l'IA edite chirurgicalement une dimension existante."""
+    dim = req.get("dimension", {})
+    dim_context = _build_dimension_prompt(dim)
+    system_content = (
+        DISTORTION_LORE + "\n\n" + SYSTEM_MODIFY + "\n\n" +
+        dim_context + "\n\nJSON ACTUEL COMPLET:\n" +
+        json.dumps(dim, ensure_ascii=False, indent=2)
+    )
+    msgs = [{"role": "system", "content": system_content}]
+    for m in req.get("messages", []):
+        if m.get("role") in ("user", "assistant"):
+            msgs.append({"role": m["role"], "content": m["content"]})
+    msg = req.get("user_message", "").strip()
+    if not msg:
+        msg = "Qu'est-ce que tu veux modifier dans cette dimension ?"
+    msgs.append({"role": "user", "content": msg})
+    if len(msgs) > 30:
+        msgs = [msgs[0]] + msgs[-29:]
+
+    resp = _call_openrouter(msgs, max_tokens=2048, temperature=0.7)
+    raw = resp["choices"][0]["message"]["content"].strip()
+    try:
+        ai = _parse_ai_response(raw)
+    except (json.JSONDecodeError, Exception) as e:
+        raise HTTPException(status_code=502, detail=f"Reponse IA invalide: {e}. Brut: {raw[:200]}")
+    return {"text": ai.get("text", ""), "data": ai.get("data", {}), "done": ai.get("done", False)}
+
+
+@app.post("/api/ai-test")
+async def ai_test(req: dict):
+    """Mode test: dialogue libre avec un PNJ — prompt identique au jeu Distortion."""
+    dim = req.get("dimension", {})
+    npc_id = req.get("npc_id", "")
+    npc = next((n for n in dim.get("npcs", []) if n.get("id") == npc_id), None)
+    if not npc:
+        raise HTTPException(status_code=404, detail="NPC not found")
+
+    sys.path.insert(0, str(BASE_DIR))
+    import distortion_dialogue as dd_mod
+
+    # Accepte un etat de quetes envoye par le frontend pour tester differentes branches
+    game_state_raw = req.get("game_state")
+    if game_state_raw and isinstance(game_state_raw, dict):
+        game_state = {
+            qid: {
+                "status": info.get("status", "not_started"),
+                "current_step": info.get("current_step"),
+                "completed_steps": set(),
+            }
+            for qid, info in game_state_raw.items()
+        }
+    else:
+        game_state = dd_mod.init_game_state(dim)
+
+    msg_count = req.get("msg_count", 1)
+    intentions = dd_mod.filter_intentions(npc, game_state)
+    sys_prompt = dd_mod.build_system_prompt(npc, intentions, msg_count)
+    usr_prompt = dd_mod.build_user_prompt(
+        req.get("history", []), npc.get("name", npc_id), req.get("user_message", "")
+    )
+    msgs = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": usr_prompt}]
+
+    resp = _call_openrouter(msgs, max_tokens=512, temperature=0.75)
+    raw = resp["choices"][0]["message"]["content"].strip()
+    try:
+        ai = _parse_ai_response(raw)
+        return {
+            "text": ai.get("text", raw),
+            "action": ai.get("action"),
+            "active_intentions": len(intentions),
+        }
+    except (json.JSONDecodeError, Exception):
+        return {"text": raw, "action": None, "active_intentions": len(intentions)}
+
+
+# ─── Game dimension endpoints ────────────────────────────────────────
+
+@app.get("/api/game-dimensions")
+async def list_game_dimensions():
+    """Liste les dimensions presentes dans les dossiers du jeu Godot."""
+    results = []
+    for era_key, folder in GAME_FOLDERS.items():
+        if not folder.exists():
+            continue
+        for fpath in sorted(folder.glob("dimension_*.json")):
+            info = _try_read_meta(fpath)
+            info["era_key"] = era_key
+            results.append(info)
+    return results
+
+
+@app.get("/api/game-dimensions/{era_key}")
+async def get_game_dimension(era_key: str):
+    """Charge une dimension depuis le dossier du jeu."""
+    folder = GAME_FOLDERS.get(era_key)
+    if not folder or not folder.exists():
+        raise HTTPException(status_code=404, detail=f"Era '{era_key}' inconnue ou dossier absent")
+    for fpath in sorted(folder.glob("dimension_*.json")):
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            continue
+    raise HTTPException(status_code=404, detail=f"Aucune dimension trouvee pour l'ere '{era_key}'")
+
+
+@app.post("/api/dimensions/{dim_id}/deploy")
+async def deploy_dimension(dim_id: str, payload: dict):
+    """Sauvegarde dans le workshop ET dans le dossier du jeu si l'ID correspond a une ere connue."""
+    _save_dimension(dim_id, payload)
+
+    real_id = payload.get("meta", {}).get("id", dim_id)
+    game_folder = GAME_FOLDERS.get(real_id)
+    deployed = False
+    game_path = None
+
+    if game_folder and game_folder.exists():
+        dest = game_folder / f"dimension_{real_id}.json"
+        tmp = dest.with_suffix(f".tmp.{uuid.uuid4().hex}")
+        try:
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+            tmp.replace(dest)
+            deployed = True
+            game_path = str(dest)
+        except Exception as e:
+            if tmp.exists():
+                tmp.unlink()
+
+    return {"status": "ok", "id": real_id, "deployed": deployed, "game_path": game_path}
+
+
+@app.get("/ai-builder")
+async def serve_ai_builder():
+    p = BASE_DIR / "ai-builder.html"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="ai-builder.html not found")
+    return FileResponse(str(p), media_type="text/html")
 
 
 @app.get("/")

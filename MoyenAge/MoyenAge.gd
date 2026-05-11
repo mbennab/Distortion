@@ -15,8 +15,10 @@ var knights: Array = []
 var _roi_adieu_triggered: bool = false
 
 var prison
+var magasin
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
+var _sortie_triggered := false
 
 
 func _ready() -> void:
@@ -29,6 +31,21 @@ func _ready() -> void:
 	var limites_prison = prison.get_node_or_null("limiteDeplacement")
 	if limites_prison:
 		limites_prison.collision_layer = 0
+	var zone_porte = prison.get_node_or_null("ZonePorte")
+	if zone_porte:
+		zone_porte.monitoring = false
+	var zone_sortie = prison.get_node_or_null("ZoneSortie")
+	if zone_sortie:
+		zone_sortie.monitoring = false
+	magasin = $magasin_moyen_age
+	if magasin:
+		magasin.hide()
+		var static_body = magasin.get_node_or_null("StaticBody2D")
+		if static_body:
+			static_body.collision_layer = 0
+	var mg_zone_sortie = prison.get_node_or_null("ZoneSortie")
+	if mg_zone_sortie:
+		mg_zone_sortie.body_entered.connect(_on_prison_sortie_entered)
 	_setup_fade_overlay()
 
 func _setup_spawn_particles() -> void:
@@ -104,20 +121,74 @@ func _handle_movement(delta: float) -> void:
 	time_aunote.animation(direction)
 	time_aunote.move_and_collide(direction * speed * delta)
 
-func start() -> void:
+func start(spawn_id: String = "entree") -> void:
 	show()
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://MoyenAge/dimension_moyenage.json")
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 4
-	time_aunote.position = position_entree_principale
 	pnj_roi = $"pnj-roi"
 	pnj_roi.apparition(roi_pos)
 	pnj_roi.get_node("ZoneDialogue").monitoring = true
-	if prison:
-		var limites_prison = prison.get_node_or_null("limiteDeplacement")
-		if limites_prison:
-			limites_prison.collision_layer = 0
+
+	$fondMoyenAge.show()
+	$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 4
+	prison.hide()
+	var limite_prison = prison.get_node_or_null("limiteDeplacement")
+	if limite_prison:
+		limite_prison.collision_layer = 0
+	magasin.hide()
+	var static_body = magasin.get_node_or_null("StaticBody2D")
+	if static_body:
+		static_body.collision_layer = 0
+
+	match spawn_id:
+		"prison":
+			$fondMoyenAge.hide()
+			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
+			pnj_roi.hide()
+			pnj_roi.get_node("ZoneDialogue").monitoring = false
+			prison.show()
+			if limite_prison:
+				limite_prison.collision_layer = 4
+			prison.get_node("ZonePorte").monitoring = true
+			time_aunote.position = prison.get_node("markers2d/apparition").position
+			time_aunote.show()
+			time_aunote.modulate.a = 1.0
+			time_aunote.scale = Vector2(0.8, 0.8)
+			time_aunote.rotation = 0.0
+			can_move = true
+			var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+			collision_node.disabled = false
+			started = true
+			stopped = false
+			return
+
+		"magasin":
+			$fondMoyenAge.hide()
+			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
+			pnj_roi.hide()
+			pnj_roi.get_node("ZoneDialogue").monitoring = false
+			magasin.start()
+			time_aunote.position = magasin.get_node("Markers2D/apparition").position
+			time_aunote.show()
+			time_aunote.modulate.a = 1.0
+			time_aunote.scale = Vector2(0.8, 0.8)
+			time_aunote.rotation = 0.0
+			can_move = true
+			var col_node := time_aunote.get_node("collision") as CollisionShape2D
+			col_node.disabled = false
+			started = true
+			stopped = false
+			return
+
+		_:
+			time_aunote.position = position_entree_principale
+			if prison:
+				var limites_prison = prison.get_node_or_null("limiteDeplacement")
+				if limites_prison:
+					limites_prison.collision_layer = 0
+
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0
 	time_aunote.scale = Vector2.ZERO
@@ -156,6 +227,7 @@ func stop() -> void:
 	can_move = false
 	started = false
 	stopped = true
+	_sortie_triggered = false
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
@@ -168,6 +240,10 @@ func stop() -> void:
 		var zone_sortie = prison.get_node_or_null("ZoneSortie")
 		if zone_sortie:
 			zone_sortie.monitoring = false
+		if prison.has_method("stop_minigame"):
+			prison.stop_minigame()
+	if magasin:
+		magasin.stop()
 	_cleanup_knights()
 
 
@@ -256,6 +332,9 @@ func _trigger_roi_adieu_sequence() -> void:
 	var limites_prison = prison.get_node_or_null("limiteDeplacement")
 	if limites_prison:
 		limites_prison.collision_layer = 4
+	var zone_sortie = prison.get_node_or_null("ZoneSortie")
+	if zone_sortie:
+		zone_sortie.monitoring = true
 
 	time_aunote.global_position = prison.get_node("markers2d/apparition").global_position
 
@@ -272,6 +351,39 @@ func _on_minigame_started() -> void:
 
 func _on_minigame_success() -> void:
 	time_aunote.global_position = prison.get_node("markers2d/teleportation").global_position
+	can_move = true
+
+
+func _on_prison_sortie_entered(body: Node2D) -> void:
+	if body != time_aunote or _sortie_triggered:
+		return
+	_sortie_triggered = true
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	prison.hide()
+	var limites_prison = prison.get_node_or_null("limiteDeplacement")
+	if limites_prison:
+		limites_prison.collision_layer = 0
+	var zone_porte = prison.get_node_or_null("ZonePorte")
+	if zone_porte:
+		zone_porte.monitoring = false
+	var zone_sortie = prison.get_node_or_null("ZoneSortie")
+	if zone_sortie:
+		zone_sortie.monitoring = false
+
+	magasin.start()
+	time_aunote.global_position = magasin.get_node("Markers2D/apparition").global_position
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
 	can_move = true
 
 

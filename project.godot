@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 DialogueSystem="*res://Scripts/DialogueSystem.gd"
 DialogueUI="*res://Scripts/DialogueUI.tscn"
+WarpSystem="*res://Scripts/WarpSystem.gd"
 
 [display]
 

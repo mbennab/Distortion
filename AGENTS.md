@@ -10,10 +10,10 @@
 ## Architecture
 - `Main.tscn` → `Main.gd`: orchestrator — starts HUB, then switches to era on portal exit
 - `Personnage/TimeAunote.tscn` — shared player character (`CharacterBody2D`), used by all scenes
-- `HUB Central/` — hub world with 3 time-travel portals (jaune/bleue/rouge), side-room exits, PNJ Gardien, chien prankeur
-- `MoyenAge/` — medieval era (portal **jaune**): roi PNJ, knights, prison sub-zone with lockpicking minigame
+- `HUB Central/` — hub world with 3 time-travel portals (jaune/bleue/rouge), side-room exits, PNJ Gardien, chien interactif
+- `MoyenAge/` — medieval era (portal **jaune**): roi PNJ, knights, prison sub-zone with lockpicking minigame, marchand PNJ in magasin
 - `Present/` — present/nuclear era (portal **bleu**): no PNJ yet
-- `Futur/` — future era (portal **rouge**): PNJ futuriste, SousSol sub-zone reachable via escalier
+- `Futur/` — future era (portal **rouge**): 2 PNJs (pnj-futur, pnj-cheffe), SousSol sub-zone reachable via escalier
 - Each era is a container scene (`Node2D`) that instances `Personnage/TimeAunote.tscn` as its player
 
 ## Physics layers
@@ -37,18 +37,26 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
 - `stop()` hides the hub, disables all collisions (limits, side doors, portal monitoring, PNJ dialogue zone), closes dialogue UI
 - Portal bodies: `zonePorteJaune/Bleue/Rouge` — Area2D nodes with `body_entered` signals
 - Side doors (`porteGauche`/`porteDroite`): teleport player to opposite side markers
-- `_set_collisions_enabled(bool)`: toggles `collision_layer` for limits/doors and `monitoring` for portal zones
+- `_set_collisions_enabled(bool)`: toggles `collision_layer` for limits/doors and `monitoring` for portal zones + chien Area2D
 - `timerSortie` (1.5s one-shot): triggers fade-out + particles → transition
+- **Chien**: `chien_hub.gd` — E key shows bark bubble (random "Wouf !" variations), tail wags at 4× speed, auto-loads audio from `audio/chien/` (any `.mp3`/`.ogg`/`.wav` files dropped there are played randomly on bark)
 
 ## MoyenAge specific
 - `MoyenAge.gd` starts with spawn animation, loads `dimension_moyenage.json`
 - Listens to `DialogueSystem.action_triggered` — when `roi_adieu` triggers, plays the king's death cinematic (knights spawn, accusation label, fade to prison)
 - `prison_moyen_age.gd`: lockpicking minigame (press E near door), zone de sortie (locked, "accès futur")
+  - **Lockpicking gated**: `ZonePorte.monitoring` disabled in `_ready()`, only enabled after king death cinematic (`_trigger_roi_adieu_sequence`)
+  - **Minigame cleanup**: `stop_minigame()` frees the CanvasLayer instance; `MoyenAge.stop()` calls it on era exit
+  - `MiniJeuCrochetage.gd`: guards `_input()` with `is_inside_tree()` to prevent stray input capture
+- `pnj_marchand.gd`: standard PNJ pattern in `magasin_moyen_age` sub-zone (reachable after escaping prison)
 - `pnj_roi.gd`: standard PNJ pattern with `ZoneDialogue`, `show_bubble/hide_bubble`, `add_to_group("npc_dialogue")`
 
 ## Futur specific
 - `Futur.gd`: escalier zone → `_go_to_basement()` fades out fondFutur, shows SousSol sub-zone
 - `pnj_futur.gd`: visual only, no dialogue
+
+## Debug tools
+- **WarpSystem** (`Scripts/WarpSystem.gd`): press **F2** to open teleport menu — warp to any zone/spawn point. Added as a child of `Main` node (not in Main.tscn by default — instantiate manually in debug builds). Calls `Main.warp_to_era(zone, spawn_id)`.
 
 ## Dialogue System
 
@@ -154,3 +162,52 @@ DialogueUI finds the active PNJ via `get_tree().get_nodes_in_group("npc_dialogue
 - Run: F5 or ▶️ in Godot editor
 - No build/test/lint steps — purely a Godot editor project
 - Validate JSON dimensions: `python3 -c "import json; json.load(open('HUB Central/dimension_hub.json'))"`
+
+## Generateur JSON (`GenerateurJson/`)
+
+Python tools to create, edit, and test dimension JSONs — independent from Godot.
+
+### CLI dialogue tester
+```bash
+cd GenerateurJson
+pip install requests
+python distortion_dialogue.py                          # menu interactif
+python distortion_dialogue.py dimensions/dimension_nuclear.json  # tester une dimension
+python distortion_dialogue.py --new mon_nom            # wizard manuel
+python distortion_dialogue.py --ai                     # wizard IA conversationnel
+```
+- Reads `OPENROUTER_API_KEY` from `../.env` (project root) automatically
+- `/npc <id>` select NPC, `/list`, `/state`, `/step <qid> <sid>`, `/history`, `/help`
+- Works offline (simulation mode) without API key
+
+### Web editor + AI Studio
+```bash
+cd GenerateurJson
+pip install -r requirements.txt
+python app.py                     # → http://localhost:8000
+```
+- `http://localhost:8000` — dimension editor (CRUD, validation, tree visualization)
+- `http://localhost:8000/ai-builder` — AI Studio with 3 tabs:
+  - **🧠 Créer** — era quick-start buttons (HUB/MoyenAge/Présent/Futur/Libre) or free description; AI knows the full Distortion lore (4 eras, existing NPCs, trigger mechanics)
+  - **📝 Modifier** — load from game folders or workshop, AI edits surgically with full JSON context
+  - **🧪 Tester** — NPC dialogue identical to the game; debug bar shows msg count, forced-action countdown, active intentions; quest state pills are clickable to test different branches
+- **AI model**: `mistralai/mistral-small-3.2-24b-instruct` via OpenRouter (override with `MODEL` env var)
+- **🚀 Déployer** button — saves to `dimensions/` AND copies to the matching Godot folder (hub→`HUB Central/`, moyenage→`MoyenAge/`, nuclear→`Present/`, futur→`Futur/`)
+- **Fiches view** — toggle JSON ↔ visual NPC cards + quest list in the preview panel
+- **Autosave** — create-mode draft persisted in `localStorage`; Ctrl+S saves to server
+
+### API endpoints (app.py)
+- `GET  /api/dimensions` — list workshop dimensions
+- `GET  /api/game-dimensions` — list dimensions found in the Godot era folders
+- `GET  /api/game-dimensions/{era_key}` — load a game dimension (`hub`, `moyenage`, `nuclear`, `futur`)
+- `POST /api/dimensions/{id}/deploy` — atomic save to workshop + copy to Godot folder if era known
+- `POST /api/ai-build` — create mode (DISTORTION_LORE + SYSTEM_CREATE, max_tokens 2048)
+- `POST /api/ai-modify` — modify mode (DISTORTION_LORE + SYSTEM_MODIFY + full JSON context)
+- `POST /api/ai-test` — test mode; accepts `game_state` override `{quest_id:{status,current_step}}`; returns `active_intentions`
+
+### JSON validation
+- Server-side: `app.py` `_validate_json()` — checks snake_case IDs, required fields, fallback rules, quest refs
+- Live badge in AI Studio preview — click to expand error/warning list
+- CLI: `python3 -c "import json; json.load(open('dimensions/dimension_X.json'))"`
+- `dimensions/` dir stores workshop `dimension_*.json` files; game files live in their era folders
+- `app.py` all saves use atomic write (temp file + rename)
