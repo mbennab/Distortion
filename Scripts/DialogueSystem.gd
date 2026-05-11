@@ -9,14 +9,16 @@ signal dialogue_ended
 signal dialogue_response(npc_name: String, text: String)
 signal dialogue_error(message: String)
 signal quest_updated(quest_id: String, status: String, current_step: String)
-signal reply_resolved(reply_id: String)
+signal action_triggered(action: Dictionary)
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 const MODEL = "mistralai/ministral-3b-2512"
 const REQUEST_TIMEOUT = 15.0
 const SITE_URL = "http://localhost:8000"
 const SITE_NAME = "Distortion"
-const AI_SPECIAL_IDS = ["off_topic", "insult"]
+const MAX_TOKENS = 256
+const TEMPERATURE = 0.7
+const MAX_HISTORY = 15
 
 var http_request: HTTPRequest
 var dimension: Dictionary = {}
@@ -26,6 +28,7 @@ var current_npc_id: String = ""
 var api_key: String = ""
 var is_active: bool = false
 var pending: bool = false
+var conversation_history: Array[Dictionary] = []
 
 
 func _ready() -> void:
