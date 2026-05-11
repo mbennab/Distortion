@@ -154,3 +154,38 @@ DialogueUI finds the active PNJ via `get_tree().get_nodes_in_group("npc_dialogue
 - Run: F5 or ▶️ in Godot editor
 - No build/test/lint steps — purely a Godot editor project
 - Validate JSON dimensions: `python3 -c "import json; json.load(open('HUB Central/dimension_hub.json'))"`
+
+## Generateur JSON (`GenerateurJson/`)
+
+Python tools to create, edit, and test dimension JSONs — independent from Godot.
+
+### CLI dialogue tester
+```bash
+cd GenerateurJson
+pip install requests
+python distortion_dialogue.py                          # menu interactif
+python distortion_dialogue.py dimensions/dimension_nuclear.json  # tester une dimension
+python distortion_dialogue.py --new mon_nom            # wizard manuel
+python distortion_dialogue.py --ai                     # wizard IA conversationnel
+```
+- Reads `OPENROUTER_API_KEY` from `../.env` (project root) automatically
+- `/npc <id>` select NPC, `/list`, `/state`, `/step <qid> <sid>`, `/history`, `/help`
+- Works offline (simulation mode) without API key
+
+### Web editor + AI Studio
+```bash
+cd GenerateurJson
+pip install -r requirements.txt
+python app.py                     # → http://localhost:8000
+```
+- `http://localhost:8000` — dimension editor (CRUD, validation, tree visualization)
+- `http://localhost:8000/ai-builder` — AI Studio with 3 tabs:
+  - **🧠 Créer** — brainstorm mode: describe your game freely, AI extracts and structures everything
+  - **📝 Modifier** — import existing JSON, AI helps edit it
+  - **🧪 Tester** — select a PNJ and chat with them live
+
+### JSON validation
+- Server-side: `app.py` `_validate_json()` — checks snake_case IDs, required fields, fallback rules, quest refs
+- CLI: `python3 -c "import json; json.load(open('dimensions/dimension_X.json'))"`
+- `dimensions/` dir stores all `dimension_*.json` files
+- `app.py` save endpoint uses atomic write (temp file + rename)
