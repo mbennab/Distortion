@@ -5,6 +5,8 @@ var pnj_marchand
 
 func _ready() -> void:
 	pnj_marchand = $"pnj-marchand"
+	if pnj_marchand:
+		pnj_marchand.get_node("ZoneDialogue").monitoring = false
 
 
 func start() -> void:
