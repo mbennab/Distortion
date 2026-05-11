@@ -10,19 +10,33 @@ var stopped: bool = true
 var can_move: bool = false
 var speed: float = 350.0
 var spawn_particles: CPUParticles2D
-var timerSortie: Timer
-var next_scene: String = ""
+
+var fade_layer: CanvasLayer
+var fade_rect: ColorRect
+
 
 func _ready() -> void:
 	position_entree_principale = $"fondFutur/Markers2D/entreePrincipale".position
 	position_entree_escalier = $"fondFutur/Markers2D/entreeEscalier".position
 	hide()
 	_setup_spawn_particles()
+	_setup_fade_overlay()
 	pnjfutur = $"pnj-futur"
 	pnjfuturPos = $"fondFutur/Markers2D/pnjfuturPos".position
-	timerSortie = $timerSortie
-	timerSortie.timeout.connect(_on_timer_sortie_timeout)
 	_connect_escalier_signals()
+
+
+func _setup_fade_overlay() -> void:
+	fade_layer = CanvasLayer.new()
+	fade_layer.layer = 128
+	add_child(fade_layer)
+
+	fade_rect = ColorRect.new()
+	fade_rect.color = Color.BLACK
+	fade_rect.modulate.a = 0.0
+	fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fade_rect.size = get_viewport_rect().size
+	fade_layer.add_child(fade_rect)
 
 
 func _connect_escalier_signals() -> void:
@@ -31,27 +45,67 @@ func _connect_escalier_signals() -> void:
 
 
 func _on_escalier_entered(body: Node2D) -> void:
-	if body == time_aunote and not timerSortie.time_left > 0:
-		next_scene = "SousSol"
-		_trigger_transition()
+	if body == time_aunote and can_move:
+		_go_to_basement()
 
 
-func _trigger_transition() -> void:
+func _go_to_basement() -> void:
 	can_move = false
-	time_aunote.fade_out()
-	timerSortie.start()
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+
+	$fondFutur.hide()
+	_set_upper_collisions(false)
+	$"pnj-futur".hide()
+
+	$SousSol.show()
+	_set_basement_collisions(true)
+	$"SousSol/pnj-futur".apparition($"SousSol/fondSousSol/Markers2D/pnjPos".position)
+
+	time_aunote.global_position = $"SousSol/fondSousSol/Markers2D/entreeEscalier".global_position
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	can_move = true
 
 
-func _on_timer_sortie_timeout() -> void:
-	started = false
-	match next_scene:
-		"SousSol":
-			$fondFutur.hide()
-			$TimeAunote.hide()
-			$"pnj-futur".hide()
-			$SousSol.start()
-		_:
-			pass
+func _return_from_basement() -> void:
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+
+	$SousSol.hide()
+	_set_basement_collisions(false)
+
+	$fondFutur.show()
+	_set_upper_collisions(true)
+	$"pnj-futur".show()
+
+	time_aunote.global_position = $"fondFutur/Markers2D/entreeEscalier".global_position
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	can_move = true
+
+
+func _set_upper_collisions(enabled: bool) -> void:
+	var limite = $fondFutur.get_node_or_null("limite-futur")
+	if limite:
+		limite.collision_layer = 16 if enabled else 0
+
+
+func _set_basement_collisions(enabled: bool) -> void:
+	var limite = $"SousSol/fondSousSol".get_node_or_null("limite-sous-sol")
+	if limite:
+		limite.collision_layer = 16 if enabled else 0
 
 
 func _setup_spawn_particles() -> void:
@@ -75,6 +129,7 @@ func _setup_spawn_particles() -> void:
 	spawn_particles.z_index = 20
 	add_child(spawn_particles)
 
+
 func _create_particle_texture() -> ImageTexture:
 	var image := Image.create(32, 32, false, Image.FORMAT_RGBA8)
 	var center := Vector2(16, 16)
@@ -86,16 +141,19 @@ func _create_particle_texture() -> ImageTexture:
 			image.set_pixel(x, y, Color(1, 1, 1, alpha))
 	return ImageTexture.create_from_image(image)
 
+
 func _create_color_ramp(color: Color) -> Gradient:
 	var gradient := Gradient.new()
 	gradient.set_color(0, color)
 	gradient.set_color(1, Color(color, 0.0))
 	return gradient
 
+
 func _process(delta: float) -> void:
 	if not can_move:
 		return
 	_handle_movement(delta)
+
 
 func _handle_movement(delta: float) -> void:
 	var velocity := Vector2.ZERO
@@ -111,12 +169,15 @@ func _handle_movement(delta: float) -> void:
 	time_aunote.animation(direction)
 	time_aunote.move_and_collide(direction * speed * delta)
 
+
 func start() -> void:
 	show()
 	$fondFutur.show()
 	$TimeAunote.show()
 	$"pnj-futur".show()
 	$SousSol.hide()
+	_set_upper_collisions(true)
+	_set_basement_collisions(false)
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 16
 	pnjfutur = $"pnj-futur"
@@ -127,6 +188,7 @@ func start() -> void:
 	time_aunote.scale = Vector2.ZERO
 	time_aunote.rotation = TAU
 	_play_spawn_animation()
+
 
 func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale) -> void:
 	spawn_particles.global_position = spawn_position + global_position
@@ -153,11 +215,14 @@ func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale)
 	started = true
 	stopped = false
 
+
 func start_from_escalier() -> void:
 	$SousSol.hide()
 	$fondFutur.show()
 	$TimeAunote.show()
 	$"pnj-futur".show()
+	_set_upper_collisions(true)
+	_set_basement_collisions(false)
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 16
 	time_aunote.position = position_entree_escalier
@@ -166,6 +231,7 @@ func start_from_escalier() -> void:
 	time_aunote.scale = Vector2.ZERO
 	time_aunote.rotation = TAU
 	_play_spawn_animation(position_entree_escalier)
+
 
 func stop() -> void:
 	hide()
