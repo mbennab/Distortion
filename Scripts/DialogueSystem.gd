@@ -109,6 +109,7 @@ func stop_dialogue() -> void:
 	is_active = false
 	current_npc = {}
 	current_npc_id = ""
+	conversation_history.clear()
 	dialogue_ended.emit()
 
 
@@ -190,24 +191,75 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 	if response_code != 200:
 		var err_body = body.get_string_from_utf8()
 		print("[DialogueSystem] API error: %s" % err_body.left(200))
-		dialogue_error.emit("API error %d: %s" % [response_code, err_body.left(200)])
+		dialogue_error.emit("Erreur API %d: %s" % [response_code, err_body.left(200)])
 		return
 
 	var reply_body = body.get_string_from_utf8()
 	print("[DialogueSystem] Response body: %s" % reply_body.left(300))
-	var replies = filter_dialogue_bank(current_npc_id)
+
+	# Parse the OpenRouter response
 	var api_response: Dictionary = {}
 	var json = JSON.new()
 	if json.parse(reply_body) == OK:
 		api_response = json.data
 
-	var reply_id = extract_reply_id(api_response)
-	print("[DialogueSystem] Extracted reply_id: '%s'" % reply_id)
-	var final_text = resolve_reply(reply_id, replies)
-	print("[DialogueSystem] Resolved text: '%s'" % final_text.left(100))
+	var choices = api_response.get("choices", [])
+	if choices.is_empty():
+		var fallback = get_fallback(current_npc_id, "unknown")
+		dialogue_response.emit(current_npc.get("name", "?"), fallback)
+		return
+
+	var content = choices[0].get("message", {}).get("content", "").strip_edges()
+
+	# Parse the AI's JSON response (expects {"text": "...", "action": null|{...}})
+	var ai_json = JSON.new()
+	var ai_data: Dictionary = {}
+	if ai_json.parse(content) == OK and ai_json.data is Dictionary:
+		ai_data = ai_json.data
+
 	var npc_name = current_npc.get("name", current_npc.get("id", "?"))
-	dialogue_response.emit(npc_name, final_text)
-	reply_resolved.emit(reply_id)
+	var text = ai_data.get("text", "")
+
+	# Fallback si le texte est vide
+	if text == "":
+		text = get_fallback(current_npc_id, "unknown")
+
+	# Ajouter la réponse PNJ à l'historique
+	conversation_history.append({"role": "npc", "text": text})
+	while conversation_history.size() > MAX_HISTORY:
+		conversation_history.pop_front()
+
+	print("[DialogueSystem] AI text: '%s'" % text.left(100))
+
+	# Émettre la réponse texte
+	dialogue_response.emit(npc_name, text)
+
+	# Valider et émettre l'action
+	var action = ai_data.get("action")
+	if action != null and action is Dictionary:
+		var valid_action = _validate_action(action)
+		if not valid_action.is_empty():
+			print("[DialogueSystem] Action validée: %s/%s" % [valid_action.type, valid_action.id])
+			action_triggered.emit(valid_action)
+		else:
+			print("[DialogueSystem] Action rejetée (invalide): %s" % str(action))
+
+
+func _validate_action(action: Dictionary) -> Dictionary:
+	if not action.has("type") or not action.has("id"):
+		return {}
+
+	var action_type = action.get("type", "")
+	var action_id = action.get("id", "")
+
+	for intent in current_npc.get("intentions", []):
+		var intent_action = intent.get("action")
+		if intent_action == null or not intent_action is Dictionary:
+			continue
+		if intent_action.get("type") == action_type and intent_action.get("id") == action_id:
+			return {"type": action_type, "id": action_id}
+
+	return {}
 
 
 func filter_intentions(npc_id: String) -> Array:
