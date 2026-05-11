@@ -3,6 +3,7 @@ extends Node2D
 @export var npc_id: String = "npc_marchand_moyenage"
 @export var npc_name: String = "Le Marchand"
 
+var animation_marchand: AnimatedSprite2D
 var zone_dialogue: Area2D
 var player_nearby: bool = false
 var bubble: Label
@@ -11,6 +12,9 @@ var bubble_timer: Timer
 func _ready() -> void:
 	hide()
 	add_to_group("npc_dialogue")
+
+	animation_marchand = $AnimatedSprite2D
+	animation_marchand.play()
 
 	zone_dialogue = $ZoneDialogue
 	zone_dialogue.body_entered.connect(_on_body_entered)
@@ -72,6 +76,7 @@ func _on_body_exited(body: Node2D) -> void:
 		DialogueUI.hide_prompt()
 
 func apparition(position: Vector2) -> void:
+	animation_marchand.animation = "default"
 	self.position = position
 	show()
 
