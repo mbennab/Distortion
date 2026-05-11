@@ -29,6 +29,7 @@ var api_key: String = ""
 var is_active: bool = false
 var pending: bool = false
 var conversation_history: Array[Dictionary] = []
+var _message_count: int = 0
 
 
 func _ready() -> void:
@@ -101,6 +102,7 @@ func start_dialogue(npc_id: String) -> void:
 	print("[DialogueSystem] start_dialogue: %s (%s)" % [npc_id, npc.get("name", "?")])
 	current_npc = npc
 	current_npc_id = npc_id
+	_message_count = 0
 	is_active = true
 	dialogue_started.emit(npc_id, npc.get("name", npc_id))
 
@@ -119,7 +121,8 @@ func send_message(player_message: String) -> void:
 	if current_npc.is_empty():
 		return
 
-	print("[DialogueSystem] send_message: '%s'" % player_message)
+	print("[DialogueSystem] send_message: '%s' (msg #%d)" % [player_message, _message_count + 1])
+	_message_count += 1
 
 	var intentions = filter_intentions(current_npc_id)
 	if intentions.is_empty():
@@ -235,14 +238,25 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 	dialogue_response.emit(npc_name, text)
 
 	# Valider et émettre l'action
+	var action_emitted = false
 	var action = ai_data.get("action")
 	if action != null and action is Dictionary:
 		var valid_action = _validate_action(action)
 		if not valid_action.is_empty():
 			print("[DialogueSystem] Action validée: %s/%s" % [valid_action.type, valid_action.id])
 			action_triggered.emit(valid_action)
+			action_emitted = true
 		else:
 			print("[DialogueSystem] Action rejetée (invalide): %s" % str(action))
+
+	# Filet de sécurité : forcer l'action après 5 messages si le PNJ en a une
+	if not action_emitted and _message_count >= 5:
+		for intent in current_npc.get("intentions", []):
+			var forced_action = intent.get("action")
+			if forced_action != null and forced_action is Dictionary and forced_action.get("type") == "trigger":
+				print("[DialogueSystem] Forçage action après %d messages: %s/%s" % [_message_count, forced_action.type, forced_action.id])
+				action_triggered.emit({"type": forced_action.type, "id": forced_action.id})
+				break
 
 
 func _validate_action(action: Dictionary) -> Dictionary:
@@ -345,6 +359,17 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 	lines.append("- N'utilise PAS d'astérisques, de narration ou de description d'action. Parle UNIQUEMENT comme le personnage.")
 	lines.append("- Maximum 3-4 phrases par réponse.")
 	lines.append("- Reste cohérent avec l'historique de la conversation.")
+
+	# Forcer la terminaison après N messages si le PNJ a une action de type "trigger"
+	if _message_count >= 4:
+		for intent in filtered_intentions:
+			var action = intent.get("action")
+			if action != null and action is Dictionary and action.get("type") == "trigger":
+				lines.append("")
+				lines.append("⚠️ ATTENTION : cela fait %d messages que le joueur parle. Tu es à l'agonie, tu n'en peux plus." % _message_count)
+				lines.append("Ceci est ton DERNIER message. Tu DOIS absolument dire adieu, appeler les gardes, et inclure l'action.")
+				lines.append("Ne discute plus d'autre chose. Termine la conversation MAINTENANT.")
+				break
 
 	return "\n".join(lines)
 
