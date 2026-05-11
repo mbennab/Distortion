@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://c8atx8cgttqh3"]
+
+[ext_resource type="Texture2D" uid="uid://bse66rfwusfao" path="res://art/MoyenAge/magasin_moyen-age.png" id="1_e470e"]
+[ext_resource type="PackedScene" uid="uid://c7o3vpx5sl57s" path="res://MoyenAge/pnj_marchand.tscn" id="2_marchand"]
+[ext_resource type="Script" path="res://MoyenAge/pnj_marchand.gd" id="3_marchand_gd"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_e470e"]
+radius = 345.20862
+
+[node name="magasin_moyen_age" type="Node2D" unique_id=562679252]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=589589724]
+position = Vector2(1213.5, 808.00006)
+scale = Vector2(0.96004736, 0.95283026)
+texture = ExtResource("1_e470e")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=708436102]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1677084010]
+collision_layer = 4
+
+[node name="contour" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=767926435]
+build_mode = 1
+polygon = PackedVector2Array(685, 883, 688, 1004, 647, 1006, 645, 1216, 704, 1230, 738, 1248, 743, 1293, 784, 1321, 792, 1536, 1094, 1536, 1095, 1616, 1332, 1616, 1330, 1535, 1685, 1532, 1695, 1418, 1798, 1406, 1788, 1343, 1364, 1340, 1363, 1194, 1324, 1180, 1325, 1003, 1308, 996, 1311, 975, 1358, 961, 1356, 892)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1691858083]
+build_mode = 1
+polygon = PackedVector2Array(924, 1002, 923, 1263, 1226, 1261, 1216, 1052, 1187, 1006)
+
+[node name="zoneHabits" type="Area2D" parent="." unique_id=1380043735]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="zoneHabits" unique_id=250330365]
+position = Vector2(1581, 1116)
+shape = SubResource("CircleShape2D_e470e")
+
+[node name="Markers2D" type="Node2D" parent="." unique_id=62473634]
+
+[node name="marchandPos" type="Marker2D" parent="Markers2D" unique_id=2086266727]
+position = Vector2(842, 574)
+
+[node name="apparition" type="Marker2D" parent="Markers2D" unique_id=1650090964]
+position = Vector2(1215, 1512)
+
+[node name="pnj-marchand" parent="." instance=ExtResource("2_marchand")]
+script = ExtResource("3_marchand_gd")

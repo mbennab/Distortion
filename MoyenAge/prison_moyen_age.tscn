@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cphdrnp2uds1l"]
 
 [ext_resource type="Texture2D" uid="uid://ka8k6htqsgs4" path="res://art/MoyenAge/prision_moyen-age.png" id="1_0txog"]
-[ext_resource type="Script" uid="uid://di4cuj1aclenp" path="res://MoyenAge/prison_moyen_age.gd" id="2_script"]
+[ext_resource type="Script" path="res://MoyenAge/prison_moyen_age.gd" id="2_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_porte"]
 radius = 80.0

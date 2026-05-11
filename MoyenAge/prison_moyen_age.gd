@@ -37,7 +37,7 @@ func _setup_prompt() -> void:
 
 func _setup_sortie_prompt() -> void:
 	sortie_label = Label.new()
-	sortie_label.text = "Verrouillé… accès futur"
+	sortie_label.text = "Sortie…"
 	sortie_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sortie_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	sortie_label.add_theme_font_size_override("font_size", 18)
@@ -47,8 +47,8 @@ func _setup_sortie_prompt() -> void:
 	sortie_label.z_index = 100
 
 	var sortie_pos: Vector2 = $ZoneSortie/CollisionShape2D.position
-	sortie_label.position = Vector2(sortie_pos.x - 150, sortie_pos.y - 80)
-	sortie_label.size = Vector2(300, 50)
+	sortie_label.position = Vector2(sortie_pos.x - 60, sortie_pos.y - 80)
+	sortie_label.size = Vector2(120, 50)
 	add_child(sortie_label)
 
 
