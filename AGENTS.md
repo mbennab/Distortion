@@ -82,22 +82,22 @@ Player types message → send_message() → filter_intentions() → build rich s
       "vocatif": "voyageur",
       "phrases": "très courtes, 1-2 phrases haletantes",
       "expressions": ["tousse entre les mots", "sa voix faiblit"],
-      "interdits": ["ne connais PAS l'assassin"]
+	  "interdits": ["ne connais PAS l'assassin"]
     },
-    "knowledge": ["il est poignardé", "son royaume se meurt"],
-    "goals": ["trouver de l'aide", "appeler ses gardes avant de mourir"],
+	"knowledge": ["il est poignardé", "son royaume se meurt"],
+	"goals": ["trouver de l'aide", "appeler ses gardes avant de mourir"],
     "conversation_arc": [
       {"phase": 1, "until_message": 2, "focus": "expliquer ce qui arrive"},
-      {"phase": 2, "until_message": 4, "focus": "chercher de l'aide"},
-      {"phase": 3, "until_message": 5, "focus": "agonie, appeler les gardes"}
+	  {"phase": 2, "until_message": 4, "focus": "chercher de l'aide"},
+	  {"phase": 3, "until_message": 5, "focus": "agonie, appeler les gardes"}
     ]
   },
   "intentions": [
     {
-      "id": "roi_adieu",
-      "condition": null,
-      "trigger": "le joueur dit au revoir",
-      "example": "GARDES ! Venez m'aider...",
+	  "id": "roi_adieu",
+	  "condition": null,
+	  "trigger": "le joueur dit au revoir",
+	  "example": "GARDES ! Venez m'aider...",
       "action": {"type": "trigger", "id": "roi_adieu", "description": "Le roi meurt, les gardes arrivent."}
     }
   ],

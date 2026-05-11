@@ -2,6 +2,9 @@
 
 [ext_resource type="Texture2D" uid="uid://cebjyuqsmu8o6" path="res://art/Futur/fond-futur.png" id="1_yp6m1"]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_yp6m1"]
+radius = 74.10803
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_esc"]
 size = Vector2(100, 60)
 
@@ -32,6 +35,14 @@ polygon = PackedVector2Array(1901, 1131, 1910, 1525, 1904, 1215)
 [node name="escaliers2" type="CollisionPolygon2D" parent="limite-futur" unique_id=717478078]
 polygon = PackedVector2Array(2173, 1137, 2173, 1536, 2173, 1329)
 
+[node name="pnj_punk" type="CollisionShape2D" parent="limite-futur" unique_id=55119361]
+position = Vector2(2061, 731)
+shape = SubResource("CircleShape2D_yp6m1")
+
+[node name="pnj_cheffe" type="CollisionShape2D" parent="limite-futur" unique_id=552944368]
+position = Vector2(418, 1222)
+shape = SubResource("CircleShape2D_yp6m1")
+
 [node name="image" type="Sprite2D" parent="." unique_id=1394868288]
 scale = Vector2(2.2539532, 2.2427182)
 texture = ExtResource("1_yp6m1")
@@ -47,6 +58,9 @@ position = Vector2(2055, 696)
 
 [node name="entreeEscalier" type="Marker2D" parent="Markers2D" unique_id=599228988]
 position = Vector2(2048, 1314)
+
+[node name="pnjcheffePos" type="Marker2D" parent="Markers2D" unique_id=323505777]
+position = Vector2(420, 1172)
 
 [node name="escalier" type="Node2D" parent="." unique_id=915031175]
 
