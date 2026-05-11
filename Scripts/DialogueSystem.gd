@@ -205,21 +205,21 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 	reply_resolved.emit(reply_id)
 
 
-func filter_dialogue_bank(npc_id: String) -> Array:
+func filter_intentions(npc_id: String) -> Array:
 	var npc = _find_npc(npc_id)
 	if npc.is_empty():
 		return []
 
 	var matches: Array = []
-	for reply in npc.get("dialogue_bank", []):
-		var cond = reply.get("condition")
+	for intent in npc.get("intentions", []):
+		var cond = intent.get("condition")
 		if cond == null or not cond is Dictionary:
-			matches.append(reply)
+			matches.append(intent)
 			continue
 
 		var qid = cond.get("quest_id")
 		if qid == null or qid == "":
-			matches.append(reply)
+			matches.append(intent)
 			continue
 
 		var qs = game_state.get(qid)
@@ -234,9 +234,62 @@ func filter_dialogue_bank(npc_id: String) -> Array:
 		if qstep_cond != null and qstep_cond != qs.get("current_step", ""):
 			continue
 
-		matches.append(reply)
+		matches.append(intent)
 
 	return matches
+
+
+func _build_system_prompt(filtered_intentions: Array) -> String:
+	var lines: Array[String] = []
+	var npc = current_npc
+	var pers = npc.get("personality", {})
+
+	lines.append("Tu incarnes un PNJ dans un jeu vidéo. Voici ta fiche :")
+	lines.append("")
+	lines.append("NOM : %s" % npc.get("name", npc.get("id", "?")))
+
+	var tone = pers.get("tone", "")
+	if tone != "":
+		lines.append("TON : %s" % tone)
+
+	var backstory = pers.get("backstory", "")
+	if backstory != "":
+		lines.append("HISTOIRE : %s" % backstory)
+
+	var knowledge = pers.get("knowledge", [])
+	if not knowledge.is_empty():
+		lines.append("CONNAISSANCES :")
+		for k in knowledge:
+			lines.append("- %s" % k)
+
+	var style = pers.get("style", "")
+	if style != "":
+		lines.append("STYLE D'ÉCRITURE : %s" % style)
+
+	lines.append("")
+	lines.append("Sujets typiques et exemples de réponse (utilise-les comme guide, pas comme texte à copier) :")
+	for intent in filtered_intentions:
+		var iid = intent.get("id", "?")
+		var trigger = intent.get("trigger", "")
+		var example = intent.get("example", "")
+		var action = intent.get("action")
+		var action_note = "→ AUCUNE action"
+		if action != null and action is Dictionary:
+			var action_desc = action.get("description", "")
+			action_note = "→ ACTION requise : %s" % action_desc
+		lines.append("- [%s] %s : \"%s\" %s" % [iid, trigger, example, action_note])
+
+	lines.append("")
+	lines.append("RÈGLES IMPÉRATIVES :")
+	lines.append('- Tu réponds UNIQUEMENT avec un objet JSON : {"text": "ta réponse en français", "action": null}')
+	lines.append('- Si la situation du joueur correspond EXACTEMENT au déclencheur d\'une action marquée "ACTION requise", inclus l\'action : {"text": "...", "action": {"type": "X", "id": "Y"}}')
+	lines.append("- Ne parle QUE de ce que le PNJ connaît (voir CONNAISSANCES). N'invente PAS de faits, lieux ou personnages.")
+	lines.append("- Si le joueur est hors-sujet ou insultant, réponds en restant dans le personnage.")
+	lines.append("- N'utilise PAS d'astérisques, de narration ou de description d'action. Parle UNIQUEMENT comme le personnage.")
+	lines.append("- Maximum 3-4 phrases par réponse.")
+	lines.append("- Reste cohérent avec l'historique de la conversation.")
+
+	return "\n".join(lines)
 
 
 func build_user_prompt(replies: Array, player_message: String) -> String:
