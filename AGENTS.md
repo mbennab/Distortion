@@ -180,12 +180,26 @@ python app.py                     # → http://localhost:8000
 ```
 - `http://localhost:8000` — dimension editor (CRUD, validation, tree visualization)
 - `http://localhost:8000/ai-builder` — AI Studio with 3 tabs:
-  - **🧠 Créer** — brainstorm mode: describe your game freely, AI extracts and structures everything
-  - **📝 Modifier** — import existing JSON, AI helps edit it
-  - **🧪 Tester** — select a PNJ and chat with them live
+  - **🧠 Créer** — era quick-start buttons (HUB/MoyenAge/Présent/Futur/Libre) or free description; AI knows the full Distortion lore (4 eras, existing NPCs, trigger mechanics)
+  - **📝 Modifier** — load from game folders or workshop, AI edits surgically with full JSON context
+  - **🧪 Tester** — NPC dialogue identical to the game; debug bar shows msg count, forced-action countdown, active intentions; quest state pills are clickable to test different branches
+- **AI model**: `mistralai/mistral-small-3.2-24b-instruct` via OpenRouter (override with `MODEL` env var)
+- **🚀 Déployer** button — saves to `dimensions/` AND copies to the matching Godot folder (hub→`HUB Central/`, moyenage→`MoyenAge/`, nuclear→`Present/`, futur→`Futur/`)
+- **Fiches view** — toggle JSON ↔ visual NPC cards + quest list in the preview panel
+- **Autosave** — create-mode draft persisted in `localStorage`; Ctrl+S saves to server
+
+### API endpoints (app.py)
+- `GET  /api/dimensions` — list workshop dimensions
+- `GET  /api/game-dimensions` — list dimensions found in the Godot era folders
+- `GET  /api/game-dimensions/{era_key}` — load a game dimension (`hub`, `moyenage`, `nuclear`, `futur`)
+- `POST /api/dimensions/{id}/deploy` — atomic save to workshop + copy to Godot folder if era known
+- `POST /api/ai-build` — create mode (DISTORTION_LORE + SYSTEM_CREATE, max_tokens 2048)
+- `POST /api/ai-modify` — modify mode (DISTORTION_LORE + SYSTEM_MODIFY + full JSON context)
+- `POST /api/ai-test` — test mode; accepts `game_state` override `{quest_id:{status,current_step}}`; returns `active_intentions`
 
 ### JSON validation
 - Server-side: `app.py` `_validate_json()` — checks snake_case IDs, required fields, fallback rules, quest refs
+- Live badge in AI Studio preview — click to expand error/warning list
 - CLI: `python3 -c "import json; json.load(open('dimensions/dimension_X.json'))"`
-- `dimensions/` dir stores all `dimension_*.json` files
-- `app.py` save endpoint uses atomic write (temp file + rename)
+- `dimensions/` dir stores workshop `dimension_*.json` files; game files live in their era folders
+- `app.py` all saves use atomic write (temp file + rename)

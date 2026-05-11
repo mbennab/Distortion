@@ -10,7 +10,6 @@ Ce dossier contient les outils pour créer, éditer et tester les fichiers de di
 cd GenerateurJson
 pip install -r requirements.txt
 python app.py                     # → http://localhost:8000
-# Onglet AI Studio pour créer avec l'IA, ou éditeur pour du manuel
 ```
 
 La clé API est lue depuis `../.env` (racine du projet). Pas d'export nécessaire.
@@ -21,60 +20,100 @@ La clé API est lue depuis `../.env` (racine du projet). Pas d'export nécessair
 
 L'outil principal pour créer et tester des dimensions. Tout se fait en discutant avec l'IA.
 
+**Modèle** : `mistralai/mistral-small-3.2-24b-instruct` via OpenRouter (24B, bien meilleur que le 3B précédent pour la génération JSON structurée). Override possible : `MODEL=mon-modele python app.py`.
+
+---
+
 ### 🧠 Créer — Brainstorm mode
 
-Décrivez votre jeu librement, l'IA structure tout.
+#### Démarrage rapide par ère
 
-**4 phases automatiques :**
+Une barre de boutons en haut permet de démarrer instantanément pour une ère spécifique :
+
+| Bouton | Ère | Contexte pré-injecté |
+|--------|-----|----------------------|
+| 🌀 HUB | Hub Central | Nexus temporel, Gardien du Nexus existant, portails |
+| 🏰 Moyen Âge | Médiévale | Château, roi mourant existant, prison, chevaliers |
+| ☢️ Présent | Nucléaire 2087 | Ruines, bunkers, dimension_nuclear.json de référence |
+| 🚀 Futur | Futuriste | Cité hi-tech, pnj_futur.gd visuel existant, sous-sol |
+| ✏️ Libre | — | Zone de texte directe, décris ce que tu veux |
+
+L'IA connaît le lore complet de Distortion (4 ères, PNJs existants, mécaniques) — elle propose du contenu cohérent avec ce qui est déjà dans le jeu.
+
+#### 4 phases automatiques
+
 1. **Pitch** — balancez votre concept, l'IA extrait : dimension, PNJs, quêtes
-2. **Détail PNJ** — l'IA propose fiche complète pour chaque PNJ (speech, connaissances, objectifs, intentions, arc), vous validez/ajustez
-3. **Détail Quêtes** — étapes, PNJs impliqués, dépendances
-4. **Finalisation** — récap, ajustements, sauvegarde
+2. **Détail PNJ** — fiche complète pour chaque PNJ (speech, connaissances, objectifs, intentions, arc), vous validez/ajustez
+3. **Détail Quêtes** — étapes, PNJs impliqués, dépendances, conditions
+4. **Finalisation** — global_fallbacks, mini-jeux, items, sauvegarde
 
-**Exemple :**
-```
-Vous : "Jeu medieval post-apo. Un roi se fait poignarder. Le joueur parle au roi
-       mourant puis est accusé. Prison avec crochetage pour s'échapper."
+Répondez "ok", "oui", "parfait", ou précisez ce que vous voulez changer. L'IA passe à l'étape suivante sans redemander.
 
-IA   : "✅ Compris. Voici ce que j'ai extrait :
-       → Dimension : moyen_age / Moyen Âge / Médiévale
-       → PNJ : Le Roi du Chateau (mourant, action trigger roi_adieu)
-       → Quête : Échapper de la prison (crochetage)
-       Je détaille le roi ?"
+#### Autosave
 
-Vous : "oui"
-IA   : "Le Roi du Chateau [npc_roi_moyenage]
-       Tone : noble, solennel, mourant ?
-       Speech : vouvoiement, vocatif voyageur, phrases courtes et hachées ?
-       Connaissances : il meurt, ignore l'assassin, a vu des lueurs jaunes ?
-       Objectifs : trouver de l'aide, appeler ses gardes avant de mourir
-       Intentions : 5 proposées...
-       → Confirme ou ajuste."
+Le brouillon en cours est automatiquement sauvegardé dans `localStorage` du navigateur. Rechargez la page : il est restauré. Ctrl+S sauvegarde sur le serveur.
 
-Vous : "parfait"
-IA   : "Quête : La mort du Roi. 2 étapes : parler au roi → il appelle les gardes.
-       OK ?"
-
-Vous : "ajoute le crochetage"
-IA   : "✅ Ajouté : mini_jeu_crochetage lié a la sortie de prison. Sauvegarder ?"
-
-Vous : "oui"
-IA   : "✅ Sauvegardé : dimension_moyen_age.json"
-```
-
-L'IA est proactive : elle propose, vous validez. Répondez "ok", "oui", "parfait", ou précisez ce que vous voulez changer.
+---
 
 ### 📝 Modifier — Import et édition
 
-Importez un JSON existant (fichier ou depuis le serveur), l'IA vous aide à le modifier.
+Importez un JSON existant (fichier, serveur workshop, ou **dossiers du jeu Godot** directement), l'IA vous aide à le modifier chirurgicalement.
 
-- "Ajoute un PNJ marchand" → l'IA crée le squelette et demande les détails
-- "Change le ton du roi" → l'IA ajuste et confirme
-- "Ajoute une quête secondaire" → l'IA propose les étapes
+```
+"Ajoute un PNJ marchand avec 4 intentions"  →  fiche complète générée
+"Change le ton du roi, plus désespéré"       →  seul le champ tone/speech change
+"Ajoute une quête secondaire liée à Zak"    →  quête + conditions dans les intentions
+```
+
+L'IA a accès au JSON complet en contexte : elle ne perd aucun champ lors des modifications.
+
+---
 
 ### 🧪 Tester — Dialogue direct
 
-Sélectionnez un PNJ et parlez-lui comme dans le jeu. L'IA incarne le personnage avec son speech, ses connaissances et son arc de conversation.
+Sélectionnez un PNJ et parlez-lui comme dans le jeu. Le prompt utilisé est **identique** à celui du DialogueSystem Godot.
+
+#### Debug bar
+
+Une barre fixe au-dessus du chat affiche en temps réel :
+
+| Indicateur | Description |
+|------------|-------------|
+| 💬 `X/5` | Numéro du message courant sur 5 max |
+| ⚡ `action dans X` | Nombre de messages avant forçage automatique de l'action trigger |
+| 🎯 `X intentions` | Nombre d'intentions actives pour l'état de quête actuel |
+| Pills de quêtes | État de chaque quête — **cliquer pour cycler** |
+
+#### Contrôle des états de quête
+
+Cliquez sur une pill de quête pour faire avancer son état :
+```
+not_started → étape 1 → étape 2 → ... → done → not_started
+```
+La conversation se réinitialise automatiquement pour refléter les nouvelles conditions d'intention. Cela permet de tester toutes les branches d'un PNJ sans modifier le JSON.
+
+---
+
+### 💾 Sauver vs 🚀 Déployer
+
+| Action | Effet |
+|--------|-------|
+| **💾 Sauver** (Ctrl+S) | Sauvegarde dans `dimensions/` (workshop local) |
+| **🚀 Déployer** | Sauvegarde dans `dimensions/` **ET** copie dans le dossier du jeu Godot |
+| **📋** | Copie le JSON dans le presse-papier |
+
+Le bouton Déployer est visible uniquement quand l'ID de la dimension correspond à une ère connue :
+
+| meta.id | Dossier cible |
+|---------|---------------|
+| `hub` | `HUB Central/dimension_hub.json` |
+| `moyenage` | `MoyenAge/dimension_moyenage.json` |
+| `nuclear` | `Present/dimension_nuclear.json` |
+| `futur` | `Futur/dimension_futur.json` |
+
+#### Vue Fiches
+
+Basculez entre **JSON** et **Fiches** dans le preview pour voir les NPCs sous forme de cartes lisibles (tone, état émotionnel, liste d'intentions avec conditions et actions, arc de conversation) et les quêtes avec leurs étapes.
 
 ---
 
@@ -110,30 +149,7 @@ python distortion_dialogue.py dimensions/dimension_nuclear.json
 | `/help` | Aide |
 | `/quit` | Quitter |
 
-### Exemple de session
-
-```
-╔══ Distortion Dialogue Tester v3 ══╗
-║ Nucléaire (2087)
-║ ✓ clé chargée  |  temp=0.7
-╚══════════════════════════╝
-
-  PNJ disponibles :
-    1. Dr. Hélène Vasseur [npc_docteur_helene]
-
-> /npc npc_docteur_helene
-
-  [Dr. Hélène Vasseur] Que voulez-vous me dire ?
-
-> Bonjour, qui êtes vous ?
-
-  [Dr. Hélène Vasseur] Dr. Vasseur. Médecin de l'unité 7...
-  [msg #1 | 7 int | live]
-```
-
-### Mode simulation
-
-Sans clé API, le CLI fonctionne en simulation : réponses préfixées `[SIMULÉ]`.
+Mode simulation disponible sans clé API (réponses préfixées `[SIMULÉ]`).
 
 ---
 
@@ -190,12 +206,18 @@ Pour l'édition fine des JSON.
   }],
   "quests": [{
     "id": "quete_roi", "title": "La mort du Roi", "status": "not_started",
+    "requires_quests": [],
     "steps": [
-      {"id": "parler_au_roi", "description": "Parler au roi"},
+      {"id": "parler_au_roi", "description": "Parler au roi mourant"},
       {"id": "roi_appelle_gardes", "description": "Le roi appelle les gardes"}
     ]
   }],
-  "global_fallbacks": {"off_topic": "...", "insult": "...", "timeout": "...", "unknown": "...", "default_template": "..."}
+  "mini_games": [],
+  "items": [],
+  "global_fallbacks": {
+    "off_topic": "...", "insult": "...", "timeout": "...",
+    "unknown": "...", "default_template": "... {name} ..."
+  }
 }
 ```
 
@@ -222,10 +244,10 @@ Pour l'édition fine des JSON.
 
 ### Conditions de quête
 ```jsonc
-{"condition": null}                                                                     // toujours
-{"condition": {"quest_id": "q", "quest_status": "not_started"}}                        // quête pas commencée
-{"condition": {"quest_id": "q", "quest_step": "etape_labo"}}                           // étape spécifique
-{"condition": {"quest_id": "q", "quest_status": "done"}}                               // quête finie
+{"condition": null}                                                         // toujours dispo
+{"condition": {"quest_id": "q", "quest_status": "not_started"}}            // quête pas commencée
+{"condition": {"quest_id": "q", "quest_step": "etape_labo"}}               // étape spécifique active
+{"condition": {"quest_id": "q", "quest_status": "done"}}                   // quête terminée
 ```
 
 ### Règles d'or
@@ -233,8 +255,9 @@ Pour l'édition fine des JSON.
 2. **`conversation_arc`** donne une direction. Sans arc, l'IA reste cohérente mais sans but
 3. **`goals`** orientent chaque réponse. L'IA les lit en priorité
 4. **Actions forcées à 5 msg** si non déclenchées avant — parfait pour les cinématiques
-5. **Tester dans AI Studio ou CLI** avant Godot. Le mode simulation marche sans clé
+5. **Tester avec les pills de quête** dans AI Studio pour valider toutes les branches
 6. **`example` = guide**, pas texte fixe. L'IA reformule librement
+7. **Déployer** uniquement quand la dimension est testée et validée (badge vert)
 
 ---
 
@@ -245,6 +268,8 @@ Pour l'édition fine des JSON.
 | "OPENROUTER_API_KEY non définie" | `.env` à la racine avec `OPENROUTER_API_KEY=sk-...` |
 | L'IA répond du texte bizarre | Vérifier `interdits` et `knowledge` — l'IA invente si mal cadrée |
 | L'action ne se déclenche pas | `action.type` et `action.id` doivent correspondre aux `intentions[].action` |
+| 0 intentions dans le debug bar | Les conditions de quête filtrent tout — utiliser les pills pour changer l'état |
+| Déployer grisé | `meta.id` doit être `hub`, `moyenage`, `nuclear` ou `futur` |
 | 404 sur /ai-builder | Relancer `python app.py` |
-| Erreur de validation | Ouvrir l'éditeur → l'onglet validation liste les erreurs |
+| Erreur de validation | Cliquer sur le badge rouge dans le preview — la liste des erreurs s'affiche |
 | JSON invalide | `python3 -c "import json; json.load(open('dimensions/dimension_X.json'))"` |
