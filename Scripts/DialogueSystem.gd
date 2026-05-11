@@ -369,48 +369,6 @@ func _build_user_prompt(player_message: String) -> String:
 	return "\n".join(lines)
 
 
-func extract_reply_id(api_response: Dictionary) -> String:
-	var choices = api_response.get("choices", [])
-	if choices.is_empty():
-		return ""
-	var content = choices[0].get("message", {}).get("content", "").strip_edges()
-
-	var json = JSON.new()
-	if json.parse(content) == OK:
-		var data = json.data
-		if data is Dictionary and "id" in data:
-			return data["id"]
-
-	var regex = RegEx.new()
-	regex.compile('"id"\\s*:\\s*"([^"]+)"')
-	var m = regex.search(content)
-	if m:
-		return m.get_string(1)
-
-	return ""
-
-
-func resolve_reply(reply_id: String, filtered_replies: Array) -> String:
-	if reply_id == "":
-		return get_fallback(current_npc_id, "unknown")
-
-	if reply_id == "off_topic":
-		return get_fallback(current_npc_id, "off_topic")
-
-	if reply_id == "insult":
-		return get_fallback(current_npc_id, "insult")
-
-	for r in filtered_replies:
-		if r.get("id") == reply_id:
-			return r.get("text", "[Texte manquant]")
-
-	for r in current_npc.get("dialogue_bank", []):
-		if r.get("id") == reply_id:
-			return r.get("text", "[Texte manquant]")
-
-	return get_fallback(current_npc_id, "unknown")
-
-
 func get_fallback(npc_id: String, key: String) -> String:
 	var npc = _find_npc(npc_id)
 	var npc_fb = npc.get("fallbacks", {})
