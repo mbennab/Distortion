@@ -247,8 +247,6 @@ func _on_dialogue_ended() -> void:
 
 func _on_dialogue_response(npc_name: String, text: String) -> void:
 	_add_message(npc_name, text, true)
-	if current_pnj_node and current_pnj_node.has_method("show_bubble"):
-		current_pnj_node.show_bubble(text)
 	current_state = State.ACTIVE
 	input_line.editable = true
 	input_line.text = ""
