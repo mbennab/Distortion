@@ -315,63 +315,130 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 	var npc = current_npc
 	var pers = npc.get("personality", {})
 
-	lines.append("Tu incarnes un PNJ dans un jeu vidéo. Voici ta fiche :")
+	lines.append("Tu incarnes un PNJ de jeu vidéo. Incarne-le avec rigueur et naturel.")
 	lines.append("")
+	lines.append("## IDENTITÉ")
 	lines.append("NOM : %s" % npc.get("name", npc.get("id", "?")))
-
-	var tone = pers.get("tone", "")
-	if tone != "":
-		lines.append("TON : %s" % tone)
 
 	var backstory = pers.get("backstory", "")
 	if backstory != "":
 		lines.append("HISTOIRE : %s" % backstory)
 
+	var tone = pers.get("tone", "")
+	if tone != "":
+		lines.append("TEMPÉRAMENT : %s" % tone)
+
+	# --- ÉTAT ÉMOTIONNEL ---
+	var emotional = pers.get("emotional_state", "")
+	if emotional != "":
+		lines.append("")
+		lines.append("## ÉTAT ÉMOTIONNEL ACTUEL")
+		lines.append("%s" % emotional)
+
+	# --- COMMENT TU PARLES ---
+	var speech = pers.get("speech", {})
+	if not speech.is_empty():
+		lines.append("")
+		lines.append("## COMMENT TU T'EXPRIMES (règles strictes)")
+		if speech.has("vouvoiement") and speech.vouvoiement:
+			lines.append("- Tu vouvoies TOUJOURS le joueur.")
+		elif speech.has("vouvoiement") and not speech.vouvoiement:
+			lines.append("- Tu tutoies le joueur.")
+		var voc = speech.get("vocatif", "")
+		if voc != "":
+			lines.append("- Tu appelles le joueur \"%s\"." % voc)
+		var phrases = speech.get("phrases", "")
+		if phrases != "":
+			lines.append("- Longueur : %s." % phrases)
+		var expressions: Array = speech.get("expressions", [])
+		for e in expressions:
+			lines.append("- %s." % e)
+		var interdits: Array = speech.get("interdits", [])
+		for i in interdits:
+			lines.append("- INTERDIT : %s." % i)
+
+	# --- CONNAISSANCES ---
 	var knowledge = pers.get("knowledge", [])
 	if not knowledge.is_empty():
-		lines.append("CONNAISSANCES :")
+		lines.append("")
+		lines.append("## CE QUE TU SAIS")
 		for k in knowledge:
 			lines.append("- %s" % k)
 
-	var style = pers.get("style", "")
-	if style != "":
-		lines.append("STYLE D'ÉCRITURE : %s" % style)
+	# --- OBJECTIFS ---
+	var goals: Array = pers.get("goals", [])
+	if not goals.is_empty():
+		lines.append("")
+		lines.append("## TES OBJECTIFS (prioritaires)")
+		for g in goals:
+			lines.append("- %s" % g)
 
+	# --- ARC DE CONVERSATION ---
+	var arc: Array = pers.get("conversation_arc", [])
+	if not arc.is_empty():
+		var current_phase = _find_current_phase(arc)
+		if not current_phase.is_empty():
+			lines.append("")
+			lines.append("## PHASE ACTUELLE DE LA CONVERSATION")
+			lines.append("Tu es dans cette phase : %s" % current_phase.get("focus", "conversation normale"))
+			var next_phase = _find_next_phase(arc)
+			if not next_phase.is_empty():
+				lines.append("Prochaine phase : %s" % next_phase.get("focus", "continuer"))
+
+	# --- INTENTIONS ---
 	lines.append("")
-	lines.append("Sujets typiques et exemples de réponse (utilise-les comme guide, pas comme texte à copier) :")
+	lines.append("## SUJETS DE CONVERSATION POSSIBLES")
 	for intent in filtered_intentions:
 		var iid = intent.get("id", "?")
 		var trigger = intent.get("trigger", "")
 		var example = intent.get("example", "")
 		var action = intent.get("action")
-		var action_note = "→ AUCUNE action"
+		var action_note = ""
 		if action != null and action is Dictionary:
 			var action_desc = action.get("description", "")
-			action_note = "→ ACTION requise : %s" % action_desc
-		lines.append("- [%s] %s : \"%s\" %s" % [iid, trigger, example, action_note])
+			action_note = " → ACTION: %s" % action_desc
+		lines.append("- [%s] %s. Ex: \"%s\"%s" % [iid, trigger, example, action_note])
 
+	# --- RÈGLES ---
 	lines.append("")
-	lines.append("RÈGLES IMPÉRATIVES :")
-	lines.append('- Tu réponds UNIQUEMENT avec un objet JSON : {"text": "ta réponse en français", "action": null}')
-	lines.append('- Si la situation du joueur correspond EXACTEMENT au déclencheur d\'une action marquée "ACTION requise", inclus l\'action : {"text": "...", "action": {"type": "X", "id": "Y"}}')
-	lines.append("- Ne parle QUE de ce que le PNJ connaît (voir CONNAISSANCES). N'invente PAS de faits, lieux ou personnages.")
-	lines.append("- Si le joueur est hors-sujet ou insultant, réponds en restant dans le personnage.")
-	lines.append("- N'utilise PAS d'astérisques, de narration ou de description d'action. Parle UNIQUEMENT comme le personnage.")
-	lines.append("- Maximum 3-4 phrases par réponse.")
+	lines.append("## RÈGLES IMPÉRATIVES")
+	lines.append('- Format de réponse : UNIQUEMENT {"text": "ta réponse", "action": null}')
+	lines.append('- Si la situation correspond à une ACTION, inclus-la : {"text": "...", "action": {"type": "X", "id": "Y"}}')
+	lines.append("- Ne parle QUE de ce que tu sais (voir CE QUE TU SAIS). N'invente RIEN.")
+	lines.append("- Si le joueur est hors-sujet ou insultant, réponds EN RESTANT DANS LE PERSONNAGE.")
+	lines.append("- Pas d'astérisques, pas de narration, pas de description d'action. Que du dialogue.")
 	lines.append("- Reste cohérent avec l'historique de la conversation.")
 
-	# Forcer la terminaison après N messages si le PNJ a une action de type "trigger"
+	# --- FORÇAGE TERMINAISON ---
 	if _message_count >= 4:
 		for intent in filtered_intentions:
 			var action = intent.get("action")
 			if action != null and action is Dictionary and action.get("type") == "trigger":
 				lines.append("")
-				lines.append("⚠️ ATTENTION : cela fait %d messages que le joueur parle. Tu es à l'agonie, tu n'en peux plus." % _message_count)
-				lines.append("Ceci est ton DERNIER message. Tu DOIS absolument dire adieu, appeler les gardes, et inclure l'action.")
-				lines.append("Ne discute plus d'autre chose. Termine la conversation MAINTENANT.")
+				lines.append("## ⚠️ URGENT — FIN DE CONVERSATION FORCÉE")
+				lines.append("Cela fait %d messages. Tu es à l'agonie et c'est la fin." % _message_count)
+				lines.append("Ce message est ton DERNIER. Dis adieu et inclus ABSOLUMENT l'action.")
+				lines.append("Ne parle plus d'autre chose.")
 				break
 
 	return "\n".join(lines)
+
+
+func _find_current_phase(arc: Array) -> Dictionary:
+	for p in arc:
+		if _message_count <= p.get("until_message", 0):
+			return p
+	return {}
+
+
+func _find_next_phase(arc: Array) -> Dictionary:
+	var found_current = false
+	for p in arc:
+		if found_current:
+			return p
+		if _message_count <= p.get("until_message", 0):
+			found_current = true
+	return {}
 
 
 func _build_user_prompt(player_message: String) -> String:
