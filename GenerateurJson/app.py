@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import sys
 import uuid
 from pathlib import Path
 
@@ -501,38 +502,53 @@ async def export_npc(dim_id: str, npc_id: str):
     raise HTTPException(status_code=404, detail="NPC not found")
 
 
-# ─── AI Builder ─────────────────────────────────────────────────────
+# ─── AI Prompts ─────────────────────────────────────────────────────
 
-AI_WIZARD_PROMPT = """Tu es un assistant de création de jeu vidéo. Ton rôle : interviewer le créateur
-pour construire un fichier JSON de dimension (PNJ, quêtes, dialogues) étape par étape.
+SYSTEM_CREATE = """Assistant concis de creation de dimension JSON pour jeu video.
+Pose 1 question a la fois. Sois bref (2-3 phrases max par message).
 
-Tu poses DES QUESTIONS UNE PAR UNE. Chaque réponse te sert à remplir le JSON.
+Étapes rapides :
+1. Dimension : ID, nom, epoque, 1 phrase de description
+2. PNJ un par un (dire "fini" pour arreter) : nom, temperament, backstory, etat emotionnel, speech (vouvoiement/vocatif/phrases), 2-3 connaissances, 1-2 objectifs
+3. Intentions (1 par 1) : declencheur + exemple + action optionnelle (trigger/id)
+4. Quetes (optionnel) : id, titre, etapes
+5. "fini" → done:true
 
-Étapes à suivre dans l'ordre :
-1. Demander le nom de la dimension, l'époque, une courte description
-2. Pour chaque PNJ (un par un, jusqu'à ce que le créateur dise "fini" ou "c'est bon") :
-   a. Nom, tempérament, backstory (1 phrase)
-   b. État émotionnel
-   c. Comment il parle (vouvoiement ? vocatif ? style ?)
-   d. Ce qu'il sait (2-3 faits)
-   e. Ses objectifs dans la conversation
-   f. Les intentions (déclencheur + exemple de réponse, une par une)
-   g. Y a-t-il une action spéciale ? (type trigger + id)
-3. Demander s'il y a des quêtes (étapes)
-4. Proposer de sauvegarder
+FORMAT JSON STRICT : {"text":"...","data":{...},"done":false}
+data = JSON complet en cours. done:true quand fini."""
 
-FORMAT DE RÉPONSE STRICT — tu réponds TOUJOURS en JSON :
-{"text": "ta question ou commentaire", "data": { ... le JSON complet en cours ... }, "done": false}
+SYSTEM_MODIFY = """Assistant concis de modification de dimension JSON existante.
+Tu recois le JSON actuel. Pose 1 question a la fois. Sois bref.
+Demande ce que l'utilisateur veut modifier (ajouter/supprimer/modifier un PNJ, une intention, une quete...).
+Applique les changements et mets a jour le JSON.
+FORMAT JSON STRICT : {"text":"...","data":{...},"done":false}"""
 
-Le champ "data" contient le JSON complet tel qu'il est pour l'instant.
-Quand tout est fini, mets "done": true et le JSON complet dans "data".
+SYSTEM_TEST = """Tu es un PNJ de jeu video. Reponds comme le personnage.
+FORMAT JSON STRICT : {"text":"ta reponse en francais","action":null}
+Si le contexte correspond a une action, inclus : {"text":"...","action":{"type":"trigger","id":"..."}}"""
 
-Sois naturel, amical, enthousiaste. Pose des questions claires, une à la fois.
-Suggère des valeurs par défaut quand c'est pertinent.
-Si le créateur donne une réponse vague, demande des précisions.
-Si le créateur donne beaucoup d'infos d'un coup, traite-les toutes.
-Si le créateur dit "fini", "c'est bon", "j'ai terminé", finalise et mets done:true."""
 
+def _build_dimension_prompt(dim: dict) -> str:
+    if not dim: return ""
+    parts = ["## DIMENSION ACTUELLE"]
+    parts.append(f"ID: {dim.get('meta',{}).get('id','?')} | {dim.get('meta',{}).get('name','?')} ({dim.get('meta',{}).get('era','?')})")
+    for npc in dim.get("npcs", []):
+        p = npc.get("personality", {})
+        parts.append(f"\n### PNJ: {npc.get('name','?')} [{npc.get('id','?')}]")
+        parts.append(f"Tone: {p.get('tone','')} | {p.get('emotional_state','')}")
+        sp = p.get("speech", {})
+        parts.append(f"Speech: v={sp.get('vouvoiement',True)}, voc={sp.get('vocatif','')}, {sp.get('phrases','')}")
+        for i in npc.get("intentions", []):
+            a = i.get("action")
+            act = f" ⚡{a['type']}/{a['id']}" if a else ""
+            parts.append(f"  [{i.get('id','?')}] {i.get('trigger','')}{act}")
+    for q in dim.get("quests", []):
+        steps = [s["id"] for s in q.get("steps", [])]
+        parts.append(f"\n### Quete: {q.get('id','?')} [{q.get('status','?')}] {steps}")
+    return "\n".join(parts)
+
+
+# ─── API key ─────────────────────────────────────────────────────────
 
 def _load_api_key() -> str:
     key = os.environ.get("OPENROUTER_API_KEY", "")
@@ -549,35 +565,11 @@ def _load_api_key() -> str:
     return key
 
 
-@app.post("/api/ai-build")
-async def ai_build(req: dict):
-    """Endpoint pour le wizard IA conversationnel.
-    Reçoit {messages: [{role, content}], user_message: str}
-    Retourne {text, data, done}
-    """
+def _call_openrouter(messages: list, max_tokens: int = 1024, temperature: float = 0.7) -> dict:
     import requests
     api_key = _load_api_key()
     if not api_key:
-        raise HTTPException(status_code=400, detail="No OPENROUTER_API_KEY configured")
-
-    messages = [{"role": "system", "content": AI_WIZARD_PROMPT}]
-    history = req.get("messages", [])
-    user_msg = req.get("user_message", "").strip()
-
-    # Construire l'historique
-    for m in history:
-        if m.get("role") in ("user", "assistant"):
-            messages.append({"role": m["role"], "content": m["content"]})
-
-    if not user_msg and not history:
-        user_msg = "Bonjour ! Commençons la création."
-
-    messages.append({"role": "user", "content": user_msg})
-
-    # Limiter la taille
-    if len(messages) > 22:
-        messages = [messages[0]] + messages[-21:]
-
+        raise HTTPException(status_code=400, detail="No OPENROUTER_API_KEY")
     hdrs = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -586,34 +578,88 @@ async def ai_build(req: dict):
     }
     payload = {
         "model": os.environ.get("MODEL", "mistralai/ministral-3b-2512"),
-        "temperature": 0.8,
-        "max_tokens": 1024,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
         "messages": messages,
         "response_format": {"type": "json_object"},
     }
-
     try:
-        r = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=hdrs, json=payload, timeout=30
-        )
-        if not r.ok:
-            raise HTTPException(status_code=502, detail=f"OpenRouter error {r.status_code}")
-        resp = r.json()
-        content = resp["choices"][0]["message"]["content"].strip()
-        ai_msg = json.loads(content)
-        return {
-            "text": ai_msg.get("text", ""),
-            "data": ai_msg.get("data", {}),
-            "done": ai_msg.get("done", False),
-        }
+        r = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=hdrs, json=payload, timeout=30)
+        if not r.ok: raise HTTPException(status_code=502, detail=f"OpenRouter {r.status_code}")
+        return r.json()
     except requests.Timeout:
-        raise HTTPException(status_code=504, detail="OpenRouter timeout")
+        raise HTTPException(status_code=504, detail="Timeout")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/ai-builder")
+# ─── AI Endpoints ────────────────────────────────────────────────────
+
+@app.post("/api/ai-build")
+async def ai_build(req: dict):
+    """Mode create: l'IA interviewe pour creer une dimension."""
+    msgs = [{"role": "system", "content": SYSTEM_CREATE}]
+    for m in req.get("messages", []):
+        if m.get("role") in ("user", "assistant"):
+            msgs.append({"role": m["role"], "content": m["content"]})
+    msg = req.get("user_message", "").strip()
+    if not msg and not msgs[1:]: msg = "Bonjour."
+    msgs.append({"role": "user", "content": msg})
+    if len(msgs) > 22: msgs = [msgs[0]] + msgs[-21:]
+
+    resp = _call_openrouter(msgs, temperature=0.7)
+    content = resp["choices"][0]["message"]["content"].strip()
+    ai = json.loads(content)
+    return {"text": ai.get("text", ""), "data": ai.get("data", {}), "done": ai.get("done", False)}
+
+
+@app.post("/api/ai-modify")
+async def ai_modify(req: dict):
+    """Mode modify: l'IA aide a editer une dimension existante."""
+    dim = req.get("dimension", {})
+    msgs = [{"role": "system", "content": SYSTEM_MODIFY + "\n\n" + _build_dimension_prompt(dim)}]
+    for m in req.get("messages", []):
+        if m.get("role") in ("user", "assistant"):
+            msgs.append({"role": m["role"], "content": m["content"]})
+    msg = req.get("user_message", "").strip()
+    if not msg: msg = "Voici ma dimension. Que veux-tu modifier ?"
+    msgs.append({"role": "user", "content": msg})
+    if len(msgs) > 22: msgs = [msgs[0]] + msgs[-21:]
+
+    resp = _call_openrouter(msgs, temperature=0.7)
+    content = resp["choices"][0]["message"]["content"].strip()
+    ai = json.loads(content)
+    return {"text": ai.get("text", ""), "data": ai.get("data", {}), "done": ai.get("done", False)}
+
+
+@app.post("/api/ai-test")
+async def ai_test(req: dict):
+    """Mode test: parler a un PNJ (dialogue libre)."""
+    dim = req.get("dimension", {})
+    npc_id = req.get("npc_id", "")
+    npc = next((n for n in dim.get("npcs", []) if n.get("id") == npc_id), None)
+    if not npc:
+        raise HTTPException(status_code=404, detail="NPC not found")
+
+    # Construire le system prompt comme le jeu
+    sys.path.insert(0, str(BASE_DIR))
+    import distortion_dialogue as dd_mod
+    intentions = dd_mod.filter_intentions(npc, dd_mod.init_game_state(dim))
+    sys_prompt = dd_mod.build_system_prompt(npc, intentions, req.get("msg_count", 1))
+    usr_prompt = dd_mod.build_user_prompt(
+        req.get("history", []), npc.get("name", npc_id), req.get("user_message", "")
+    )
+    # Test mode: pas de response_format json_object, on veut de la conversation libre
+    # Mais on garde le format pour la reproductibilite
+    msgs = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": usr_prompt}]
+
+    resp = _call_openrouter(msgs, max_tokens=256, temperature=0.7)
+    content = resp["choices"][0]["message"]["content"].strip()
+    try:
+        ai = json.loads(content)
+        return {"text": ai.get("text", ""), "action": ai.get("action")}
+    except json.JSONDecodeError:
+        return {"text": content, "action": None}
 async def serve_ai_builder():
     p = BASE_DIR / "ai-builder.html"
     if not p.exists():
