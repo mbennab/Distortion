@@ -70,7 +70,7 @@ func _handle_movement(delta: float) -> void:
 	time_aunote.animation(direction)
 	time_aunote.move_and_collide(direction * speed * delta)
 
-func start() -> void:
+func start(spawn_id: String = "entree") -> void:
 	show()
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 8

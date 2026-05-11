@@ -175,11 +175,10 @@ func _handle_movement(delta: float) -> void:
 	time_aunote.move_and_collide(direction * speed * delta)
 
 
-func start() -> void:
+func start(spawn_id: String = "entree") -> void:
 	show()
 	$ObjectiveHUD.show()
 	$fondFutur.show()
-	$TimeAunote.show()
 	$"pnj-futur".show()
 	$"pnj-cheffe".show()
 	$SousSol.hide()
@@ -191,6 +190,27 @@ func start() -> void:
 	pnjfutur.apparition(pnjfuturPos)
 	pnjcheffe = $"pnj-cheffe"
 	pnjcheffe.apparition(pnjcheffePos)
+
+	if spawn_id == "soussol":
+		$fondFutur.hide()
+		_set_upper_collisions(false)
+		$"pnj-futur".hide()
+		$"pnj-cheffe".hide()
+		$SousSol.show()
+		_set_basement_collisions(true)
+		$"SousSol/pnj-futur".apparition($"SousSol/fondSousSol/Markers2D/pnjPos".position)
+		time_aunote.position = $"SousSol/fondSousSol/Markers2D/entreeEscalier".position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(0.8, 0.8)
+		time_aunote.rotation = 0.0
+		can_move = true
+		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+		collision_node.disabled = false
+		started = true
+		stopped = false
+		return
+
 	time_aunote.position = position_entree_principale
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0

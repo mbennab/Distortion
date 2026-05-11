@@ -106,13 +106,19 @@ func _trigger_portal(porte_name, pos, color):
 func _process(_delta):
 	deplacement(_delta)
 
-func start():
+func start(spawn_id: String = "entree"):
 	show()
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://HUB Central/dimension_hub.json")
 	timeAunote = $TimeAunote
 	timeAunote.collision_mask = 2
-	timeAunote.apparition(positionEntreePrincipale)
+	match spawn_id:
+		"gauche":
+			timeAunote.apparition($"fondHubCentral/Markers2D/retourGauche".position)
+		"droite":
+			timeAunote.apparition($"fondHubCentral/Markers2D/retourDroite".position)
+		_:
+			timeAunote.apparition(positionEntreePrincipale)
 	pnjHub.apparition(pnjPos)
 	chienHub.apparition(chienPos)
 	_set_collisions_enabled(true)
