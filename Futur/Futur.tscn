@@ -36,11 +36,9 @@ script = ExtResource("1_gd")
 
 [node name="TimeAunote" parent="." unique_id=409968594 instance=ExtResource("3_perso")]
 
-[node name="timerSortie" type="Timer" parent="." unique_id=1773903034]
-wait_time = 1.5
-one_shot = true
-
 [node name="SousSol" parent="." unique_id=1032565229 instance=ExtResource("6_soussol")]
+visible = false
+scale = Vector2(2.4, 2.4)
 
 [node name="pnj-futur" type="Node2D" parent="." unique_id=690371241]
 script = ExtResource("4_my58h")
