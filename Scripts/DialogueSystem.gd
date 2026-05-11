@@ -12,7 +12,7 @@ signal quest_updated(quest_id: String, status: String, current_step: String)
 signal action_triggered(action: Dictionary)
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-const MODEL = "mistralai/ministral-3b-2512"
+const MODEL = "mistralai/mistral-small-3.2-24b-instruct"
 const REQUEST_TIMEOUT = 15.0
 const SITE_URL = "http://localhost:8000"
 const SITE_NAME = "Distortion"
