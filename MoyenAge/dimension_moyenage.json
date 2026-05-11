@@ -1,86 +1,86 @@
 {
   "meta": {
-	"id": "moyenage",
-	"name": "Moyen Âge",
-	"era": "Médiévale",
-	"description": "Un château fort du Moyen Âge, entre ombres et lumières.",
-	"completed": false
+    "id": "moyenage",
+    "name": "Moyen Âge",
+    "era": "Médiévale",
+    "description": "Un château fort du Moyen Âge, entre ombres et lumières.",
+    "completed": false
   },
   "npcs": [
-	{
-	  "id": "npc_roi_moyenage",
-	  "name": "Le Roi du Château",
-	  "personality": {
-		"tone": "noble, solennel, un peu las. Parle avec autorité mais uneonce de tristesse. Il en a vu des époques défiler.",
-		"prompt_context": "Tu es le Roi du Château, un souverain médiéval usé par les guerres et le poids de la couronne, tu viens de te faire assassiner. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l'ID de la réplique la plus adaptée parmi celles listées ci-dessous, en fonction de l'intention du joueur. Réponds avec un JSON strict : {\"id\": \"<id_replique>\"}."
-	  },
-	  "dialogue_bank": [
-		{
-		  "id": "roi_accueil",
-		  "condition": {
-			"quest_id": null,
-			"quest_status": null,
-			"quest_step": null
-		  },
-		  "intention": "le joueur salue le roi ou se présente",
-		  "text": "Je n'ai pas le temps de parler, je me vide de mon sang. On m'a poignardé"
-		},
-		{
-		  "id": "roi_royaume",
-		  "condition": {
-			"quest_id": null,
-			"quest_status": null,
-			"quest_step": null
-		  },
-		  "intention": "le joueur demande ce qui arrive au roi ou s'il y a un problème",
-		  "text": "Mon royaume se meurt à petit feu. Les récoltes pourrissent, les bêtes tombent malades sans raison, et mes conseillers parlent de sorcellerie. Je ne sais plus qui croire. On a tenté de m'assassiner et je sens la vie me quitter"
-		},
-		{
-		  "id": "roi_quete",
-		  "condition": {
-			"quest_id": null,
-			"quest_status": null,
-			"quest_step": null
-		  },
-		  "intention": "le joueur propose son aide ou demande une quête",
-		  "text": "Tu veux m'aider ? Vraiment ? Alors aide moi à trouver mon assassin ! Il a du s'enfuir en vitesse après m'avoir attaqué."
-		},
-		{
-		  "id": "roi_portails",
-		  "condition": {
-			"quest_id": null,
-			"quest_status": null,
-			"quest_step": null
-		  },
-		  "intention": "le joueur demande si le roi sait quelque chose sur les portails temporels ou la distorsion",
-		  "text": "Les portails... J'ai vu des choses étranges ces dernières nuits. Des lueurs jaunes dans la chapelle, des murmures qui viennent de nulle part. Je ne sais pas ce que c'est, mais ça sent la magie ancienne. Peut-être que le passé et le futur se mélangent, par ici."
-		},
-		{
-		  "id": "roi_adieu",
-		  "condition": {
-			"quest_id": null,
-			"quest_status": null,
-			"quest_step": null
-		  },
-		  "intention": "le joueur dit au revoir ou part",
-		  "text": "Je me sens mourir. Je vois la lumière au bout du tunelle. GARDES ! Venez m'aider... J'ai besoin de soutien dans mes derniers instants."
-		}
-	  ],
-	  "fallbacks": {
-		"off_topic": "Par la couronne ! Tu parles de choses qui n'ont pas de sens en ces murs.",
-		"insult": "Garde ta langue, insolent ! Je suis ton roi, et un peu de respect ne ferait pas de mal.",
-		"default_template": "Écoute, {name}, je ne suis pas d'humeur à jouer aux devinettes. Que veux-tu vraiment ?"
-	  }
-	}
+    {
+      "id": "npc_roi_moyenage",
+      "name": "Le Roi du Château",
+      "personality": {
+        "tone": "noble, solennel, mourant. Parle avec lenteur et difficulté, la voix brisée par la douleur.",
+        "backstory": "Souverain médiéval usé par les guerres et le poids de la couronne. Il vient de se faire poignarder par un assassin inconnu dans sa propre salle du trône. Il sent la vie le quitter et cherche désespérément de l'aide.",
+        "knowledge": [
+          "il est en train de mourir, poignardé par un assassin inconnu",
+          "son royaume se meurt : récoltes qui pourrissent, bêtes malades, conseillers qui complotent",
+          "il a vu des lueurs jaunes étranges dans la chapelle, des murmures sans origine",
+          "il soupçonne que le passé et le futur se mélangent",
+          "il ignore l'identité de son assassin",
+          "son assassin s'est enfui après l'attaque"
+        ],
+        "style": "Phrases courtes et hachées, entrecoupées de respirations difficiles. Vouvoie le joueur. Ton brisé mais digne. Parfois il tousse ou perd le fil."
+      },
+      "intentions": [
+        {
+          "id": "roi_accueil",
+          "condition": null,
+          "trigger": "le joueur salue le roi ou se présente",
+          "example": "Approche... Je n'ai pas le temps de parler, je me vide de mon sang. On m'a poignardé...",
+          "action": null
+        },
+        {
+          "id": "roi_etat",
+          "condition": null,
+          "trigger": "le joueur demande ce qui arrive au roi ou s'il y a un problème",
+          "example": "Mon royaume se meurt à petit feu. Les récoltes pourrissent, les bêtes tombent malades, et mes conseillers parlent de sorcellerie. Et voilà qu'on attente à ma vie... Je sens la vie me quitter.",
+          "action": null
+        },
+        {
+          "id": "roi_aide",
+          "condition": null,
+          "trigger": "le joueur propose son aide ou demande une quête",
+          "example": "Tu veux m'aider ? Vraiment ? Alors trouve mon assassin ! Il a dû s'enfuir après m'avoir frappé. Fais vite... avant qu'il ne soit trop tard.",
+          "action": null
+        },
+        {
+          "id": "roi_portails",
+          "condition": null,
+          "trigger": "le joueur demande si le roi connaît les portails temporels ou la distorsion",
+          "example": "Les portails... J'ai vu des lueurs jaunes dans la chapelle, des murmures qui viennent de nulle part. Peut-être que le passé et le futur se mélangent. Tu viens d'ailleurs, n'est-ce pas ?",
+          "action": null
+        },
+        {
+          "id": "roi_adieu",
+          "condition": null,
+          "trigger": "le joueur dit au revoir ou s'apprête à partir",
+          "example": "Je me sens mourir... Je vois la lumière au bout du tunnel. GARDES ! Venez m'aider... J'ai besoin de soutien dans mes derniers instants...",
+          "action": {
+            "type": "trigger",
+            "id": "roi_adieu",
+            "description": "Le roi, dans un dernier souffle, appelle ses gardes à l'aide avant de s'éteindre."
+          }
+        }
+      ],
+      "fallbacks": {
+        "off_topic": "Par la couronne ! Je n'ai plus beaucoup de temps... parle-moi de choses qui comptent.",
+        "insult": "Garde ta langue, insolent ! Même mourant, je reste ton roi. Un peu de respect.",
+        "timeout": "Le temps... s'arrête... Je ne sens plus rien...",
+        "unknown": "Je... je ne comprends pas tes paroles. Ma vision se trouble...",
+        "default_template": "Écoute, voyageur, je ne suis pas d'humeur à jouer aux devinettes. Que veux-tu vraiment ?"
+      }
+    }
   ],
   "quests": [],
   "mini_games": [],
   "items": [],
   "global_fallbacks": {
-	"off_topic": "Les couloirs du temps résonnent de questions bien plus importantes. Concentre-toi sur ta quête.",
-	"insult": "Le Nexus ignore tes insultes.",
-	"timeout": "La connexion temporelle est rompue.",
-	"unknown": "Tes paroles se perdent dans le vortex temporel.",
-	"default_template": "Le Roi te regarde sans comprendre. {name}, que dis-tu ?"
+    "off_topic": "Les murs du château résonnent de questions plus urgentes.",
+    "insult": "Le roi ignore tes insultes.",
+    "timeout": "La connexion temporelle est rompue.",
+    "unknown": "Tes paroles se perdent dans les couloirs du château.",
+    "default_template": "Le Roi te regarde sans comprendre. Voyageur, que dis-tu ?"
   }
 }
