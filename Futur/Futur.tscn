@@ -6,6 +6,8 @@
 [ext_resource type="Script" uid="uid://ba0ytj6fhkxsq" path="res://Futur/pnj_futur.gd" id="4_my58h"]
 [ext_resource type="Texture2D" uid="uid://bliy5eebt7ssv" path="res://art/Futur/pnj-punk.png" id="6_mfetk"]
 [ext_resource type="PackedScene" uid="uid://dpnve3db7i0rp" path="res://Futur/SousSol.tscn" id="6_soussol"]
+[ext_resource type="Script" uid="uid://crt0c7ceuwj0f" path="res://Futur/pnj_cheffe.gd" id="7_2plbm"]
+[ext_resource type="Texture2D" uid="uid://c8cbwosqxjxmg" path="res://art/Futur/pnj-cheffe.png" id="8_anmvl"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_2plbm"]
 atlas = ExtResource("6_mfetk")
@@ -29,6 +31,40 @@ animations = [{
 "speed": 0.5
 }]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yuocs"]
+bg_color = Color(0.08, 0.08, 0.15, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.6, 1, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1uwrl"]
+atlas = ExtResource("8_anmvl")
+region = Rect2(0, 0, 369, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rchxc"]
+atlas = ExtResource("8_anmvl")
+region = Rect2(369, 0, 369, 640)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_4ktp6"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1uwrl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rchxc")
+}],
+"loop": true,
+"name": &"idle-cheffe",
+"speed": 2.0
+}]
+
 [node name="Futurrrrr" type="Node2D" unique_id=1593019004]
 script = ExtResource("1_gd")
 
@@ -47,3 +83,42 @@ script = ExtResource("4_my58h")
 scale = Vector2(0.42, 0.42)
 sprite_frames = SubResource("SpriteFrames_dgnmj")
 animation = &"idle-futur1"
+
+[node name="ObjectiveHUD" type="CanvasLayer" parent="." unique_id=195526013]
+layer = 64
+visible = false
+
+[node name="Panel" type="Panel" parent="ObjectiveHUD" unique_id=263989467]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 280.0
+offset_bottom = 96.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_yuocs")
+
+[node name="Title" type="Label" parent="ObjectiveHUD/Panel" unique_id=660780674]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 252.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Objectifs"
+
+[node name="Objective" type="Label" parent="ObjectiveHUD/Panel" unique_id=587327442]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 36.0
+offset_right = 252.0
+offset_bottom = 64.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "• Parler à la cheffe"
+
+[node name="pnj-cheffe" type="Node2D" parent="." unique_id=250108443]
+scale = Vector2(0.4, 0.4)
+script = ExtResource("7_2plbm")
+
+[node name="pnjcheffeAnimation" type="AnimatedSprite2D" parent="pnj-cheffe" unique_id=1742195157]
+sprite_frames = SubResource("SpriteFrames_4ktp6")
+animation = &"idle-cheffe"

@@ -108,6 +108,7 @@ func _process(_delta):
 
 func start():
 	show()
+	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://HUB Central/dimension_hub.json")
 	timeAunote = $TimeAunote
 	timeAunote.collision_mask = 2
@@ -120,6 +121,7 @@ func start():
 
 func stop():
 	hide()
+	$ObjectiveHUD.hide()
 	DialogueUI.close_dialogue()
 	_set_collisions_enabled(false)
 	started = false

@@ -36,7 +36,7 @@ script = ExtResource("1_gd")
 script = ExtResource("4_pnj")
 
 [node name="pnjfuturAnimation" type="AnimatedSprite2D" parent="pnj-futur" unique_id=814833227]
-scale = Vector2(0.27, 0.27)
+scale = Vector2(0.25, 0.25)
 sprite_frames = SubResource("SpriteFrames_pnj")
 animation = &"idle-futur1"
 frame_progress = 0.96380734

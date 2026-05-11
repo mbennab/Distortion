@@ -3,6 +3,8 @@ extends Node2D
 var time_aunote: CharacterBody2D
 var pnjfutur
 var pnjfuturPos
+var pnjcheffe
+var pnjcheffePos
 var position_entree_principale: Vector2
 var position_entree_escalier: Vector2
 var started: bool = false
@@ -23,6 +25,8 @@ func _ready() -> void:
 	_setup_fade_overlay()
 	pnjfutur = $"pnj-futur"
 	pnjfuturPos = $"fondFutur/Markers2D/pnjfuturPos".position
+	pnjcheffe = $"pnj-cheffe"
+	pnjcheffePos = $"fondFutur/Markers2D/pnjcheffePos".position
 	_connect_escalier_signals()
 
 
@@ -59,7 +63,8 @@ func _go_to_basement() -> void:
 	$fondFutur.hide()
 	_set_upper_collisions(false)
 	$"pnj-futur".hide()
-
+	$"pnj-cheffe".hide()
+	
 	$SousSol.show()
 	_set_basement_collisions(true)
 	$"SousSol/pnj-futur".apparition($"SousSol/fondSousSol/Markers2D/pnjPos".position)
@@ -86,7 +91,7 @@ func _return_from_basement() -> void:
 	$fondFutur.show()
 	_set_upper_collisions(true)
 	$"pnj-futur".show()
-
+	$"pnj-cheffe".show()
 	time_aunote.global_position = $"fondFutur/Markers2D/entreeEscalier".global_position
 
 	tween_fade = create_tween()
@@ -172,9 +177,11 @@ func _handle_movement(delta: float) -> void:
 
 func start() -> void:
 	show()
+	$ObjectiveHUD.show()
 	$fondFutur.show()
 	$TimeAunote.show()
 	$"pnj-futur".show()
+	$"pnj-cheffe".show()
 	$SousSol.hide()
 	_set_upper_collisions(true)
 	_set_basement_collisions(false)
@@ -182,6 +189,8 @@ func start() -> void:
 	time_aunote.collision_mask = 16
 	pnjfutur = $"pnj-futur"
 	pnjfutur.apparition(pnjfuturPos)
+	pnjcheffe = $"pnj-cheffe"
+	pnjcheffe.apparition(pnjcheffePos)
 	time_aunote.position = position_entree_principale
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0
@@ -219,8 +228,10 @@ func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale)
 func start_from_escalier() -> void:
 	$SousSol.hide()
 	$fondFutur.show()
+	$ObjectiveHUD.show()
 	$TimeAunote.show()
 	$"pnj-futur".show()
+	$"pnj-cheffe".show()
 	_set_upper_collisions(true)
 	_set_basement_collisions(false)
 	time_aunote = $TimeAunote
@@ -235,6 +246,7 @@ func start_from_escalier() -> void:
 
 func stop() -> void:
 	hide()
+	$ObjectiveHUD.hide()
 	can_move = false
 	started = false
 	stopped = true

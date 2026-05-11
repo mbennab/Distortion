@@ -106,6 +106,7 @@ func _handle_movement(delta: float) -> void:
 
 func start() -> void:
 	show()
+	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://MoyenAge/dimension_moyenage.json")
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 4
@@ -150,6 +151,7 @@ func _play_spawn_animation() -> void:
 
 func stop() -> void:
 	hide()
+	$ObjectiveHUD.hide()
 	DialogueUI.close_dialogue()
 	can_move = false
 	started = false
