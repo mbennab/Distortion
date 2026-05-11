@@ -504,18 +504,73 @@ async def export_npc(dim_id: str, npc_id: str):
 
 # ─── AI Prompts ─────────────────────────────────────────────────────
 
-SYSTEM_CREATE = """Assistant concis de creation de dimension JSON pour jeu video.
-Pose 1 question a la fois. Sois bref (2-3 phrases max par message).
+SYSTEM_CREATE = """Tu es un architecte de jeu video. Tu transformes les idees du createur en JSON structure.
 
-Étapes rapides :
-1. Dimension : ID, nom, epoque, 1 phrase de description
-2. PNJ un par un (dire "fini" pour arreter) : nom, temperament, backstory, etat emotionnel, speech (vouvoiement/vocatif/phrases), 2-3 connaissances, 1-2 objectifs
-3. Intentions (1 par 1) : declencheur + exemple + action optionnelle (trigger/id)
-4. Quetes (optionnel) : id, titre, etapes
-5. "fini" → done:true
+## TON COMPORTEMENT
+- Proactif : tu proposes des suggestions pertinentes. Le createur valide ou ajuste.
+- Concis : 2-4 phrases par message. Va droit au but.
+- Intelligent : tu comprends les descriptions libres et en extrais la structure.
+- Tu geres les IDs en snake_case automatiquement.
+- Si le createur dit "oui", "ok", "parfait" → tu passes a l'etape suivante.
 
-FORMAT JSON STRICT : {"text":"...","data":{...},"done":false}
-data = JSON complet en cours. done:true quand fini."""
+## FLUX DE TRAVAIL (4 phases)
+
+### Phase 1 — PITCH INITIAL
+Le createur decrit son jeu. Tu extrais et structures IMMEDIATEMENT :
+- Dimension : ID snake_case, nom, epoque, description
+- PNJs identifies : pour chacun → nom, ID snake_case, role bref
+- Quetes identifiees : titre, etapes pressenties
+
+Tu presentes le tout en 1 message. Puis tu confirmes :
+"Je passe au detail des PNJ ?"
+
+### Phase 2 — DETAIL DES PNJ (un par un)
+Pour chaque PNJ, tu proposes une fiche complete et demandes confirmation :
+- Temperament (tone)
+- Backstory (1 phrase)
+- Etat emotionnel
+- Speech : vouvoiement, vocatif, style de phrases, 2-3 expressions, 1-2 interdits
+- 3-5 connaissances (faits concrets)
+- 2-3 objectifs de conversation
+- 3-5 intentions (pour chaque : trigger joueur + exemple reponse + action optionnelle)
+- Proposer un arc de conversation (phases de focus)
+
+Tu proposes des valeurs par defaut pertinentes. Le createur dit "ok" ou ajuste.
+
+### Phase 3 — DETAIL DES QUETES
+Pour chaque quete :
+- Titre, ID, etapes (avec description)
+- PNJs impliques
+- Conditions (requires_quests si dependances)
+- Intentions de PNJ liees (conditions de quete)
+
+### Phase 4 — FINALISATION
+- Recapitulatif complet
+- Proposer d'ajouter des mini-jeux ou items si pertinent
+- Proposer d'ajuster les global_fallbacks
+- done:true quand le createur est satisfait
+
+## FORMAT JSON STRICT
+{"text": "ton message", "data": {..."meta":...,"npcs":[...],"quests":[...]...}, "done": false}
+
+Le champ "data" contient le JSON complet a jour.
+Tu commences avec un squelette vide : {"meta":{},"npcs":[],"quests":[],"mini_games":[],"items":[],"global_fallbacks":{}}.
+Tu le remplis progressivement.
+
+## EXEMPLE
+Createur: "Jeu medieval, un roi se fait assassiner. Le joueur doit s'echapper de la prison."
+Toi: "Compris. Voici ce que je propose :
+→ Dimension : moyen_age / Moyen Age / Medievale
+→ 1 PNJ : Le Roi du Chateau [npc_roi], mourant, accuse le joueur
+→ 1 quete : echapper de la prison [quete_prison]
+Je detaille le roi ?"
+
+## REGLES
+- Ne reutilise JAMAIS les IDs d'un PNJ a l'autre
+- Les IDs sont en snake_case (minuscules, underscores)
+- default_template doit contenir {name}
+- Les actions sont {"type":"trigger","id":"...","description":"..."}
+- Si le createur est vague, demande des precisions. Si precis, traite tout."""
 
 SYSTEM_MODIFY = """Assistant concis de modification de dimension JSON existante.
 Tu recois le JSON actuel. Pose 1 question a la fois. Sois bref.
@@ -531,20 +586,35 @@ Si le contexte correspond a une action, inclus : {"text":"...","action":{"type":
 def _build_dimension_prompt(dim: dict) -> str:
     if not dim: return ""
     parts = ["## DIMENSION ACTUELLE"]
-    parts.append(f"ID: {dim.get('meta',{}).get('id','?')} | {dim.get('meta',{}).get('name','?')} ({dim.get('meta',{}).get('era','?')})")
+    m = dim.get("meta", {})
+    parts.append(f"ID: {m.get('id','?')} | {m.get('name','?')} | {m.get('era','?')}")
+    parts.append(f"Description: {m.get('description','')}")
     for npc in dim.get("npcs", []):
         p = npc.get("personality", {})
-        parts.append(f"\n### PNJ: {npc.get('name','?')} [{npc.get('id','?')}]")
-        parts.append(f"Tone: {p.get('tone','')} | {p.get('emotional_state','')}")
         sp = p.get("speech", {})
+        parts.append(f"\n### PNJ: {npc.get('name','?')} [{npc.get('id','?')}]")
+        parts.append(f"Tone: {p.get('tone','')}")
+        parts.append(f"Etat: {p.get('emotional_state','')}")
+        parts.append(f"Backstory: {p.get('backstory','')}")
         parts.append(f"Speech: v={sp.get('vouvoiement',True)}, voc={sp.get('vocatif','')}, {sp.get('phrases','')}")
+        if sp.get('expressions'): parts.append(f"Expressions: {sp['expressions']}")
+        if sp.get('interdits'): parts.append(f"Interdits: {sp['interdits']}")
+        if p.get('knowledge'): parts.append(f"Connaissances: {p['knowledge']}")
+        if p.get('goals'): parts.append(f"Objectifs: {p['goals']}")
+        arc = p.get('conversation_arc', [])
+        if arc: parts.append(f"Arc: {' → '.join(a.get('focus','') for a in arc)}")
         for i in npc.get("intentions", []):
             a = i.get("action")
             act = f" ⚡{a['type']}/{a['id']}" if a else ""
-            parts.append(f"  [{i.get('id','?')}] {i.get('trigger','')}{act}")
+            cond = i.get("condition", {})
+            c = f" [{cond.get('quest_status','')}/{cond.get('quest_step','')}]" if cond and cond.get('quest_id') else ""
+            parts.append(f"  [{i.get('id','?')}{c}] {i.get('trigger','')} → \"{i.get('example','')[:60]}\"{act}")
     for q in dim.get("quests", []):
         steps = [s["id"] for s in q.get("steps", [])]
-        parts.append(f"\n### Quete: {q.get('id','?')} [{q.get('status','?')}] {steps}")
+        deps = q.get("requires_quests", [])
+        parts.append(f"\n### Quete: {q.get('id','?')} [{q.get('status','?')}] {q.get('title','')}")
+        if deps: parts.append(f"  Depends on: {deps}")
+        parts.append(f"  Steps: {' → '.join(steps)}")
     return "\n".join(parts)
 
 

@@ -70,7 +70,7 @@ header h1{font-size:15px;font-weight:700;color:var(--accent)}
 <div class="main">
   <div class="chat">
     <div class="chat-msgs" id="msgs">
-      <div class="empty"><div class="empty-inner"><div class="empty-icon">🤖</div><div>Assistant de creation JSON.<br>L'IA vous guide pas a pas.</div></div></div>
+      <div class="empty"><div class="empty-inner"><div class="empty-icon">🧠</div><div><b>Brainstorm mode</b></div><div style="font-size:12px">Decris ton jeu librement. L'IA structure tout automatiquement :<br>setting → PNJ → quetes → relations.<br><br>Ex: "Jeu medieval, un roi se fait assassiner..."</div></div></div>
     </div>
     <div class="chat-input">
       <select id="npcSelect" style="display:none"></select>
@@ -114,7 +114,11 @@ function switchTab(m) {
   if (m === 'create') {
     setPreviewTitle('Apercu JSON');
     updatePreview(null);
-    addMsg('ai', 'Pret a creer. Dis-moi le nom de ta dimension pour commencer.', false);
+    addMsg('ai', "Decris ton jeu librement (setting, persos, quetes, ambiance...). Je structure tout.", false);
+    inp.disabled = false;
+    btn.disabled = false;
+    inp.placeholder = 'Decris ton jeu ici...';
+    inp.focus();
   } else if (m === 'modify') {
     setPreviewTitle('Apercu JSON');
     if (currentDim) { loadModifyMode(); }
