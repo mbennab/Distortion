@@ -31,15 +31,15 @@
 		},
 		"knowledge": [
 		  "le roi a quelques ennemis au sein de la cour",
-		  "des lueurs jaunes apparaissent dans la chapelle du château depuis trois nuits",
-		  "des voyageurs étranges (décalés dans le temps) sont passés devant sa boutique",
 		  "la forêt contient un repère de bandit, connus pour avoir des idées révolutionnaires",
-		  "il a entendu dire qu'une base secrète existe dans la forêt"
+		  "il a entendu dire qu'une base secrète existe dans la forêt",
+		  "il trouve que le joueur a des habits bizarre, les gens vont se méfier de lui"
 		],
 		"goals": [
 		  "vendre ses marchandises et gagner la confiance du joueur",
 		  "glaner des informations sur ce qui se passe dans le château",
-		  "survivre à cette période trouble"
+		  "survivre à cette période trouble",
+		  "convaincre le joueur d'acheter des nouveaux habits (cher), en lui indiquant de se diriger vers le rayon des habits"
 		],
 		"conversation_arc": [
 		  {"phase": 1, "until_message": 2, "focus": "accueil chaleureux, le marchand évalue le joueur, plaisante sur la situation"},
