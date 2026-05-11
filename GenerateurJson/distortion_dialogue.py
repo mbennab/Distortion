@@ -24,6 +24,25 @@ from pathlib import Path
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 
+# Essayer de lire depuis le .env du projet (racine du repo)
+if not OPENROUTER_API_KEY:
+    env_paths = [
+        Path(__file__).parent.parent / ".env",         # ../../.env (racine projet)
+        Path(__file__).parent / ".env",                 # ./.env (dossier GenerateurJson)
+    ]
+    for env_p in env_paths:
+        if env_p.exists():
+            with open(env_p, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("OPENROUTER_API_KEY="):
+                        val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                        if val:
+                            OPENROUTER_API_KEY = val
+                            break
+            if OPENROUTER_API_KEY:
+                break
+
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = os.environ.get("MODEL", "mistralai/ministral-3b-2512")
 REQUEST_TIMEOUT = 15
