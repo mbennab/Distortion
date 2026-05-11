@@ -179,6 +179,10 @@ func _on_action_triggered(action: Dictionary) -> void:
 func _trigger_roi_adieu_sequence() -> void:
 	_roi_adieu_triggered = true
 
+	# Désactiver la zone de dialogue du roi pour éviter le popup
+	if pnj_roi:
+		pnj_roi.get_node("ZoneDialogue").monitoring = false
+
 	await get_tree().create_timer(5.0).timeout
 	if not is_inside_tree():
 		return
