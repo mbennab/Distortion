@@ -26,6 +26,9 @@ func _ready() -> void:
 	_setup_spawn_particles()
 	DialogueSystem.reply_resolved.connect(_on_reply_resolved)
 	prison = $prison_moyen_age
+	var limites_prison = prison.get_node_or_null("limiteDeplacement")
+	if limites_prison:
+		limites_prison.collision_layer = 0
 	_setup_fade_overlay()
 
 func _setup_spawn_particles() -> void:
@@ -110,6 +113,10 @@ func start() -> void:
 	pnj_roi = $"pnj-roi"
 	pnj_roi.apparition(roi_pos)
 	pnj_roi.get_node("ZoneDialogue").monitoring = true
+	if prison:
+		var limites_prison = prison.get_node_or_null("limiteDeplacement")
+		if limites_prison:
+			limites_prison.collision_layer = 0
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0
 	time_aunote.scale = Vector2.ZERO
