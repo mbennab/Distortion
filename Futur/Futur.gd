@@ -63,8 +63,12 @@ func _go_to_basement() -> void:
 	$fondFutur.hide()
 	_set_upper_collisions(false)
 	$"pnj-futur".hide()
+	if pnjfutur:
+		pnjfutur.get_node("ZoneDialogue").monitoring = false
 	$"pnj-cheffe".hide()
-	
+	if pnjcheffe:
+		pnjcheffe.get_node("ZoneDialogue").monitoring = false
+
 	$SousSol.show()
 	_set_basement_collisions(true)
 	$"SousSol/pnj-futur".apparition($"SousSol/fondSousSol/Markers2D/pnjPos".position)
@@ -91,7 +95,11 @@ func _return_from_basement() -> void:
 	$fondFutur.show()
 	_set_upper_collisions(true)
 	$"pnj-futur".show()
+	if pnjfutur:
+		pnjfutur.get_node("ZoneDialogue").monitoring = true
 	$"pnj-cheffe".show()
+	if pnjcheffe:
+		pnjcheffe.get_node("ZoneDialogue").monitoring = true
 	time_aunote.global_position = $"fondFutur/Markers2D/entreeEscalier".global_position
 
 	tween_fade = create_tween()
@@ -178,6 +186,7 @@ func _handle_movement(delta: float) -> void:
 func start(spawn_id: String = "entree") -> void:
 	show()
 	$ObjectiveHUD.show()
+	DialogueSystem.load_dimension("res://Futur/dimension_futur.json")
 	$fondFutur.show()
 	$"pnj-futur".show()
 	$"pnj-cheffe".show()
@@ -188,8 +197,10 @@ func start(spawn_id: String = "entree") -> void:
 	time_aunote.collision_mask = 16
 	pnjfutur = $"pnj-futur"
 	pnjfutur.apparition(pnjfuturPos)
+	pnjfutur.get_node("ZoneDialogue").monitoring = true
 	pnjcheffe = $"pnj-cheffe"
 	pnjcheffe.apparition(pnjcheffePos)
+	pnjcheffe.get_node("ZoneDialogue").monitoring = true
 
 	if spawn_id == "soussol":
 		$fondFutur.hide()
@@ -256,6 +267,12 @@ func start_from_escalier() -> void:
 	_set_basement_collisions(false)
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 16
+	pnjfutur = $"pnj-futur"
+	pnjfutur.apparition(pnjfuturPos)
+	pnjfutur.get_node("ZoneDialogue").monitoring = true
+	pnjcheffe = $"pnj-cheffe"
+	pnjcheffe.apparition(pnjcheffePos)
+	pnjcheffe.get_node("ZoneDialogue").monitoring = true
 	time_aunote.position = position_entree_escalier
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0
@@ -273,3 +290,11 @@ func stop() -> void:
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
+	if pnjfutur:
+		var zone = pnjfutur.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+	if pnjcheffe:
+		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
