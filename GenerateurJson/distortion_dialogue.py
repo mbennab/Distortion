@@ -649,9 +649,140 @@ def interactive_loop(dim: dict):
         api_info = c('green','live') if api_resp else c('yellow','simulé')
         print(f"  {c('dim',f'[msg #{msg_count} | {len(intentions)} int | {api_info}]')}")
 
+# ─── AI Wizard ────────────────────────────────────────────────────────
+
+AI_WIZARD_PROMPT = """Tu es un assistant de création de jeu vidéo. Ton rôle : interviewer le créateur
+pour construire un fichier JSON de dimension (PNJ, quêtes, dialogues) étape par étape.
+
+Tu poses DES QUESTIONS UNE PAR UNE. Chaque réponse te sert à remplir le JSON.
+
+Étapes à suivre dans l'ordre :
+1. Demander le nom de la dimension, l'époque, une courte description
+2. Pour chaque PNJ (un par un, jusqu'à ce que le créateur dise "fini") :
+   a. Nom, tempérament, backstory (1 phrase)
+   b. État émotionnel
+   c. Comment il parle (vouvoiement ? vocatif ? style ?)
+   d. Ce qu'il sait (2-3 faits)
+   e. Ses objectifs dans la conversation
+   f. Les intentions (déclencheur + exemple de réponse, une par une)
+   g. Y a-t-il une action spéciale ? (trigger)
+3. Demander s'il y a des quêtes (étapes)
+4. Proposer de sauvegarder
+
+FORMAT DE RÉPONSE STRICT — tu réponds TOUJOURS en JSON :
+{"text": "ta question ou commentaire", "data": { ... le JSON complet en cours ... }, "done": false}
+
+Le champ "data" contient le JSON complet tel qu'il est pour l'instant.
+Quand tout est fini, mets "done": true et le JSON complet dans "data".
+
+Sois naturel, amical, enthousiaste. Pose des questions claires, une à la fois.
+Suggère des valeurs par défaut quand c'est pertinent.
+Si le créateur donne une réponse vague, demande des précisions.
+Adapte-toi : si le créateur te donne beaucoup d'infos d'un coup, traite-les toutes."""
+
+def wizard_ai():
+    """Wizard conversationnel — l'IA pose les questions et construit le JSON."""
+    if not OPENROUTER_API_KEY:
+        print(f"\n  {c('red','❌ Clé API requise pour le wizard IA.')}")
+        print(f"  {c('dim','Ajoute OPENROUTER_API_KEY=sk-... dans le .env')}")
+        sys.exit(1)
+
+    import requests
+    print(f"\n  {c('bold',c('cyan','🤖 Wizard IA — Assistant de création de dimension'))}")
+    print(f"  {c('dim','L IA va vous interviewer pour construire le JSON.')}")
+    print(f"  {c('dim','Repondez naturellement. /quit pour arreter, /skip pour passer.')}\n")
+
+    messages = [{"role": "system", "content": AI_WIZARD_PROMPT}]
+    data = None
+
+    while True:
+        # Construire le user prompt
+        parts = [{"role": "system", "content": AI_WIZARD_PROMPT}]
+        parts.extend(messages[1:])  # skip system, keep history
+        if not messages[1:]:
+            parts.append({"role": "user", "content": "Bonjour ! Commençons la création d'une dimension. Quelle est la première question ?"})
+            messages.append({"role": "user", "content": "Bonjour ! Commençons la création d'une dimension."})
+
+        hdrs = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": SITE_URL, "X-OpenRouter-Title": SITE_NAME,
+        }
+        payload = {
+            "model": MODEL, "temperature": 0.8, "max_tokens": 1024,
+            "messages": parts,
+            "response_format": {"type": "json_object"},
+        }
+
+        try:
+            r = requests.post(OPENROUTER_URL, headers=hdrs, json=payload, timeout=30)
+            if not r.ok:
+                print(f"\n  {c('red',f'❌ API error {r.status_code}')}")
+                break
+            resp = r.json()
+            content = resp["choices"][0]["message"]["content"].strip()
+            ai_msg = json.loads(content)
+        except Exception as e:
+            print(f"\n  {c('red',f'❌ Erreur: {e}')}")
+            break
+
+        text = ai_msg.get("text", "")
+        data = ai_msg.get("data", {})
+        done = ai_msg.get("done", False)
+
+        print(f"\n  {c('cyan',c('bold','Assistant'))} : {text}")
+
+        if done and data:
+            # Sauvegarder
+            meta = data.get("meta", {})
+            did = meta.get("id", "nouvelle_dimension")
+            out = DIM_DIR / f"dimension_{did}.json"
+            DIM_DIR.mkdir(parents=True, exist_ok=True)
+            with open(out, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"\n  {c('green',c('bold',f'✅ Dimension sauvegardée : {out}'))}")
+            npc_count = len(data.get("npcs", []))
+            quest_count = len(data.get("quests", []))
+            print(f"  {c('dim',f'{npc_count} PNJ(s), {quest_count} quête(s)')}")
+            print(f"  {c('dim',f'Lancer : python distortion_dialogue.py {out}')}")
+            return str(out)
+
+        try:
+            user_input = input(f"\n  {c('yellow','Vous')} > ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print(f"\n  {c('dim','Interrompu.')}")
+            break
+
+        if user_input.lower() in ("/quit", "/q"):
+            # Sauvegarder même si pas fini
+            if data:
+                meta = data.get("meta", {})
+                did = meta.get("id", "nouvelle_dimension")
+                out = DIM_DIR / f"dimension_{did}.json"
+                DIM_DIR.mkdir(parents=True, exist_ok=True)
+                with open(out, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                print(f"\n  {c('yellow',f'💾 Sauvegarde partielle : {out}')}")
+            break
+
+        if user_input.lower() in ("/skip", "/s"):
+            user_input = "(passe)"
+
+        messages.append({"role": "assistant", "content": content})
+        messages.append({"role": "user", "content": user_input})
+
+        # Limiter l'historique
+        if len(messages) > 20:
+            messages = [messages[0]] + messages[-19:]
+
+
 # ─── Main ───────────────────────────────────────────────────────────────
 
 def main():
+    if len(sys.argv) >= 2 and sys.argv[1] == "--ai":
+        wizard_ai()
+        return
+
     if len(sys.argv) >= 2 and sys.argv[1] == "--new":
         name = sys.argv[2] if len(sys.argv) > 2 else "ma_dimension"
         path = wizard_create_dimension()
@@ -674,10 +805,14 @@ def main():
             print(f"\n  {c('bold','Dimensions disponibles')} :")
             for i, d in enumerate(dims, 1):
                 print(f"    {c('cyan',str(i))}. {d.stem}")
-            print(f"    {c('cyan','n')}. Nouvelle dimension (wizard)")
+            print(f"    {c('cyan','n')}. Nouvelle dimension (wizard manuel)")
+            print(f"    {c('cyan','ai')}. Wizard IA (l'IA vous interviewe)")
             choice = input(f"\n  {c('dim','Choix >')} ").strip()
             if choice.lower() == 'n':
                 path = wizard_create_dimension()
+            elif choice.lower() == 'ai':
+                path = wizard_ai()
+                if not path: sys.exit(0)
             elif choice.isdigit():
                 idx = int(choice) - 1
                 if 0 <= idx < len(dims): path = str(dims[idx])
