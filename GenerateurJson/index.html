@@ -214,6 +214,15 @@ tr:hover td{background:rgba(255,255,255,.03)}
 .loading-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(9,12,16,.7);z-index:100;backdrop-filter:blur(2px)}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.collapse-header{cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 0;user-select:none;color:var(--accent);font-weight:600;font-size:13px}
+.collapse-header:hover{color:var(--accent-hover)}
+.collapse-header .arrow{transition:transform .2s;display:inline-block;font-size:10px}
+.collapse-header.open .arrow{transform:rotate(90deg)}
+.collapse-body{overflow:hidden;transition:max-height .3s ease}
+.collapse-body.closed{max-height:0 !important}
+.quick-add-bar{display:flex;gap:8px;margin:8px 0}
+.quick-add-bar input{flex:1;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:12px}
+.quick-add-bar input:focus{outline:none;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -635,6 +644,10 @@ function renderNpcForm(id){
           </tr>`).join('')}
         </tbody>
       </table>
+      <div class="quick-add-bar">
+        <input type="text" id="quickIntentionInput" placeholder="Ajout rapide: déclencheur | exemple | trigger/action_id" onkeydown="if(event.key==='Enter')quickAddIntention('${escHtml(npc.id)}')">
+        <button class="btn btn-primary btn-sm" onclick="quickAddIntention('${escHtml(npc.id)}')">+</button>
+      </div>
     </div>
     <div style="margin-top:12px">
       <button class="btn btn-danger" onclick="deleteNpc('${escHtml(npc.id)}')">Supprimer ce PNJ</button>
@@ -1736,6 +1749,42 @@ document.querySelectorAll('.tab').forEach(t=>{
     tip.classList.remove('visible');
   });
 })();
+
+// Collapsible sections
+function toggleCollapse(header){
+  header.classList.toggle('open');
+  const body=header.nextElementSibling;
+  if(body.classList.contains('closed')){
+    body.classList.remove('closed');
+    body.style.maxHeight=body.scrollHeight+'px';
+  }else{
+    body.classList.add('closed');
+    body.style.maxHeight='0px';
+  }
+}
+
+// Quick-add intention from one-line description
+function quickAddIntention(npcId){
+  const input=document.getElementById('quickIntentionInput');
+  if(!input||!input.value.trim()) return;
+  const parts=input.value.trim().split('|');
+  const trigger=parts[0].trim();
+  const example=parts.length>1?parts[1].trim():trigger;
+  const actionPart=parts.length>2?parts[2].trim():'';
+  let action=null;
+  if(actionPart&&actionPart.includes('/')){
+    const [at,aid]=actionPart.split('/');
+    action={type:at.trim(),id:aid.trim(),description:''};
+  }
+  const npc=getNpc(npcId);
+  if(!npc){if(!npc.intentions)npc.intentions=[];}
+  const id=npcId+'_'+trigger.toLowerCase().replace(/[^a-z0-9]+/g,'_').substring(0,30);
+  npc.intentions.push({id,condition:null,trigger,example,action});
+  input.value='';
+  renderNpcForm(npcId);
+  markDirty();
+  showToast('Intention ajoutée: '+id,'success');
+}
 
 loadDimensionList()
 </script>

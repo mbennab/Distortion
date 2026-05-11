@@ -446,6 +446,60 @@ async def delete_dimension(dim_id: str):
     return {"status": "deleted", "id": dim_id}
 
 
+@app.get("/api/template")
+async def get_template():
+    """Retourne un squelette de dimension prêt à remplir."""
+    return {
+        "meta": {"id": "nouvelle", "name": "Nouvelle dimension", "era": "???", "description": "", "completed": False},
+        "npcs": [],
+        "quests": [],
+        "mini_games": [],
+        "items": [],
+        "global_fallbacks": {
+            "off_topic": "...",
+            "insult": "...",
+            "timeout": "...",
+            "unknown": "...",
+            "default_template": "Le PNJ te regarde. {name}, que dis-tu ?"
+        }
+    }
+
+
+@app.get("/api/template/npc")
+async def get_npc_template():
+    """Retourne un squelette de PNJ."""
+    return {
+        "id": "npc_nouveau",
+        "name": "Nouveau PNJ",
+        "personality": {
+            "tone": "neutre",
+            "backstory": "",
+            "emotional_state": "neutre",
+            "speech": {"vouvoiement": True, "vocatif": "", "phrases": "2-3 phrases", "expressions": [], "interdits": []},
+            "knowledge": [],
+            "goals": [],
+            "conversation_arc": [
+                {"phase": 1, "until_message": 3, "focus": "accueillir et se présenter"},
+                {"phase": 2, "until_message": 99, "focus": "répondre aux questions"}
+            ]
+        },
+        "intentions": [],
+        "fallbacks": {"off_topic": "", "insult": "", "timeout": "", "unknown": "", "default_template": ""}
+    }
+
+
+@app.get("/api/dimensions/{dim_id}/npc/{npc_id}/export")
+async def export_npc(dim_id: str, npc_id: str):
+    """Exporte un PNJ seul (pour réutilisation entre dimensions)."""
+    dim = _load_dimension(dim_id)
+    if dim is None:
+        raise HTTPException(status_code=404, detail="Dimension not found")
+    for npc in dim.get("npcs", []):
+        if npc.get("id") == npc_id:
+            return npc
+    raise HTTPException(status_code=404, detail="NPC not found")
+
+
 @app.get("/")
 async def serve_index():
     index_path = BASE_DIR / "index.html"
