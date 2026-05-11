@@ -660,6 +660,9 @@ async def ai_test(req: dict):
         return {"text": ai.get("text", ""), "action": ai.get("action")}
     except json.JSONDecodeError:
         return {"text": content, "action": None}
+
+
+@app.get("/ai-builder")
 async def serve_ai_builder():
     p = BASE_DIR / "ai-builder.html"
     if not p.exists():
