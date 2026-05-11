@@ -115,8 +115,8 @@ def _validate_json(data: dict) -> list:
         all_ids.append(data["meta"]["id"])
     for npc in data.get("npcs", []):
         all_ids.append(npc.get("id", ""))
-        for reply in npc.get("dialogue_bank", []):
-            all_ids.append(reply.get("id", ""))
+        for intent in npc.get("intentions", []):
+            all_ids.append(intent.get("id", ""))
     for quest in data.get("quests", []):
         all_ids.append(quest.get("id", ""))
         for step in quest.get("steps", []):
@@ -149,53 +149,53 @@ def _validate_json(data: dict) -> list:
 
     for npc in data.get("npcs", []):
         npc_id = npc.get("id", "?")
-        replies = npc.get("dialogue_bank", [])
-        if not replies:
+        intentions = npc.get("intentions", [])
+        if not intentions:
             anomalies.append({
                 "type": "npc_no_dialogue",
                 "severity": "warning",
-                "message": f"PNJ '{npc_id}' has no dialogue_bank entries",
+                "message": f"PNJ '{npc_id}' has no intentions entries",
                 "path": f"npcs.{npc_id}"
             })
 
         involved_quests = set()
-        for reply in replies:
-            qid = reply.get("condition", {}).get("quest_id")
+        for intent in intentions:
+            qid = intent.get("condition", {}).get("quest_id")
             if qid:
                 involved_quests.add(qid)
 
-            cond = reply.get("condition", {})
+            cond = intent.get("condition", {})
             qs = cond.get("quest_status")
             if qs and qs not in VALID_QUEST_STATUSES:
                 anomalies.append({
                     "type": "invalid_quest_status",
                     "severity": "error",
-                    "message": f"Reply '{reply.get('id')}' has invalid quest_status '{qs}'",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.condition.quest_status"
+                    "message": f"Intent '{intent.get('id')}' has invalid quest_status '{qs}'",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.condition.quest_status"
                 })
 
-            if not reply.get("text", "").strip():
+            if not intent.get("example", "").strip():
                 anomalies.append({
                     "type": "empty_reply_text",
                     "severity": "error",
-                    "message": f"Reply '{reply.get('id')}' has no dialogue text",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.text"
+                    "message": f"Intent '{intent.get('id')}' has no example dialogue",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.example"
                 })
-            if not reply.get("intention", "").strip():
+            if not intent.get("trigger", "").strip():
                 anomalies.append({
                     "type": "empty_reply_intention",
                     "severity": "warning",
-                    "message": f"Reply '{reply.get('id')}' has no intention",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.intention"
+                    "message": f"Intent '{intent.get('id')}' has no trigger description",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.trigger"
                 })
 
-            r_id_val = reply.get("id", "")
+            r_id_val = intent.get("id", "")
             if r_id_val and not SNAKE_CASE_RE.match(r_id_val):
                 anomalies.append({
                     "type": "id_format",
                     "severity": "error",
-                    "message": f"Reply ID '{r_id_val}' is not valid snake_case",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{r_id_val}"
+                    "message": f"Intent ID '{r_id_val}' is not valid snake_case",
+                    "path": f"npcs.{npc_id}.intentions.{r_id_val}"
                 })
 
         for qid in involved_quests:
@@ -203,29 +203,48 @@ def _validate_json(data: dict) -> list:
                 anomalies.append({
                     "type": "missing_quest_ref",
                     "severity": "error",
-                    "message": f"PNJ '{npc_id}' references non-existent quest '{qid}' in dialogue condition",
-                    "path": f"npcs.{npc_id}.dialogue_bank"
+                    "message": f"PNJ '{npc_id}' references non-existent quest '{qid}' in intention condition",
+                    "path": f"npcs.{npc_id}.intentions"
                 })
                 continue
 
-        for reply in replies:
-            cond = reply.get("condition", {})
+        for intent in intentions:
+            cond = intent.get("condition", {})
             qid = cond.get("quest_id")
             cs = cond.get("quest_step")
             if qid and qid not in quest_ids:
                 anomalies.append({
                     "type": "missing_quest_ref",
                     "severity": "error",
-                    "message": f"Reply '{reply.get('id')}' references non-existent quest '{qid}'",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.condition.quest_id"
+                    "message": f"Intent '{intent.get('id')}' references non-existent quest '{qid}'",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.condition.quest_id"
                 })
             if cs and cs not in step_ids:
                 anomalies.append({
                     "type": "invalid_step",
                     "severity": "error",
-                    "message": f"Reply '{reply.get('id')}' references unknown step '{cs}'",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.condition.quest_step"
+                    "message": f"Intent '{intent.get('id')}' references unknown step '{cs}'",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.condition.quest_step"
                 })
+
+        # Validate action field structure
+        for intent in intentions:
+            action = intent.get("action")
+            if action is not None and isinstance(action, dict):
+                if not action.get("type"):
+                    anomalies.append({
+                        "type": "invalid_action",
+                        "severity": "error",
+                        "message": f"Intent '{intent.get('id')}' action has no type",
+                        "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.action"
+                    })
+                if not action.get("id"):
+                    anomalies.append({
+                        "type": "invalid_action",
+                        "severity": "error",
+                        "message": f"Intent '{intent.get('id')}' action has no id",
+                        "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.action"
+                    })
 
         for key in ("off_topic", "insult"):
             val = npc.get("fallbacks", {}).get(key, "")

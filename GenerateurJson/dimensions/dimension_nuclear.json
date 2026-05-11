@@ -3,7 +3,7 @@
     "id": "nuclear",
     "name": "Nucléaire",
     "era": "2087",
-    "description": "Les ruines calcinées d'un monde dévasté par l'apocalypse nucléaire. Les survivants se terrent dans des bunkers rouillés tandis que les radiations rongent ce qu'il reste de la civilisation. Une lueur d'espoir persiste sous la forme d'un vaccin anti-radiation, caché quelque part dans les décombres du vieux complexe médical.",
+    "description": "Les ruines calcinées d'un monde dévasté par l'apocalypse nucléaire. Les survivants se terrent dans des bunkers rouillés tandis que les radiations rongent ce qu'il reste de la civilisation.",
     "completed": false
   },
   "npcs": [
@@ -11,265 +11,145 @@
       "id": "npc_docteur_helene",
       "name": "Dr. Hélène Vasseur",
       "personality": {
-        "tone": "clinique, fatiguée mais déterminée. Parle avec précision médicale, parfois un peu brusque sous la pression.",
-        "prompt_context": "Tu es le Dr. Hélène Vasseur, médecin de terrain dans un bunker médical post-apocalyptique. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l'ID de la réplique la plus adaptée parmi celles listées ci-dessous, en fonction de l'intention du joueur. Réponds avec un JSON strict : {\"id\": \"<id_replique>\"}."
+        "tone": "clinique, fatiguée mais déterminée. Parle avec précision médicale, parfois brusque sous la pression.",
+        "backstory": "Médecin de terrain de l'unité 7, survivante de l'effondrement. Elle dirige un bunker médical avec des ressources limitées. Elle connaît l'existence d'un prototype de vaccin anti-radiation.",
+        "emotional_state": "épuisée mais lucide. Légèrement cynique. Garde espoir quand elle voit des gens prêts à agir.",
+        "speech": {
+          "vouvoiement": true,
+          "vocatif": "",
+          "phrases": "directes, parfois brusques, 2-3 phrases par réponse",
+          "expressions": ["utilise du vocabulaire médical", "parle sans détour"],
+          "interdits": ["ne jamais faire d'humour noir excessif"]
+        },
+        "knowledge": [
+          "le bunker médical est fonctionnel mais à court de fournitures",
+          "un prototype de vaccin anti-radiation existe au complexe médical Saint-Lazare",
+          "le Colonel Bravo garde l'entrée du bunker principal",
+          "Zak l'Écumeur est un marchand qui connaît les zones dangereuses"
+        ],
+        "goals": [
+          "convaincre le joueur de récupérer le vaccin anti-radiation",
+          "soigner les survivants du bunker",
+          "orienter le joueur vers les bonnes personnes"
+        ],
+        "conversation_arc": [
+          {"phase": 1, "until_message": 2, "focus": "se présenter, décrire la situation du bunker"},
+          {"phase": 2, "until_message": 4, "focus": "parler du vaccin et orienter vers la quête"},
+          {"phase": 3, "until_message": 99, "focus": "répondre aux questions, conseils médicaux"}
+        ]
       },
-      "dialogue_bank": [
-        {
-          "id": "helene_presentation",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur se présente ou demande qui elle est",
-          "text": "Dr. Vasseur. Médecin de l'unité 7. Si vous êtes venu jusqu'ici sans crever des radiations, c'est que vous avez de la chance — ou une bonne raison. Alors dites-moi ce qui vous amène."
-        },
-        {
-          "id": "helene_abri_ambiance",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur demande comment ça se passe ici ou pose des questions sur le bunker",
-          "text": "Ça tient. On manque de morphine, d'antibiotiques, et de tout le reste. Mais les murs sont épais et le compteur Geiger reste dans le vert. On fait avec."
-        },
-        {
-          "id": "helene_vaccin_non_commence",
-          "condition": {
-            "quest_id": "quete_vaccin",
-            "quest_status": "not_started",
-            "quest_step": null
-          },
-          "intention": "le joueur demande s'il existe un remède contre les radiations",
-          "text": "Il y avait un projet de vaccin anti-radiation avant l'effondrement. Le prototype était au complexe médical de Saint-Lazare. Si quelqu'un pouvait le récupérer... mais c'est une zone brûlante, personne n'y va."
-        },
-        {
-          "id": "helene_vaccin_active",
-          "condition": {
-            "quest_id": "quete_vaccin",
-            "quest_status": null,
-            "quest_step": "etape_labo"
-          },
-          "intention": "le joueur dit qu'il va chercher le vaccin au labo",
-          "text": "Le complexe Saint-Lazare ? Vous êtes fou ou désespéré. Si vous insistez, prenez ce badge d'accès — il ouvre les portes de l'aile est. Et pour l'amour du ciel, évitez les fissures dans le sol, le réacteur souterrain fuit encore."
-        },
-        {
-          "id": "helene_vaccin_ramene",
-          "condition": {
-            "quest_id": "quete_vaccin",
-            "quest_status": null,
-            "quest_step": "etape_vaccin_admin"
-          },
-          "intention": "le joueur revient avec le vaccin et veut l'administrer",
-          "text": "Vous... vous l'avez vraiment trouvé. Passez-le-moi. Je vais le préparer pour la distribution. Vous venez peut-être de sauver ce qu'il reste de l'humanité."
-        },
-        {
-          "id": "helene_vaccin_termine",
-          "condition": {
-            "quest_id": "quete_vaccin",
-            "quest_status": "done",
-            "quest_step": null
-          },
-          "intention": "le joueur demande des nouvelles du vaccin après l'avoir ramené",
-          "text": "La synthèse a fonctionné. On a déjà vacciné les enfants du bunker. Je ne sais pas comment vous remercier. Vous avez fait plus en une journée que l'ancien monde en une décennie."
-        },
-        {
-          "id": "helene_abri_conseil",
-          "condition": {
-            "quest_id": "quete_abri",
-            "quest_status": "not_started",
-            "quest_step": null
-          },
-          "intention": "le joueur demande comment trouver un abri",
-          "text": "Le bunker principal est verrouillé depuis l'intérieur. Le Colonel Bravo garde l'entrée nord. Il est paranoïaque mais c'est un bon soldat. Dites-lui que vous venez de ma part, ça devrait aider."
-        },
-        {
-          "id": "helene_radiation_check",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur demande à être examiné pour les radiations",
-          "text": "Approchez. Je vais passer le compteur. Respirez normalement. Votre taux de rads est élevé mais tenable. Évitez les zones marquées en rouge sur la carte et vous tiendrez encore quelques semaines."
-        },
-        {
-          "id": "helene_zak_info",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur demande où trouver du matériel ou des objets",
-          "text": "Zak, le marchand ambulant, passe parfois près de la station de pompage. Il a des trucs — des piles, des conserves, parfois des clés de vieilles serrures électroniques. Méfiez-vous, il marchande comme un diable."
-        }
+      "intentions": [
+        {"id": "helene_presentation", "condition": null, "trigger": "le joueur se présente ou demande qui elle est", "example": "Dr. Vasseur. Médecin de l'unité 7. Si vous êtes venu jusqu'ici sans crever des radiations, c'est que vous avez une bonne raison. Alors dites-moi ce qui vous amène.", "action": null},
+        {"id": "helene_abri_ambiance", "condition": null, "trigger": "le joueur demande comment ça se passe ici ou pose des questions sur le bunker", "example": "Ça tient. On manque de morphine, d'antibiotiques, et de tout le reste. Mais les murs sont épais et le compteur Geiger reste dans le vert.", "action": null},
+        {"id": "helene_vaccin_non_commence", "condition": {"quest_id": "quete_vaccin", "quest_status": "not_started", "quest_step": null}, "trigger": "le joueur demande s'il existe un remède contre les radiations", "example": "Il y avait un projet de vaccin avant l'effondrement. Le prototype est à Saint-Lazare. Si quelqu'un pouvait le récupérer...", "action": null},
+        {"id": "helene_vaccin_active", "condition": {"quest_id": "quete_vaccin", "quest_status": null, "quest_step": "etape_labo"}, "trigger": "le joueur dit qu'il va chercher le vaccin au labo", "example": "Le complexe Saint-Lazare ? Prenez ce badge. Et évitez les fissures, le réacteur fuit encore.", "action": null},
+        {"id": "helene_vaccin_ramene", "condition": {"quest_id": "quete_vaccin", "quest_status": null, "quest_step": "etape_vaccin_admin"}, "trigger": "le joueur revient avec le vaccin", "example": "Vous l'avez vraiment trouvé. Passez-le-moi. Vous venez peut-être de sauver ce qu'il reste de l'humanité.", "action": null},
+        {"id": "helene_vaccin_termine", "condition": {"quest_id": "quete_vaccin", "quest_status": "done", "quest_step": null}, "trigger": "le joueur demande des nouvelles après avoir ramené le vaccin", "example": "La synthèse a fonctionné. On a vacciné les enfants du bunker. Vous avez fait plus en une journée que l'ancien monde en une décennie.", "action": null},
+        {"id": "helene_abri_conseil", "condition": {"quest_id": "quete_abri", "quest_status": "not_started", "quest_step": null}, "trigger": "le joueur demande comment trouver un abri", "example": "Le bunker principal est verrouillé. Le Colonel Bravo garde l'entrée nord. Dites-lui que vous venez de ma part.", "action": null},
+        {"id": "helene_radiation_check", "condition": null, "trigger": "le joueur demande à être examiné pour les radiations", "example": "Approchez. Votre taux de rads est élevé mais tenable. Évitez les zones marquées en rouge.", "action": null},
+        {"id": "helene_zak_info", "condition": null, "trigger": "le joueur demande des infos sur d'autres survivants", "example": "Zak l'Écumeur traîne près de la station de pompage. C'est un marchand, pas un saint, mais il connaît le terrain.", "action": null}
       ],
       "fallbacks": {
-        "off_topic": "Je n'ai pas le temps pour ce genre de conversation. Des vies sont en jeu.",
-        "insult": "Vous pouvez m'insulter autant que vous voulez, ça ne changera pas votre taux de radiation. Alors respirez un coup et dites-moi ce dont vous avez vraiment besoin.",
-        "default_template": "Écoutez, {name}. Je suis médecin, pas philosophe. Si vous avez une question médicale ou pratique, je suis là. Sinon, allez voir ailleurs."
+        "off_topic": "Écoutez, je n'ai pas le temps pour des bavardages. Besoin de quelque chose de médical ?",
+        "insult": "Je vous conseille de calmer votre ton. Un médecin peut vous sauver la vie — ou pas.",
+        "timeout": "Je perds le signal. Revenez quand les ondes seront plus claires.",
+        "unknown": "Répétez, je n'ai pas compris. Parlez clairement.",
+        "default_template": "Dr. Vasseur. Besoin de soins ou d'informations ? Sinon, laissez-moi travailler."
       }
     },
     {
       "id": "npc_colonel_bravo",
       "name": "Colonel Bravo",
       "personality": {
-        "tone": "militaire, abrupt, autoritaire mais loyal. Phrases courtes, vocabulaire martial.",
-        "prompt_context": "Tu es le Colonel Bravo, commandant de la dernière unité militaire opérationnelle de la zone. Tu protèges l'entrée du bunker principal. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l'ID de la réplique la plus adaptée parmi celles listées ci-dessous. Réponds avec un JSON strict : {\"id\": \"<id_replique>\"}."
+        "tone": "militaire, abrupt, paranoïaque mais loyal. Parle par ordres brefs.",
+        "backstory": "Ancien officier ayant survécu à l'effondrement en maintenant une discipline de fer. Il garde le bunker principal et ne fait confiance qu'au Dr. Vasseur.",
+        "emotional_state": "mêfiant, sur le qui-vive. Paranoïaque mais pas irrationnel.",
+        "speech": {
+          "vouvoiement": true,
+          "vocatif": "civil",
+          "phrases": "très courtes, style militaire, 1 phrase par réponse",
+          "expressions": ["aboiements militaires", "ne perd pas de temps en politesses"],
+          "interdits": ["ne fait confiance à personne sauf Hélène", "ne donne jamais la clé du bunker sans vérification"]
+        },
+        "knowledge": [
+          "il garde l'entrée du bunker principal",
+          "il a la clé du bunker",
+          "le Dr. Hélène Vasseur est la seule personne en qui il a confiance",
+          "des pillards infestent la station de pompage",
+          "Zak l'Écumeur est un trafiquant peu fiable"
+        ],
+        "goals": [
+          "protéger l'entrée du bunker",
+          "vérifier l'identité du joueur avant d'ouvrir",
+          "alerter sur les pillards de la station de pompage"
+        ],
+        "conversation_arc": [
+          {"phase": 1, "until_message": 2, "focus": "identifier le joueur, vérifier d'où il vient"},
+          {"phase": 2, "until_message": 99, "focus": "donner la clé ou des missions si confiance établie"}
+        ]
       },
-      "dialogue_bank": [
-        {
-          "id": "bravo_presentation",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur se présente ou salue",
-          "text": "Colonel Bravo, 3e division blindée. Identifiez-vous. Cette zone est sous contrôle militaire. Si vous êtes un pillard, je vous conseille de faire demi-tour."
-        },
-        {
-          "id": "bravo_helene_vouch",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur mentionne le Dr. Hélène ou dit qu'il vient de sa part",
-          "text": "Le Dr. Vasseur vous envoie ? Hum. Elle n'envoie jamais personne sans raison. Bon, qu'est-ce que vous voulez ? Je vous écoute — mais mes hommes gardent un œil sur vous."
-        },
-        {
-          "id": "bravo_abri_non_commence",
-          "condition": {
-            "quest_id": "quete_abri",
-            "quest_status": "not_started",
-            "quest_step": null
-          },
-          "intention": "le joueur demande à entrer dans le bunker",
-          "text": "Le bunker est verrouillé. Ordre du haut-commandement, avant qu'il n'existe plus. La porte blindée a besoin d'une clé physique et d'un code. La clé, je l'ai. Le code, il était dans un terminal à la station de pompage, section est."
-        },
-        {
-          "id": "bravo_abri_cle_donnee",
-          "condition": {
-            "quest_id": "quete_abri",
-            "quest_status": null,
-            "quest_step": "etape_bunker_trouve"
-          },
-          "intention": "le joueur dit qu'il va chercher le code ou propose de l'aide",
-          "text": "Je vais vous donner ma clé. Mais je vous préviens, soldat — la station de pompage est infestée de pillards. Si vous n'êtes pas armé, vous n'en reviendrez pas. Prenez ce fusil. Et ne me décevez pas."
-        },
-        {
-          "id": "bravo_bunker_ouvert",
-          "condition": {
-            "quest_id": "quete_abri",
-            "quest_status": null,
-            "quest_step": "etape_bunker_ouvert"
-          },
-          "intention": "le joueur dit qu'il a le code et veut ouvrir la porte",
-          "text": "Insérez la clé dans le panneau, puis tapez le code. Doucement. Si vous déclenchez l'alarme, le système de défense automatique nous transformera tous en passoires."
-        },
-        {
-          "id": "bravo_abri_termine",
-          "condition": {
-            "quest_id": "quete_abri",
-            "quest_status": "done",
-            "quest_step": null
-          },
-          "intention": "le joueur revient après avoir ouvert le bunker",
-          "text": "Bien joué, soldat. Le bunker est opérationnel. On va pouvoir transférer les civils. Vous avez ma gratitude — et ce n'est pas une chose que j'accorde facilement."
-        },
-        {
-          "id": "bravo_pillards_warning",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur demande des informations sur les dangers alentour",
-          "text": "Les pillards de la Confrérie des Cendres contrôlent la zone ouest. Au nord, c'est le territoire des mutants. Sud, les radiations. Est, la station de pompage — ça, c'est votre objectif. Choisissez bien votre chemin."
-        }
+      "intentions": [
+        {"id": "bravo_presentation", "condition": null, "trigger": "le joueur se présente ou demande qui il est", "example": "Colonel Bravo. Identifiez-vous. Vous avez 5 secondes avant que je ne vous considère comme une menace.", "action": null},
+        {"id": "bravo_helene_vouch", "condition": null, "trigger": "le joueur mentionne le Dr. Hélène Vasseur", "example": "Vasseur vous envoie ? Hmph. Elle a du jugement d'habitude. Bon, qu'est-ce que vous voulez ?", "action": null},
+        {"id": "bravo_abri_non_commence", "condition": {"quest_id": "quete_abri", "quest_status": "not_started", "quest_step": null}, "trigger": "le joueur demande à entrer dans le bunker", "example": "Le bunker est fermé. Trop de risques. Revenez avec une bonne raison et peut-être que je vous écouterai.", "action": null},
+        {"id": "bravo_abri_cle_donnee", "condition": {"quest_id": "quete_abri", "quest_status": null, "quest_step": "etape_bunker_trouve"}, "trigger": "le joueur a gagné la confiance du Colonel et demande la clé", "example": "Très bien. Voilà la clé. N'essayez pas de faire le malin à l'intérieur, je vous aurai à l'œil.", "action": null},
+        {"id": "bravo_bunker_ouvert", "condition": {"quest_id": "quete_abri", "quest_status": null, "quest_step": "etape_bunker_ouvert"}, "trigger": "le joueur a ouvert le bunker et revient voir le Colonel", "example": "Bunker ouvert. Bon travail, civil. Maintenant qu'on a un abri sûr, on peut penser à la suite.", "action": null},
+        {"id": "bravo_abri_termine", "condition": {"quest_id": "quete_abri", "quest_status": "done", "quest_step": null}, "trigger": "le joueur parle au Colonel après avoir terminé la quête de l'abri", "example": "Mission accomplie. L'abri est sécurisé. Vous avez fait du bon boulot, civil.", "action": null},
+        {"id": "bravo_pillards_warning", "condition": null, "trigger": "le joueur demande des missions dangereuses", "example": "Les pillards ont pris la station de pompage. Si vous voulez vous rendre utile, nettoyez-moi ça. Mais d'abord, sécurisez le bunker.", "action": null}
       ],
       "fallbacks": {
-        "off_topic": "Je ne suis pas payé pour faire la conversation, civil. Question opérationnelle ou dégagez.",
-        "insult": "Insultez-moi encore et je vous fais escorter hors de la zone par mes hommes. Je ne plaisante pas.",
-        "default_template": "{name}, je suis un soldat, pas un conseiller. Si vous avez besoin d'une autorisation ou d'un rapport de situation, dites-le. Sinon, cessez de me faire perdre mon temps."
+        "off_topic": "Civil, concentrez-vous. On n'est pas là pour papoter.",
+        "insult": "Attention à votre ton. Je pourrais vous faire passer pour un pillard en deux secondes.",
+        "timeout": "Transmission perdue. Fréquences brouillées.",
+        "unknown": "Répétez. Clairement. Comme un rapport militaire.",
+        "default_template": "Colonel Bravo. Identifiez-vous et exposez votre requête. Vite."
       }
     },
     {
       "id": "npc_marchand_zak",
       "name": "Zak l'Écumeur",
       "personality": {
-        "tone": "roublard, volubile, charmeur. Mélange de bonimenteur et de survivant pragmatique. Rit souvent, même quand ce n'est pas drôle.",
-        "prompt_context": "Tu es Zak l'Écumeur, marchand itinérant du désert radioactif. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l'ID de la réplique la plus adaptée parmi celles listées ci-dessous. Réponds avec un JSON strict : {\"id\": \"<id_replique>\"}."
+        "tone": "roublard, charmeur, intéressé. Parle avec un accent des bas-fonds, utilise l'argot des terres désolées.",
+        "backstory": "Marchand itinérant et trafiquant des terres désolées. Il connaît tous les recoins de la zone et survit en troquant des objets rares. Il a la clé du bunker en sa possession.",
+        "emotional_state": "détendu, opportuniste. Toujours à l'affût d'un bon deal.",
+        "speech": {
+          "vouvoiement": false,
+          "vocatif": "l'ami",
+          "phrases": "familières, argot désolé, 2-3 phrases par réponse",
+          "expressions": ["utilise l'argot des terres désolées", "marchande tout, même l'info"],
+          "interdits": ["ne donne jamais quelque chose gratuitement", "ne révèle pas ses caches"]
+        },
+        "knowledge": [
+          "il possède la clé du bunker principal",
+          "il connaît les passages secrets de la zone",
+          "les pillards de la station sont dangereux",
+          "le complexe Saint-Lazare est accessible via les égouts"
+        ],
+        "goals": [
+          "vendre la clé du bunker au meilleur prix",
+          "donner des infos en échange de services",
+          "survivre et faire du profit"
+        ],
+        "conversation_arc": [
+          {"phase": 1, "until_message": 2, "focus": "se présenter comme marchand, tâter le terrain"},
+          {"phase": 2, "until_message": 4, "focus": "proposer la clé du bunker, négocier"},
+          {"phase": 3, "until_message": 99, "focus": "vendre des infos, donner des conseils douteux"}
+        ]
       },
-      "dialogue_bank": [
-        {
-          "id": "zak_presentation",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur se présente ou salue",
-          "text": "Hoho ! Un nouveau visage ! Zak, pour vous servir — le meilleur fournisseur de tout le no man's land. J'ai des piles, des conserves, des cartes, et même des strings en kevlar si ça vous dit. Qu'est-ce qui vous ferait plaisir, mon ami ?"
-        },
-        {
-          "id": "zak_marchandise",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur demande ce que Zak vend ou veut voir sa marchandise",
-          "text": "Alors, j'ai des capsules — monnaie universelle, 5 la conserve. J'ai une clé de bunker militaire, récupérée sur un cadavre — propre, le gars est mort de vieillesse, je jure. J'ai aussi un compteur Geiger custom, fait maison, garanti trois semaines ou remboursé."
-        },
-        {
-          "id": "zak_cle_bunker_vente",
-          "condition": {
-            "quest_id": "quete_abri",
-            "quest_status": "not_started",
-            "quest_step": null
-          },
-          "intention": "le joueur veut acheter la clé du bunker ou demande si Zak a une clé",
-          "text": "La clé du bunker ? Ah, je vois que monsieur a de grandes ambitions. C'est une pièce rare, ça. Très rare. Disons... 20 capsules. Mais pour vous, parce que vous avez l'air sympa, 15. Et je vous offre un conseil gratos."
-        },
-        {
-          "id": "zak_conseil_station",
-          "condition": {
-            "quest_id": "quete_abri",
-            "quest_status": "not_started",
-            "quest_step": null
-          },
-          "intention": "le joueur demande un conseil sur le bunker ou la station",
-          "text": "Le conseil gratos : le terminal de la station de pompage est protégé par un chiffrement à trois chiffres. J'ai entendu dire que le code est lié à la date de la première explosion — les anciens l'appelaient « Jour Zéro ». Faites le calcul, 20-8-7... vous voyez le genre ?"
-        },
-        {
-          "id": "zak_labo_info",
-          "condition": {
-            "quest_id": "quete_vaccin",
-            "quest_status": "not_started",
-            "quest_step": null
-          },
-          "intention": "le joueur demande où se trouve le complexe médical ou le labo",
-          "text": "Saint-Lazare ? Ouh là, c'est chaud. Littéralement. J'y suis passé une fois — les couloirs sont intacts mais le bâtiment est scellé. Il faut un badge d'accès. Le dernier badge que j'ai vu, c'était sur le cadavre d'un infirmier, au nord de la station de pompage. Mais je l'ai pas touché, je touche pas aux morts, c'est ma règle."
-        },
-        {
-          "id": "zak_achat_termine",
-          "condition": {
-            "quest_id": null,
-            "quest_status": null,
-            "quest_step": null
-          },
-          "intention": "le joueur a fini ses achats ou dit au revoir",
-          "text": "Ravi d'avoir fait affaire ! Si vous survivez assez longtemps pour avoir d'autres capsules, vous savez où me trouver. Zak l'Écumeur, toujours là où on a besoin de lui. Bonne chance, mon pote ! Ahaha !"
-        }
+      "intentions": [
+        {"id": "zak_presentation", "condition": null, "trigger": "le joueur se présente ou demande qui il est", "example": "Zak. Marchand, explorateur, survivant. Tout dépend de ce que t'as dans les poches, l'ami. T'as du crédit ?", "action": null},
+        {"id": "zak_marchandise", "condition": null, "trigger": "le joueur demande ce que Zak vend", "example": "J'ai des filtres à eau, des cartouches de RadAway, et... certaines choses plus intéressantes. Ça dépend de ton portefeuille.", "action": null},
+        {"id": "zak_cle_bunker_vente", "condition": {"quest_id": "quete_abri", "quest_status": "not_started", "quest_step": null}, "trigger": "le joueur cherche à entrer dans le bunker", "example": "Le bunker principal ? J'ai la clé. Combien t'es prêt à mettre ? Ou alors, rends-moi un service et elle est à toi.", "action": null},
+        {"id": "zak_conseil_station", "condition": null, "trigger": "le joueur demande des conseils sur les zones dangereuses", "example": "La station de pompage, évite. Les pillards l'ont transformée en forteresse. Si tu veux y aller, prépare-toi au combat.", "action": null},
+        {"id": "zak_labo_info", "condition": null, "trigger": "le joueur cherche le complexe Saint-Lazare", "example": "Saint-Lazare ? T'es taré. Les égouts mènent là-bas mais c'est infesté de bestioles qui brillent dans le noir. Bon courage.", "action": null},
+        {"id": "zak_achat_termine", "condition": {"quest_id": "quete_abri", "quest_status": "done", "quest_step": null}, "trigger": "le joueur revient voir Zak après avoir ouvert le bunker", "example": "Alors, le bunker te plaît ? J'en ai d'autres si tu veux, des moins chers aussi. Ah ah ! Reviens quand t'as besoin, l'ami.", "action": null}
       ],
       "fallbacks": {
-        "off_topic": "La philosophie c'est pas mon rayon. Les affaires, par contre... vous voulez acheter quelque chose ou pas ?",
-        "insult": "Ahaha ! J'adore. Insultez-moi tant que vous voulez, mais les prix montent à chaque mot grossier. Là, vous venez de passer à +2 capsules. Continuez, je vous en prie !",
-        "default_template": "{name}, mon ami, on n'est pas là pour se regarder dans le blanc des yeux. Vous avez des capsules, j'ai de la marchandise. Faisons affaire ou passez votre chemin !"
+        "off_topic": "Hé ho, on est là pour faire affaire ou pour se raconter nos vies ? Chaque minute coûte.",
+        "insult": "Doucement l'ami. J'ai survécu à pire que tes insultes. La question c'est : t'as quelque chose à proposer ou tu perds mon temps ?",
+        "timeout": "Hé, tu m'entends ? Les radiations doivent brouiller la ligne. Reviens demain.",
+        "unknown": "Quoi ? Parle plus fort, j'entends rien avec ce vent radioactif.",
+        "default_template": "Zak l'Écumeur, pour vous servir. J'ai ce qu'il faut au bon prix. Qu'est-ce qui t'amène ?"
       }
     }
   ],
@@ -280,36 +160,8 @@
       "status": "not_started",
       "requires_quests": [],
       "steps": [
-        {
-          "id": "etape_bunker_trouve",
-          "description": "Trouver l'entrée du bunker principal gardée par le Colonel Bravo et obtenir la clé blindée.",
-          "completed": false,
-          "required_items": [],
-          "required_npcs": ["npc_colonel_bravo"],
-          "triggers": {
-            "on_complete": {
-              "unlock_zone": "station_pompage_est",
-              "set_world_object": null,
-              "unlock_quest_step": "etape_bunker_ouvert",
-              "complete_quest": null
-            }
-          }
-        },
-        {
-          "id": "etape_bunker_ouvert",
-          "description": "Se rendre à la station de pompage est, récupérer le code d'accès sur le terminal et déverrouiller la porte blindée du bunker.",
-          "completed": false,
-          "required_items": ["objet_cle_bunker"],
-          "required_npcs": [],
-          "triggers": {
-            "on_complete": {
-              "unlock_zone": "bunker_interieur",
-              "set_world_object": "porte_bunker_ouverte",
-              "unlock_quest_step": null,
-              "complete_quest": "quete_abri"
-            }
-          }
-        }
+        {"id": "etape_bunker_trouve", "description": "Obtenir la clé du bunker auprès du Colonel Bravo ou de Zak"},
+        {"id": "etape_bunker_ouvert", "description": "Utiliser la clé pour ouvrir le bunker principal"}
       ]
     },
     {
@@ -318,36 +170,8 @@
       "status": "not_started",
       "requires_quests": [],
       "steps": [
-        {
-          "id": "etape_labo",
-          "description": "Trouver le badge d'accès près de la station de pompage, puis pénétrer dans le complexe médical de Saint-Lazare pour localiser le prototype du vaccin.",
-          "completed": false,
-          "required_items": [],
-          "required_npcs": ["npc_docteur_helene"],
-          "triggers": {
-            "on_complete": {
-              "unlock_zone": "complexe_saint_lazare",
-              "set_world_object": "badge_labo_utilise",
-              "unlock_quest_step": "etape_vaccin_admin",
-              "complete_quest": null
-            }
-          }
-        },
-        {
-          "id": "etape_vaccin_admin",
-          "description": "Rapporter le prototype à Hélène pour qu'elle puisse synthétiser et distribuer le vaccin aux survivants du bunker.",
-          "completed": false,
-          "required_items": ["objet_vaccin_rad"],
-          "required_npcs": ["npc_docteur_helene"],
-          "triggers": {
-            "on_complete": {
-              "unlock_zone": null,
-              "set_world_object": "vaccin_distribue",
-              "unlock_quest_step": null,
-              "complete_quest": "quete_vaccin"
-            }
-          }
-        }
+        {"id": "etape_labo", "description": "Se rendre au complexe Saint-Lazare et entrer dans le laboratoire"},
+        {"id": "etape_vaccin_admin", "description": "Rapporter le vaccin au Dr. Hélène Vasseur"}
       ]
     },
     {
@@ -356,67 +180,35 @@
       "status": "not_started",
       "requires_quests": ["quete_abri"],
       "steps": [
-        {
-          "id": "etape_eliminer_pillards",
-          "description": "Éliminer les pillards de la Confrérie des Cendres qui infestent la station de pompage.",
-          "completed": false,
-          "required_items": [],
-          "required_npcs": ["npc_colonel_bravo"],
-          "triggers": {
-            "on_complete": {
-              "unlock_zone": null,
-              "set_world_object": "station_secure",
-              "unlock_quest_step": null,
-              "complete_quest": "quete_pillage_station"
-            }
-          }
-        }
+        {"id": "etape_eliminer_pillards", "description": "Éliminer tous les pillards de la station de pompage"}
       ]
     }
   ],
   "mini_games": [
     {
       "id": "mini_jeu_crochetage",
+      "name": "Crochetage du bunker",
       "linked_quest_id": "quete_abri",
-      "requires_quest_step": "etape_bunker_ouvert",
-      "unlocked": false,
-      "completed": false
+      "requires_quest_step": "etape_bunker_ouvert"
     },
     {
       "id": "mini_jeu_geiger",
+      "name": "Relevé Geiger",
       "linked_quest_id": "quete_vaccin",
-      "requires_quest_step": "etape_labo",
-      "unlocked": false,
-      "completed": false
+      "requires_quest_step": "etape_labo"
     }
   ],
   "items": [
-    {
-      "id": "objet_cle_bunker",
-      "picked_up": false,
-      "required_by_quest": "quete_abri"
-    },
-    {
-      "id": "objet_vaccin_rad",
-      "picked_up": false,
-      "required_by_quest": "quete_vaccin"
-    },
-    {
-      "id": "objet_badge_labo",
-      "picked_up": false,
-      "required_by_quest": "quete_vaccin"
-    },
-    {
-      "id": "objet_fusil_bravo",
-      "picked_up": false,
-      "required_by_quest": "quete_pillage_station"
-    }
+    {"id": "objet_cle_bunker", "name": "Clé du bunker", "description": "Clé rouillée du bunker principal"},
+    {"id": "objet_vaccin_rad", "name": "Prototype du vaccin anti-radiation", "description": "Une fiole contenant le prototype"},
+    {"id": "objet_badge_labo", "name": "Badge d'accès du labo", "description": "Badge fourni par le Dr. Vasseur pour entrer au labo"},
+    {"id": "objet_fusil_bravo", "name": "Fusil du Colonel", "description": "Fusil d'assaut donné par le Colonel Bravo"}
   ],
   "global_fallbacks": {
-    "off_topic": "Le désert radioactif n'a que faire de ce genre de considérations. Concentrez-vous sur l'essentiel : survivre.",
-    "insult": "Vos mots se perdent dans le vent chargé de radiations. Ici, seules les actions comptent.",
-    "timeout": "La communication est brouillée par les perturbations électromagnétiques. Personne ne vous répond.",
-    "unknown": "Vous formulez une demande qui n'a pas de sens dans ce monde dévasté. Essayez autre chose.",
-    "default_template": "Je ne comprends pas ce que vous voulez dire, {name}. Les radiations ont peut-être affecté votre élocution. Reformulez."
+    "off_topic": "Les ruines résonnent de questions plus pertinentes. Concentre-toi sur ta survie.",
+    "insult": "Le vent radioactif emporte tes insultes.",
+    "timeout": "Le signal est perdu dans les radiations.",
+    "unknown": "Tes paroles se perdent dans les ruines. Essaie autrement.",
+    "default_template": "Un survivant te regarde sans comprendre. Que dis-tu ?"
   }
 }
