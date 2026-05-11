@@ -31,6 +31,9 @@ func _ready() -> void:
 	var limites_prison = prison.get_node_or_null("limiteDeplacement")
 	if limites_prison:
 		limites_prison.collision_layer = 0
+	var zone_porte = prison.get_node_or_null("ZonePorte")
+	if zone_porte:
+		zone_porte.monitoring = false
 	var zone_sortie = prison.get_node_or_null("ZoneSortie")
 	if zone_sortie:
 		zone_sortie.monitoring = false
@@ -183,6 +186,8 @@ func stop() -> void:
 		var zone_sortie = prison.get_node_or_null("ZoneSortie")
 		if zone_sortie:
 			zone_sortie.monitoring = false
+		if prison.has_method("stop_minigame"):
+			prison.stop_minigame()
 	if magasin:
 		magasin.stop()
 	_cleanup_knights()

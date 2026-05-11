@@ -135,6 +135,7 @@ func _set_collisions_enabled(enable: bool) -> void:
 	zonePorteBleue.monitoring = enable
 	zonePorteRouge.monitoring = enable
 	pnjHub.get_node("ZoneDialogue").monitoring = enable
+	chienHub.get_node("Area2D").monitoring = enable
 	timeAunote.get_node("collision").disabled = not enable
 
 func _on_timer_sortie_timeout():
