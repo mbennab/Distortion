@@ -118,21 +118,26 @@ func send_message(player_message: String) -> void:
 	if current_npc.is_empty():
 		return
 
-	var replies = filter_dialogue_bank(current_npc_id)
-	print("[DialogueSystem] send_message: '%s' → %d replies" % [player_message, replies.size()])
-	if replies.is_empty():
+	print("[DialogueSystem] send_message: '%s'" % player_message)
+
+	var intentions = filter_intentions(current_npc_id)
+	if intentions.is_empty():
 		var fallback = get_fallback(current_npc_id, "default_template")
 		dialogue_response.emit(current_npc.get("name", "?"), fallback)
 		return
 
 	if api_key == "":
-		print("[DialogueSystem] ERROR: no API key")
-		dialogue_error.emit("OPENROUTER_API_KEY not set. Set the environment variable or .env file to use dialogue.")
+		dialogue_error.emit("OPENROUTER_API_KEY manquante. Configurez la variable d'environnement ou le fichier .env")
 		return
 
-	var system_prompt = current_npc.get("personality", {}).get("prompt_context", "")
-	var user_prompt = build_user_prompt(replies, player_message)
-	_send_api_request(system_prompt, user_prompt, replies)
+	# Stocker le message joueur dans l'historique (la réponse PNJ sera ajoutée au retour API)
+	conversation_history.append({"role": "player", "text": player_message})
+	while conversation_history.size() > MAX_HISTORY:
+		conversation_history.pop_front()
+
+	var system_prompt = _build_system_prompt(intentions)
+	var user_prompt = _build_user_prompt(player_message)
+	_send_api_request(system_prompt, user_prompt)
 
 
 func _send_api_request(system_prompt: String, user_prompt: String, replies: Array) -> void:
@@ -292,20 +297,23 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 	return "\n".join(lines)
 
 
-func build_user_prompt(replies: Array, player_message: String) -> String:
+func _build_user_prompt(player_message: String) -> String:
 	var lines: Array[String] = []
-	lines.append('Message du joueur : "%s"' % player_message)
+	lines.append("Historique de la conversation :")
+	# Afficher tout l'historique sauf le dernier message joueur (affiché séparément)
+	var display_history = conversation_history.duplicate()
+	if not display_history.is_empty() and display_history.back().role == "player":
+		display_history.pop_back()
+	if display_history.is_empty():
+		lines.append("(premier message de la conversation)")
+	else:
+		for entry in display_history:
+			var role_label = "Joueur" if entry.role == "player" else current_npc.get("name", "PNJ")
+			lines.append("- %s : %s" % [role_label, entry.text])
 	lines.append("")
-	lines.append("Répliques disponibles :")
-	for r in replies:
-		var rid = r.get("id", "?")
-		var intention = r.get("intention", "")
-		lines.append("- %s : %s" % [rid, intention])
+	lines.append('Dernier message du joueur : "%s"' % player_message)
 	lines.append("")
-	lines.append('IMPORTANT : réponds UNIQUEMENT avec un objet JSON au format {"id": "<id_replique>"}.')
-	lines.append('Si le message du joueur est hors-sujet, réponds {"id": "off_topic"}.')
-	lines.append('Si le joueur est insultant ou agressif, réponds {"id": "insult"}.')
-	lines.append("N'ajoute AUCUN autre texte avant ou après le JSON.")
+	lines.append("Génère ta réponse (JSON uniquement, pas d'autre texte).")
 	return "\n".join(lines)
 
 
