@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Builder — Distortion</title>
+<style>
+:root{--bg:#090c10;--panel:#11161e;--border:#1e2a3a;--text:#c8d6e5;--muted:#5a6e85;--accent:#00e5ff;--accent-hover:#40f0ff;--green:#00e676;--yellow:#ffd740;--red:#ff5252}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border)}
+header h1{font-size:16px;font-weight:600;color:var(--accent)}
+header .sub{font-size:12px;color:var(--muted);margin-left:auto}
+.btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;font-size:12px;transition:all .2s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-accent{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.btn-accent:hover{background:var(--accent-hover)}
+.btn-green{background:var(--green);color:#000;border-color:var(--green);font-weight:600}
+.btn-green:hover{opacity:.85}
+.main{display:flex;flex:1;overflow:hidden}
+/* Chat */
+.chat-panel{flex:1;display:flex;flex-direction:column;min-width:300px;border-right:1px solid var(--border)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-msg{max-width:90%;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.chat-msg.ai{align-self:flex-start;background:var(--panel);border-bottom-left-radius:3px}
+.chat-msg.user{align-self:flex-end;background:#0d2b3f;border-bottom-right-radius:3px}
+.chat-msg .role{font-size:10px;font-weight:600;text-transform:uppercase;margin-bottom:4px;letter-spacing:.5px}
+.chat-msg.ai .role{color:var(--accent)}
+.chat-msg.user .role{color:var(--yellow)}
+.chat-input-panel{padding:10px;background:var(--panel);border-top:1px solid var(--border);display:flex;gap:8px}
+.chat-input-panel input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:13px}
+.chat-input-panel input:focus{outline:none;border-color:var(--accent)}
+/* JSON preview */
+.json-panel{flex:1;min-width:350px;display:flex;flex-direction:column;background:var(--bg)}
+.json-header{padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;color:var(--muted)}
+.json-header .meta{color:var(--text)}
+.json-content{flex:1;overflow:auto;padding:14px}
+.json-content pre{font-family:'JetBrains Mono','Fira Code',monospace;font-size:12px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word;margin:0}
+.empty-state{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:14px;text-align:center;padding:40px}
+/* Anim */
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chat-msg{animation:fadeIn .3s ease}
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;z-index:1000;animation:fadeIn .3s ease}
+.toast.success{background:#0a3d1a;color:var(--green);border:1px solid var(--green)}
+.toast.error{background:#3d0a0a;color:var(--red);border:1px solid var(--red)}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🤖 AI Builder</h1>
+  <span style="font-size:12px;color:var(--muted)">Assistant de création de dimension</span>
+  <span class="sub">L'IA vous interviewe — le JSON se construit en direct</span>
+</header>
+
+<div class="main">
+  <!-- Chat -->
+  <div class="chat-panel">
+    <div class="chat-messages" id="chatMessages">
+      <div class="empty-state">
+        <div style="max-width:360px">
+          <div style="font-size:40px;margin-bottom:12px">🤖</div>
+          <div style="font-weight:600;margin-bottom:8px">Assistant de création JSON</div>
+          <div>L'IA va vous poser des questions pour construire votre dimension étape par étape.</div>
+          <div style="margin-top:12px;font-size:12px">Répondez naturellement.<br>Dites "fini" pour terminer.</div>
+          <button class="btn btn-accent" style="margin-top:16px" onclick="startConversation()">Commencer</button>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-panel">
+      <input type="text" id="userInput" placeholder="Votre réponse..." onkeydown="if(event.key==='Enter')sendMessage()" disabled>
+      <button class="btn btn-accent" id="sendBtn" onclick="sendMessage()" disabled>Envoyer</button>
+      <button class="btn" onclick="saveAndFinish()" title="Sauvegarder et terminer">💾</button>
+    </div>
+  </div>
+
+  <!-- JSON preview -->
+  <div class="json-panel">
+    <div class="json-header">
+      📄 Aperçu du JSON <span class="meta" id="jsonMeta"></span>
+    </div>
+    <div class="json-content" id="jsonContent">
+      <div class="empty-state">Le JSON apparaîtra ici en temps réel</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let history = [];
+let currentData = null;
+let isProcessing = false;
+let isDone = false;
+
+function startConversation() {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML = '';
+  history = [];
+  currentData = null;
+  isDone = false;
+  document.getElementById('userInput').disabled = false;
+  document.getElementById('sendBtn').disabled = false;
+  updateJSON(null);
+  sendToAI("Bonjour ! Commençons la création d'une dimension.");
+}
+
+async function sendMessage() {
+  if (isProcessing || isDone) return;
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.disabled = true;
+  document.getElementById('sendBtn').disabled = true;
+  history.push({role: 'user', content: text});
+  addMessage('user', text);
+  await sendToAI(text);
+  if (!isDone) {
+    input.disabled = false;
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+  }
+}
+
+async function sendToAI(userMsg) {
+  isProcessing = true;
+  addMessage('ai', '<span class="spinner"></span> ...', true);
+
+  try {
+    const resp = await fetch('/api/ai-build', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({messages: history, user_message: userMsg})
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.detail || 'API error');
+    }
+    const result = await resp.json();
+
+    // Remove loading indicator
+    const chatMsgs = document.getElementById('chatMessages');
+    chatMsgs.removeChild(chatMsgs.lastChild);
+
+    // Add AI message
+    addMessage('ai', result.text);
+    history.push({role: 'assistant', content: JSON.stringify({text: result.text, data: result.data, done: result.done})});
+
+    // Update JSON preview
+    if (result.data && Object.keys(result.data).length > 0) {
+      currentData = result.data;
+      updateJSON(result.data);
+    }
+
+    if (result.done) {
+      isDone = true;
+      document.getElementById('userInput').disabled = true;
+      document.getElementById('sendBtn').disabled = true;
+    }
+
+  } catch (e) {
+    const chatMsgs = document.getElementById('chatMessages');
+    chatMsgs.removeChild(chatMsgs.lastChild);
+    addMessage('ai', '❌ Erreur: ' + e.message + '. Réessayez.');
+    document.getElementById('userInput').disabled = false;
+    document.getElementById('sendBtn').disabled = false;
+  }
+  isProcessing = false;
+}
+
+function addMessage(role, text, isHTML = false) {
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  const roleLabel = role === 'ai' ? 'Assistant' : 'Vous';
+  div.innerHTML = `<div class="role">${roleLabel}</div>${isHTML ? text : escHtml(text)}`;
+  document.getElementById('chatMessages').appendChild(div);
+  div.scrollIntoView({behavior: 'smooth'});
+}
+
+function updateJSON(data) {
+  const el = document.getElementById('jsonContent');
+  const meta = document.getElementById('jsonMeta');
+  if (!data || Object.keys(data).length === 0) {
+    el.innerHTML = '<div class="empty-state">En attente des premières informations...</div>';
+    meta.textContent = '';
+    return;
+  }
+  const npcCount = (data.npcs||[]).length;
+  const questCount = (data.quests||[]).length;
+  meta.textContent = `— ${npcCount} PNJ, ${questCount} quête(s)`;
+  el.innerHTML = '<pre>' + escHtml(JSON.stringify(data, null, 2)) + '</pre>';
+  el.scrollTop = el.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function saveAndFinish() {
+  if (!currentData || Object.keys(currentData).length === 0) {
+    showToast('Aucune donnée à sauvegarder.', 'error');
+    return;
+  }
+  const meta = currentData.meta || {};
+  const dimId = meta.id || 'nouvelle_dimension';
+
+  try {
+    const resp = await fetch(`/api/dimensions/${dimId}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(currentData)
+    });
+    if (!resp.ok) throw new Error('Save failed');
+    showToast(`✅ Dimension "${dimId}" sauvegardée !`, 'success');
+  } catch (e) {
+    showToast('❌ Erreur de sauvegarde: ' + e.message, 'error');
+  }
+}
+
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// Init
+document.getElementById('userInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+</script>
+</body>
+</html>

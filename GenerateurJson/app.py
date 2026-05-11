@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import uuid
 from pathlib import Path
@@ -498,6 +499,126 @@ async def export_npc(dim_id: str, npc_id: str):
         if npc.get("id") == npc_id:
             return npc
     raise HTTPException(status_code=404, detail="NPC not found")
+
+
+# ─── AI Builder ─────────────────────────────────────────────────────
+
+AI_WIZARD_PROMPT = """Tu es un assistant de création de jeu vidéo. Ton rôle : interviewer le créateur
+pour construire un fichier JSON de dimension (PNJ, quêtes, dialogues) étape par étape.
+
+Tu poses DES QUESTIONS UNE PAR UNE. Chaque réponse te sert à remplir le JSON.
+
+Étapes à suivre dans l'ordre :
+1. Demander le nom de la dimension, l'époque, une courte description
+2. Pour chaque PNJ (un par un, jusqu'à ce que le créateur dise "fini" ou "c'est bon") :
+   a. Nom, tempérament, backstory (1 phrase)
+   b. État émotionnel
+   c. Comment il parle (vouvoiement ? vocatif ? style ?)
+   d. Ce qu'il sait (2-3 faits)
+   e. Ses objectifs dans la conversation
+   f. Les intentions (déclencheur + exemple de réponse, une par une)
+   g. Y a-t-il une action spéciale ? (type trigger + id)
+3. Demander s'il y a des quêtes (étapes)
+4. Proposer de sauvegarder
+
+FORMAT DE RÉPONSE STRICT — tu réponds TOUJOURS en JSON :
+{"text": "ta question ou commentaire", "data": { ... le JSON complet en cours ... }, "done": false}
+
+Le champ "data" contient le JSON complet tel qu'il est pour l'instant.
+Quand tout est fini, mets "done": true et le JSON complet dans "data".
+
+Sois naturel, amical, enthousiaste. Pose des questions claires, une à la fois.
+Suggère des valeurs par défaut quand c'est pertinent.
+Si le créateur donne une réponse vague, demande des précisions.
+Si le créateur donne beaucoup d'infos d'un coup, traite-les toutes.
+Si le créateur dit "fini", "c'est bon", "j'ai terminé", finalise et mets done:true."""
+
+
+def _load_api_key() -> str:
+    key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not key:
+        for p in [BASE_DIR.parent / ".env", BASE_DIR / ".env"]:
+            if p.exists():
+                with open(p) as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("OPENROUTER_API_KEY="):
+                            v = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            if v: key = v; break
+                if key: break
+    return key
+
+
+@app.post("/api/ai-build")
+async def ai_build(req: dict):
+    """Endpoint pour le wizard IA conversationnel.
+    Reçoit {messages: [{role, content}], user_message: str}
+    Retourne {text, data, done}
+    """
+    import requests
+    api_key = _load_api_key()
+    if not api_key:
+        raise HTTPException(status_code=400, detail="No OPENROUTER_API_KEY configured")
+
+    messages = [{"role": "system", "content": AI_WIZARD_PROMPT}]
+    history = req.get("messages", [])
+    user_msg = req.get("user_message", "").strip()
+
+    # Construire l'historique
+    for m in history:
+        if m.get("role") in ("user", "assistant"):
+            messages.append({"role": m["role"], "content": m["content"]})
+
+    if not user_msg and not history:
+        user_msg = "Bonjour ! Commençons la création."
+
+    messages.append({"role": "user", "content": user_msg})
+
+    # Limiter la taille
+    if len(messages) > 22:
+        messages = [messages[0]] + messages[-21:]
+
+    hdrs = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:8000",
+        "X-OpenRouter-Title": "Distortion AI Builder",
+    }
+    payload = {
+        "model": os.environ.get("MODEL", "mistralai/ministral-3b-2512"),
+        "temperature": 0.8,
+        "max_tokens": 1024,
+        "messages": messages,
+        "response_format": {"type": "json_object"},
+    }
+
+    try:
+        r = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=hdrs, json=payload, timeout=30
+        )
+        if not r.ok:
+            raise HTTPException(status_code=502, detail=f"OpenRouter error {r.status_code}")
+        resp = r.json()
+        content = resp["choices"][0]["message"]["content"].strip()
+        ai_msg = json.loads(content)
+        return {
+            "text": ai_msg.get("text", ""),
+            "data": ai_msg.get("data", {}),
+            "done": ai_msg.get("done", False),
+        }
+    except requests.Timeout:
+        raise HTTPException(status_code=504, detail="OpenRouter timeout")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/ai-builder")
+async def serve_ai_builder():
+    p = BASE_DIR / "ai-builder.html"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="ai-builder.html not found")
+    return FileResponse(str(p), media_type="text/html")
 
 
 @app.get("/")
