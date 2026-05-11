@@ -25,6 +25,14 @@ DIMENSIONS_DIR.mkdir(exist_ok=True)
 
 SNAKE_CASE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 
+# Dossiers des eres du jeu Godot (chemin relatif depuis GenerateurJson/)
+GAME_FOLDERS = {
+    "hub":      BASE_DIR.parent / "HUB Central",
+    "moyenage": BASE_DIR.parent / "MoyenAge",
+    "nuclear":  BASE_DIR.parent / "Present",
+    "futur":    BASE_DIR.parent / "Futur",
+}
+
 
 def _dimension_path(dim_id: str) -> Path:
     return DIMENSIONS_DIR / f"dimension_{dim_id}.json"
@@ -504,83 +512,114 @@ async def export_npc(dim_id: str, npc_id: str):
 
 # ─── AI Prompts ─────────────────────────────────────────────────────
 
-SYSTEM_CREATE = """Tu es un architecte de jeu video. Tu transformes les idees du createur en JSON structure.
+SYSTEM_CREATE = """Tu es un architecte de jeu video. Tu transformes les idees du createur en JSON structure pour le jeu Distortion.
 
-## TON COMPORTEMENT
-- Proactif : tu proposes des suggestions pertinentes. Le createur valide ou ajuste.
-- Concis : 2-4 phrases par message. Va droit au but.
-- Intelligent : tu comprends les descriptions libres et en extrais la structure.
-- Tu geres les IDs en snake_case automatiquement.
-- Si le createur dit "oui", "ok", "parfait" → tu passes a l'etape suivante.
+## FORMAT STRICT — toujours, sans exception
+{"text": "ton message", "data": {JSON complet}, "done": false}
+"done": true uniquement quand le createur valide tout (ok, parfait, c'est bon, termine).
+"data" commence vide et se remplit progressivement sans jamais perdre ce qui est deja valide.
+Squelette initial : {"meta":{},"npcs":[],"quests":[],"mini_games":[],"items":[],"global_fallbacks":{}}
 
-## FLUX DE TRAVAIL (4 phases)
+## COMPORTEMENT
+- Proactif : propose des valeurs pertinentes, le createur valide ou ajuste.
+- Concis : 2-4 phrases max. Va droit au but.
+- Si le createur dit "ok", "oui", "go", "parfait" -> passe directement a l'etape suivante.
+- Si vague -> une seule question de clarification. Si precis -> traite tout d'un coup.
+- IDs toujours en snake_case, jamais de doublons dans tout le document.
 
-### Phase 1 — PITCH INITIAL
-Le createur decrit son jeu. Tu extrais et structures IMMEDIATEMENT :
-- Dimension : ID snake_case, nom, epoque, description
-- PNJs identifies : pour chacun → nom, ID snake_case, role bref
-- Quetes identifiees : titre, etapes pressenties
+## FLUX EN 4 PHASES
 
-Tu presentes le tout en 1 message. Puis tu confirmes :
-"Je passe au detail des PNJ ?"
+### Phase 1 — PITCH
+Le createur decrit son jeu. Tu structures IMMEDIATEMENT :
+- meta : id (snake_case), name, era, description
+- PNJs detectes : id + nom + role en 5 mots chacun
+- Quetes pressenties : titre + etapes grossieres
+Termine par : "Je detaille les PNJ ?"
 
-### Phase 2 — DETAIL DES PNJ (un par un)
-Pour chaque PNJ, tu proposes une fiche complete et demandes confirmation :
-- Temperament (tone)
-- Backstory (1 phrase)
-- Etat emotionnel
-- Speech : vouvoiement, vocatif, style de phrases, 2-3 expressions, 1-2 interdits
-- 3-5 connaissances (faits concrets)
-- 2-3 objectifs de conversation
-- 3-5 intentions (pour chaque : trigger joueur + exemple reponse + action optionnelle)
-- Proposer un arc de conversation (phases de focus)
+### Phase 2 — PNJ (un par un, fiche complete)
+Pour chaque PNJ, proposes une fiche complete et attends validation :
+personality : tone, backstory (1 phrase), emotional_state
+personality.speech : vouvoiement (bool), vocatif (string), phrases (style), expressions (liste 2-3), interdits (liste 1-2)
+personality.knowledge : liste de 3-5 faits concrets
+personality.goals : liste de 2-3 objectifs de conversation
+personality.conversation_arc : liste de 2-4 phases {phase, until_message, focus}
+intentions : liste de 3-6 entrees {id (snake_case), condition (null ou {quest_id,quest_status,quest_step}), trigger, example, action (null ou {type,id,description})}
+fallbacks : off_topic, insult, timeout, unknown, default_template (doit contenir {name})
+Termine par : "PNJ suivant ?" ou "On passe aux quetes ?"
 
-Tu proposes des valeurs par defaut pertinentes. Le createur dit "ok" ou ajuste.
-
-### Phase 3 — DETAIL DES QUETES
+### Phase 3 — QUETES
 Pour chaque quete :
-- Titre, ID, etapes (avec description)
-- PNJs impliques
-- Conditions (requires_quests si dependances)
-- Intentions de PNJ liees (conditions de quete)
+{id, title, status:"not_started", requires_quests:[], steps:[{id,description}]}
+Adapter les intentions des PNJ : ajouter les conditions quest_id/quest_status/quest_step.
 
 ### Phase 4 — FINALISATION
-- Recapitulatif complet
-- Proposer d'ajouter des mini-jeux ou items si pertinent
-- Proposer d'ajuster les global_fallbacks
+- global_fallbacks complet (off_topic, insult, timeout, unknown, default_template avec {name})
+- Proposer mini_games et items si pertinent
 - done:true quand le createur est satisfait
 
-## FORMAT JSON STRICT
-{"text": "ton message", "data": {..."meta":...,"npcs":[...],"quests":[...]...}, "done": false}
+## REGLES ABSOLUES
+- IDs snake_case (minuscules + underscores uniquement), jamais de doublons
+- default_template contient toujours {name}
+- Actions : {"type":"trigger","id":"...","description":"..."}
+- Inclure tous les champs meme vides : [], {}, null
+- Ne jamais supprimer de donnees deja validees dans "data"
+"""
 
-Le champ "data" contient le JSON complet a jour.
-Tu commences avec un squelette vide : {"meta":{},"npcs":[],"quests":[],"mini_games":[],"items":[],"global_fallbacks":{}}.
-Tu le remplis progressivement.
+SYSTEM_MODIFY = """Tu es un expert en modification de dimensions JSON pour le jeu Distortion.
 
-## EXEMPLE
-Createur: "Jeu medieval, un roi se fait assassiner. Le joueur doit s'echapper de la prison."
-Toi: "Compris. Voici ce que je propose :
-→ Dimension : moyen_age / Moyen Age / Medievale
-→ 1 PNJ : Le Roi du Chateau [npc_roi], mourant, accuse le joueur
-→ 1 quete : echapper de la prison [quete_prison]
-Je detaille le roi ?"
+## FORMAT STRICT — toujours respecte
+{"text": "description des changements effectues", "data": {JSON complet mis a jour}, "done": false}
+"done": true uniquement si l'utilisateur dit que c'est termine (ok, parfait, fini, c'est bon).
 
-## REGLES
-- Ne reutilise JAMAIS les IDs d'un PNJ a l'autre
-- Les IDs sont en snake_case (minuscules, underscores)
-- default_template doit contenir {name}
-- Les actions sont {"type":"trigger","id":"...","description":"..."}
-- Si le createur est vague, demande des precisions. Si precis, traite tout."""
+## COMPORTEMENT
+- Tu recois le JSON actuel en contexte systeme.
+- Si l'utilisateur n'a pas precise ce qu'il veut modifier, demande-le en 1 question.
+- Applique les changements et renvoie le JSON COMPLET mis a jour.
+- Modifications chirurgicales : ne change que ce qui est demande.
+- Si la demande est ambigue -> 1 question de clarification.
+- Si l'utilisateur ajoute un PNJ -> genere une fiche complete (personality, intentions, fallbacks).
+- Si une quete change -> adapte les conditions dans les intentions des PNJ lies.
 
-SYSTEM_MODIFY = """Assistant concis de modification de dimension JSON existante.
-Tu recois le JSON actuel. Pose 1 question a la fois. Sois bref.
-Demande ce que l'utilisateur veut modifier (ajouter/supprimer/modifier un PNJ, une intention, une quete...).
-Applique les changements et mets a jour le JSON.
-FORMAT JSON STRICT : {"text":"...","data":{...},"done":false}"""
+## REGLES ABSOLUES
+- Conserve TOUS les champs existants non modifies.
+- IDs en snake_case, pas de doublons dans tout le document.
+- default_template doit contenir {name}.
+- Actions : {"type":"trigger","id":"...","description":"..."}.
+- Inclure tous les champs meme vides ([], {}, null).
+"""
 
-SYSTEM_TEST = """Tu es un PNJ de jeu video. Reponds comme le personnage.
-FORMAT JSON STRICT : {"text":"ta reponse en francais","action":null}
-Si le contexte correspond a une action, inclus : {"text":"...","action":{"type":"trigger","id":"..."}}"""
+SYSTEM_TEST = """Tu es un PNJ de jeu video. Le contexte systeme decrit ton personnage : incarne-le avec rigueur.
+FORMAT JSON STRICT — toujours : {"text":"ta reponse en francais","action":null}
+Si la situation correspond a une action de tes intentions, inclus-la : {"text":"...","action":{"type":"trigger","id":"..."}}
+Pas d'astérisques, pas de narration. Que du dialogue en restant dans le personnage.
+"""
+
+DISTORTION_LORE = """## CONTEXTE DU PROJET — DISTORTION
+Jeu 2D de voyage temporel en Godot 4 (GDScript, pas .NET). Joueur : TimeAunote.
+4 eres reliees par des portails dans le HUB Central :
+
+HUB Central (hors du temps) — portails : jaune=MoyenAge, bleu=Present, rouge=Futur.
+  PNJs existants : Gardien du Nexus (enigmatique, parle par enigmes), Chien prankeur (visuel).
+  Dimension : dimension_hub.json — aucune quete, le gardien guide vers les portails.
+
+Moyen Age (ere medievale) — chateau fort.
+  PNJs existants : npc_roi_moyenage (mourant, action roi_adieu → declenche cinematique gardes).
+  Dimensions : dimension_moyenage.json — action roi_adieu est l'action cle.
+
+Present/Nucleaire (2087) — ruines radioactives, bunkers.
+  PNJs existants : Dr Helene Vasseur, Colonel Bravo, Zak l'Ecumeur (dimension_nuclear.json dans workshop).
+  A CREER : dimension pour le Present du jeu.
+
+Futur (futuriste) — cite hi-tech, androide, sous-sol accessible par escalier.
+  PNJs existants : pnj_futur.gd (visuel uniquement, pas de dialogue pour l'instant).
+  A CREER : premiere dimension pour le Futur, avec dialogue IA.
+
+MECANIQUES CLES :
+- Actions {type:"trigger","id":"...","description":"..."} envoient des signaux Godot (cinematiques, transitions scene).
+- Le systeme force l'action trigger apres 5 messages si elle n'a pas ete emise.
+- conversation_arc guide les phases de focus de l'IA a chaque echange.
+- Dialogues en francais. IDs en snake_case. Fallback default_template doit contenir {name}.
+"""
 
 
 def _build_dimension_prompt(dim: dict) -> str:
@@ -647,7 +686,7 @@ def _call_openrouter(messages: list, max_tokens: int = 1024, temperature: float 
         "X-OpenRouter-Title": "Distortion AI Builder",
     }
     payload = {
-        "model": os.environ.get("MODEL", "mistralai/ministral-3b-2512"),
+        "model": os.environ.get("MODEL", "mistralai/mistral-small-3.2-24b-instruct"),
         "temperature": temperature,
         "max_tokens": max_tokens,
         "messages": messages,
@@ -665,71 +704,181 @@ def _call_openrouter(messages: list, max_tokens: int = 1024, temperature: float 
 
 # ─── AI Endpoints ────────────────────────────────────────────────────
 
+def _clean_json_response(content: str) -> str:
+    """Nettoie les reponses IA : retire les blocs markdown ```json ... ```."""
+    content = content.strip()
+    if content.startswith("```"):
+        lines = content.split("\n")
+        # Retire la premiere ligne (```json ou ```) et la derniere (```)
+        start = 1
+        end = len(lines)
+        if lines[-1].strip() == "```":
+            end -= 1
+        content = "\n".join(lines[start:end]).strip()
+    return content
+
+
+def _parse_ai_response(content: str) -> dict:
+    """Parse la reponse IA avec nettoyage. Leve une exception si echec total."""
+    content = _clean_json_response(content)
+    return json.loads(content)
+
+
 @app.post("/api/ai-build")
 async def ai_build(req: dict):
-    """Mode create: l'IA interviewe pour creer une dimension."""
-    msgs = [{"role": "system", "content": SYSTEM_CREATE}]
+    """Mode create: l'IA construit une dimension en dialoguant avec le createur."""
+    msgs = [{"role": "system", "content": DISTORTION_LORE + "\n\n" + SYSTEM_CREATE}]
     for m in req.get("messages", []):
         if m.get("role") in ("user", "assistant"):
             msgs.append({"role": m["role"], "content": m["content"]})
     msg = req.get("user_message", "").strip()
-    if not msg and not msgs[1:]: msg = "Bonjour."
+    if not msg and not msgs[1:]:
+        msg = "Bonjour, commençons la creation d'une dimension."
     msgs.append({"role": "user", "content": msg})
-    if len(msgs) > 22: msgs = [msgs[0]] + msgs[-21:]
+    if len(msgs) > 30:
+        msgs = [msgs[0]] + msgs[-29:]
 
-    resp = _call_openrouter(msgs, temperature=0.7)
-    content = resp["choices"][0]["message"]["content"].strip()
-    ai = json.loads(content)
+    resp = _call_openrouter(msgs, max_tokens=2048, temperature=0.7)
+    raw = resp["choices"][0]["message"]["content"].strip()
+    try:
+        ai = _parse_ai_response(raw)
+    except (json.JSONDecodeError, Exception) as e:
+        raise HTTPException(status_code=502, detail=f"Reponse IA invalide: {e}. Brut: {raw[:200]}")
     return {"text": ai.get("text", ""), "data": ai.get("data", {}), "done": ai.get("done", False)}
 
 
 @app.post("/api/ai-modify")
 async def ai_modify(req: dict):
-    """Mode modify: l'IA aide a editer une dimension existante."""
+    """Mode modify: l'IA edite chirurgicalement une dimension existante."""
     dim = req.get("dimension", {})
-    msgs = [{"role": "system", "content": SYSTEM_MODIFY + "\n\n" + _build_dimension_prompt(dim)}]
+    dim_context = _build_dimension_prompt(dim)
+    system_content = (
+        DISTORTION_LORE + "\n\n" + SYSTEM_MODIFY + "\n\n" +
+        dim_context + "\n\nJSON ACTUEL COMPLET:\n" +
+        json.dumps(dim, ensure_ascii=False, indent=2)
+    )
+    msgs = [{"role": "system", "content": system_content}]
     for m in req.get("messages", []):
         if m.get("role") in ("user", "assistant"):
             msgs.append({"role": m["role"], "content": m["content"]})
     msg = req.get("user_message", "").strip()
-    if not msg: msg = "Voici ma dimension. Que veux-tu modifier ?"
+    if not msg:
+        msg = "Qu'est-ce que tu veux modifier dans cette dimension ?"
     msgs.append({"role": "user", "content": msg})
-    if len(msgs) > 22: msgs = [msgs[0]] + msgs[-21:]
+    if len(msgs) > 30:
+        msgs = [msgs[0]] + msgs[-29:]
 
-    resp = _call_openrouter(msgs, temperature=0.7)
-    content = resp["choices"][0]["message"]["content"].strip()
-    ai = json.loads(content)
+    resp = _call_openrouter(msgs, max_tokens=2048, temperature=0.7)
+    raw = resp["choices"][0]["message"]["content"].strip()
+    try:
+        ai = _parse_ai_response(raw)
+    except (json.JSONDecodeError, Exception) as e:
+        raise HTTPException(status_code=502, detail=f"Reponse IA invalide: {e}. Brut: {raw[:200]}")
     return {"text": ai.get("text", ""), "data": ai.get("data", {}), "done": ai.get("done", False)}
 
 
 @app.post("/api/ai-test")
 async def ai_test(req: dict):
-    """Mode test: parler a un PNJ (dialogue libre)."""
+    """Mode test: dialogue libre avec un PNJ — prompt identique au jeu Distortion."""
     dim = req.get("dimension", {})
     npc_id = req.get("npc_id", "")
     npc = next((n for n in dim.get("npcs", []) if n.get("id") == npc_id), None)
     if not npc:
         raise HTTPException(status_code=404, detail="NPC not found")
 
-    # Construire le system prompt comme le jeu
     sys.path.insert(0, str(BASE_DIR))
     import distortion_dialogue as dd_mod
-    intentions = dd_mod.filter_intentions(npc, dd_mod.init_game_state(dim))
-    sys_prompt = dd_mod.build_system_prompt(npc, intentions, req.get("msg_count", 1))
+
+    # Accepte un etat de quetes envoye par le frontend pour tester differentes branches
+    game_state_raw = req.get("game_state")
+    if game_state_raw and isinstance(game_state_raw, dict):
+        game_state = {
+            qid: {
+                "status": info.get("status", "not_started"),
+                "current_step": info.get("current_step"),
+                "completed_steps": set(),
+            }
+            for qid, info in game_state_raw.items()
+        }
+    else:
+        game_state = dd_mod.init_game_state(dim)
+
+    msg_count = req.get("msg_count", 1)
+    intentions = dd_mod.filter_intentions(npc, game_state)
+    sys_prompt = dd_mod.build_system_prompt(npc, intentions, msg_count)
     usr_prompt = dd_mod.build_user_prompt(
         req.get("history", []), npc.get("name", npc_id), req.get("user_message", "")
     )
-    # Test mode: pas de response_format json_object, on veut de la conversation libre
-    # Mais on garde le format pour la reproductibilite
     msgs = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": usr_prompt}]
 
-    resp = _call_openrouter(msgs, max_tokens=256, temperature=0.7)
-    content = resp["choices"][0]["message"]["content"].strip()
+    resp = _call_openrouter(msgs, max_tokens=512, temperature=0.75)
+    raw = resp["choices"][0]["message"]["content"].strip()
     try:
-        ai = json.loads(content)
-        return {"text": ai.get("text", ""), "action": ai.get("action")}
-    except json.JSONDecodeError:
-        return {"text": content, "action": None}
+        ai = _parse_ai_response(raw)
+        return {
+            "text": ai.get("text", raw),
+            "action": ai.get("action"),
+            "active_intentions": len(intentions),
+        }
+    except (json.JSONDecodeError, Exception):
+        return {"text": raw, "action": None, "active_intentions": len(intentions)}
+
+
+# ─── Game dimension endpoints ────────────────────────────────────────
+
+@app.get("/api/game-dimensions")
+async def list_game_dimensions():
+    """Liste les dimensions presentes dans les dossiers du jeu Godot."""
+    results = []
+    for era_key, folder in GAME_FOLDERS.items():
+        if not folder.exists():
+            continue
+        for fpath in sorted(folder.glob("dimension_*.json")):
+            info = _try_read_meta(fpath)
+            info["era_key"] = era_key
+            results.append(info)
+    return results
+
+
+@app.get("/api/game-dimensions/{era_key}")
+async def get_game_dimension(era_key: str):
+    """Charge une dimension depuis le dossier du jeu."""
+    folder = GAME_FOLDERS.get(era_key)
+    if not folder or not folder.exists():
+        raise HTTPException(status_code=404, detail=f"Era '{era_key}' inconnue ou dossier absent")
+    for fpath in sorted(folder.glob("dimension_*.json")):
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            continue
+    raise HTTPException(status_code=404, detail=f"Aucune dimension trouvee pour l'ere '{era_key}'")
+
+
+@app.post("/api/dimensions/{dim_id}/deploy")
+async def deploy_dimension(dim_id: str, payload: dict):
+    """Sauvegarde dans le workshop ET dans le dossier du jeu si l'ID correspond a une ere connue."""
+    _save_dimension(dim_id, payload)
+
+    real_id = payload.get("meta", {}).get("id", dim_id)
+    game_folder = GAME_FOLDERS.get(real_id)
+    deployed = False
+    game_path = None
+
+    if game_folder and game_folder.exists():
+        dest = game_folder / f"dimension_{real_id}.json"
+        tmp = dest.with_suffix(f".tmp.{uuid.uuid4().hex}")
+        try:
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+            tmp.replace(dest)
+            deployed = True
+            game_path = str(dest)
+        except Exception as e:
+            if tmp.exists():
+                tmp.unlink()
+
+    return {"status": "ok", "id": real_id, "deployed": deployed, "game_path": game_path}
 
 
 @app.get("/ai-builder")
