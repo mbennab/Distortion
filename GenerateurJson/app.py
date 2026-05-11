@@ -1,5 +1,7 @@
 import json
+import os
 import re
+import sys
 import uuid
 from pathlib import Path
 
@@ -115,8 +117,8 @@ def _validate_json(data: dict) -> list:
         all_ids.append(data["meta"]["id"])
     for npc in data.get("npcs", []):
         all_ids.append(npc.get("id", ""))
-        for reply in npc.get("dialogue_bank", []):
-            all_ids.append(reply.get("id", ""))
+        for intent in npc.get("intentions", []):
+            all_ids.append(intent.get("id", ""))
     for quest in data.get("quests", []):
         all_ids.append(quest.get("id", ""))
         for step in quest.get("steps", []):
@@ -149,53 +151,53 @@ def _validate_json(data: dict) -> list:
 
     for npc in data.get("npcs", []):
         npc_id = npc.get("id", "?")
-        replies = npc.get("dialogue_bank", [])
-        if not replies:
+        intentions = npc.get("intentions", [])
+        if not intentions:
             anomalies.append({
                 "type": "npc_no_dialogue",
                 "severity": "warning",
-                "message": f"PNJ '{npc_id}' has no dialogue_bank entries",
+                "message": f"PNJ '{npc_id}' has no intentions entries",
                 "path": f"npcs.{npc_id}"
             })
 
         involved_quests = set()
-        for reply in replies:
-            qid = reply.get("condition", {}).get("quest_id")
+        for intent in intentions:
+            qid = intent.get("condition", {}).get("quest_id")
             if qid:
                 involved_quests.add(qid)
 
-            cond = reply.get("condition", {})
+            cond = intent.get("condition", {})
             qs = cond.get("quest_status")
             if qs and qs not in VALID_QUEST_STATUSES:
                 anomalies.append({
                     "type": "invalid_quest_status",
                     "severity": "error",
-                    "message": f"Reply '{reply.get('id')}' has invalid quest_status '{qs}'",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.condition.quest_status"
+                    "message": f"Intent '{intent.get('id')}' has invalid quest_status '{qs}'",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.condition.quest_status"
                 })
 
-            if not reply.get("text", "").strip():
+            if not intent.get("example", "").strip():
                 anomalies.append({
                     "type": "empty_reply_text",
                     "severity": "error",
-                    "message": f"Reply '{reply.get('id')}' has no dialogue text",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.text"
+                    "message": f"Intent '{intent.get('id')}' has no example dialogue",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.example"
                 })
-            if not reply.get("intention", "").strip():
+            if not intent.get("trigger", "").strip():
                 anomalies.append({
                     "type": "empty_reply_intention",
                     "severity": "warning",
-                    "message": f"Reply '{reply.get('id')}' has no intention",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.intention"
+                    "message": f"Intent '{intent.get('id')}' has no trigger description",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.trigger"
                 })
 
-            r_id_val = reply.get("id", "")
+            r_id_val = intent.get("id", "")
             if r_id_val and not SNAKE_CASE_RE.match(r_id_val):
                 anomalies.append({
                     "type": "id_format",
                     "severity": "error",
-                    "message": f"Reply ID '{r_id_val}' is not valid snake_case",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{r_id_val}"
+                    "message": f"Intent ID '{r_id_val}' is not valid snake_case",
+                    "path": f"npcs.{npc_id}.intentions.{r_id_val}"
                 })
 
         for qid in involved_quests:
@@ -203,29 +205,48 @@ def _validate_json(data: dict) -> list:
                 anomalies.append({
                     "type": "missing_quest_ref",
                     "severity": "error",
-                    "message": f"PNJ '{npc_id}' references non-existent quest '{qid}' in dialogue condition",
-                    "path": f"npcs.{npc_id}.dialogue_bank"
+                    "message": f"PNJ '{npc_id}' references non-existent quest '{qid}' in intention condition",
+                    "path": f"npcs.{npc_id}.intentions"
                 })
                 continue
 
-        for reply in replies:
-            cond = reply.get("condition", {})
+        for intent in intentions:
+            cond = intent.get("condition", {})
             qid = cond.get("quest_id")
             cs = cond.get("quest_step")
             if qid and qid not in quest_ids:
                 anomalies.append({
                     "type": "missing_quest_ref",
                     "severity": "error",
-                    "message": f"Reply '{reply.get('id')}' references non-existent quest '{qid}'",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.condition.quest_id"
+                    "message": f"Intent '{intent.get('id')}' references non-existent quest '{qid}'",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.condition.quest_id"
                 })
             if cs and cs not in step_ids:
                 anomalies.append({
                     "type": "invalid_step",
                     "severity": "error",
-                    "message": f"Reply '{reply.get('id')}' references unknown step '{cs}'",
-                    "path": f"npcs.{npc_id}.dialogue_bank.{reply.get('id')}.condition.quest_step"
+                    "message": f"Intent '{intent.get('id')}' references unknown step '{cs}'",
+                    "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.condition.quest_step"
                 })
+
+        # Validate action field structure
+        for intent in intentions:
+            action = intent.get("action")
+            if action is not None and isinstance(action, dict):
+                if not action.get("type"):
+                    anomalies.append({
+                        "type": "invalid_action",
+                        "severity": "error",
+                        "message": f"Intent '{intent.get('id')}' action has no type",
+                        "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.action"
+                    })
+                if not action.get("id"):
+                    anomalies.append({
+                        "type": "invalid_action",
+                        "severity": "error",
+                        "message": f"Intent '{intent.get('id')}' action has no id",
+                        "path": f"npcs.{npc_id}.intentions.{intent.get('id')}.action"
+                    })
 
         for key in ("off_topic", "insult"):
             val = npc.get("fallbacks", {}).get(key, "")
@@ -425,6 +446,298 @@ async def delete_dimension(dim_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {"status": "deleted", "id": dim_id}
+
+
+@app.get("/api/template")
+async def get_template():
+    """Retourne un squelette de dimension prêt à remplir."""
+    return {
+        "meta": {"id": "nouvelle", "name": "Nouvelle dimension", "era": "???", "description": "", "completed": False},
+        "npcs": [],
+        "quests": [],
+        "mini_games": [],
+        "items": [],
+        "global_fallbacks": {
+            "off_topic": "...",
+            "insult": "...",
+            "timeout": "...",
+            "unknown": "...",
+            "default_template": "Le PNJ te regarde. {name}, que dis-tu ?"
+        }
+    }
+
+
+@app.get("/api/template/npc")
+async def get_npc_template():
+    """Retourne un squelette de PNJ."""
+    return {
+        "id": "npc_nouveau",
+        "name": "Nouveau PNJ",
+        "personality": {
+            "tone": "neutre",
+            "backstory": "",
+            "emotional_state": "neutre",
+            "speech": {"vouvoiement": True, "vocatif": "", "phrases": "2-3 phrases", "expressions": [], "interdits": []},
+            "knowledge": [],
+            "goals": [],
+            "conversation_arc": [
+                {"phase": 1, "until_message": 3, "focus": "accueillir et se présenter"},
+                {"phase": 2, "until_message": 99, "focus": "répondre aux questions"}
+            ]
+        },
+        "intentions": [],
+        "fallbacks": {"off_topic": "", "insult": "", "timeout": "", "unknown": "", "default_template": ""}
+    }
+
+
+@app.get("/api/dimensions/{dim_id}/npc/{npc_id}/export")
+async def export_npc(dim_id: str, npc_id: str):
+    """Exporte un PNJ seul (pour réutilisation entre dimensions)."""
+    dim = _load_dimension(dim_id)
+    if dim is None:
+        raise HTTPException(status_code=404, detail="Dimension not found")
+    for npc in dim.get("npcs", []):
+        if npc.get("id") == npc_id:
+            return npc
+    raise HTTPException(status_code=404, detail="NPC not found")
+
+
+# ─── AI Prompts ─────────────────────────────────────────────────────
+
+SYSTEM_CREATE = """Tu es un architecte de jeu video. Tu transformes les idees du createur en JSON structure.
+
+## TON COMPORTEMENT
+- Proactif : tu proposes des suggestions pertinentes. Le createur valide ou ajuste.
+- Concis : 2-4 phrases par message. Va droit au but.
+- Intelligent : tu comprends les descriptions libres et en extrais la structure.
+- Tu geres les IDs en snake_case automatiquement.
+- Si le createur dit "oui", "ok", "parfait" → tu passes a l'etape suivante.
+
+## FLUX DE TRAVAIL (4 phases)
+
+### Phase 1 — PITCH INITIAL
+Le createur decrit son jeu. Tu extrais et structures IMMEDIATEMENT :
+- Dimension : ID snake_case, nom, epoque, description
+- PNJs identifies : pour chacun → nom, ID snake_case, role bref
+- Quetes identifiees : titre, etapes pressenties
+
+Tu presentes le tout en 1 message. Puis tu confirmes :
+"Je passe au detail des PNJ ?"
+
+### Phase 2 — DETAIL DES PNJ (un par un)
+Pour chaque PNJ, tu proposes une fiche complete et demandes confirmation :
+- Temperament (tone)
+- Backstory (1 phrase)
+- Etat emotionnel
+- Speech : vouvoiement, vocatif, style de phrases, 2-3 expressions, 1-2 interdits
+- 3-5 connaissances (faits concrets)
+- 2-3 objectifs de conversation
+- 3-5 intentions (pour chaque : trigger joueur + exemple reponse + action optionnelle)
+- Proposer un arc de conversation (phases de focus)
+
+Tu proposes des valeurs par defaut pertinentes. Le createur dit "ok" ou ajuste.
+
+### Phase 3 — DETAIL DES QUETES
+Pour chaque quete :
+- Titre, ID, etapes (avec description)
+- PNJs impliques
+- Conditions (requires_quests si dependances)
+- Intentions de PNJ liees (conditions de quete)
+
+### Phase 4 — FINALISATION
+- Recapitulatif complet
+- Proposer d'ajouter des mini-jeux ou items si pertinent
+- Proposer d'ajuster les global_fallbacks
+- done:true quand le createur est satisfait
+
+## FORMAT JSON STRICT
+{"text": "ton message", "data": {..."meta":...,"npcs":[...],"quests":[...]...}, "done": false}
+
+Le champ "data" contient le JSON complet a jour.
+Tu commences avec un squelette vide : {"meta":{},"npcs":[],"quests":[],"mini_games":[],"items":[],"global_fallbacks":{}}.
+Tu le remplis progressivement.
+
+## EXEMPLE
+Createur: "Jeu medieval, un roi se fait assassiner. Le joueur doit s'echapper de la prison."
+Toi: "Compris. Voici ce que je propose :
+→ Dimension : moyen_age / Moyen Age / Medievale
+→ 1 PNJ : Le Roi du Chateau [npc_roi], mourant, accuse le joueur
+→ 1 quete : echapper de la prison [quete_prison]
+Je detaille le roi ?"
+
+## REGLES
+- Ne reutilise JAMAIS les IDs d'un PNJ a l'autre
+- Les IDs sont en snake_case (minuscules, underscores)
+- default_template doit contenir {name}
+- Les actions sont {"type":"trigger","id":"...","description":"..."}
+- Si le createur est vague, demande des precisions. Si precis, traite tout."""
+
+SYSTEM_MODIFY = """Assistant concis de modification de dimension JSON existante.
+Tu recois le JSON actuel. Pose 1 question a la fois. Sois bref.
+Demande ce que l'utilisateur veut modifier (ajouter/supprimer/modifier un PNJ, une intention, une quete...).
+Applique les changements et mets a jour le JSON.
+FORMAT JSON STRICT : {"text":"...","data":{...},"done":false}"""
+
+SYSTEM_TEST = """Tu es un PNJ de jeu video. Reponds comme le personnage.
+FORMAT JSON STRICT : {"text":"ta reponse en francais","action":null}
+Si le contexte correspond a une action, inclus : {"text":"...","action":{"type":"trigger","id":"..."}}"""
+
+
+def _build_dimension_prompt(dim: dict) -> str:
+    if not dim: return ""
+    parts = ["## DIMENSION ACTUELLE"]
+    m = dim.get("meta", {})
+    parts.append(f"ID: {m.get('id','?')} | {m.get('name','?')} | {m.get('era','?')}")
+    parts.append(f"Description: {m.get('description','')}")
+    for npc in dim.get("npcs", []):
+        p = npc.get("personality", {})
+        sp = p.get("speech", {})
+        parts.append(f"\n### PNJ: {npc.get('name','?')} [{npc.get('id','?')}]")
+        parts.append(f"Tone: {p.get('tone','')}")
+        parts.append(f"Etat: {p.get('emotional_state','')}")
+        parts.append(f"Backstory: {p.get('backstory','')}")
+        parts.append(f"Speech: v={sp.get('vouvoiement',True)}, voc={sp.get('vocatif','')}, {sp.get('phrases','')}")
+        if sp.get('expressions'): parts.append(f"Expressions: {sp['expressions']}")
+        if sp.get('interdits'): parts.append(f"Interdits: {sp['interdits']}")
+        if p.get('knowledge'): parts.append(f"Connaissances: {p['knowledge']}")
+        if p.get('goals'): parts.append(f"Objectifs: {p['goals']}")
+        arc = p.get('conversation_arc', [])
+        if arc: parts.append(f"Arc: {' → '.join(a.get('focus','') for a in arc)}")
+        for i in npc.get("intentions", []):
+            a = i.get("action")
+            act = f" ⚡{a['type']}/{a['id']}" if a else ""
+            cond = i.get("condition", {})
+            c = f" [{cond.get('quest_status','')}/{cond.get('quest_step','')}]" if cond and cond.get('quest_id') else ""
+            parts.append(f"  [{i.get('id','?')}{c}] {i.get('trigger','')} → \"{i.get('example','')[:60]}\"{act}")
+    for q in dim.get("quests", []):
+        steps = [s["id"] for s in q.get("steps", [])]
+        deps = q.get("requires_quests", [])
+        parts.append(f"\n### Quete: {q.get('id','?')} [{q.get('status','?')}] {q.get('title','')}")
+        if deps: parts.append(f"  Depends on: {deps}")
+        parts.append(f"  Steps: {' → '.join(steps)}")
+    return "\n".join(parts)
+
+
+# ─── API key ─────────────────────────────────────────────────────────
+
+def _load_api_key() -> str:
+    key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not key:
+        for p in [BASE_DIR.parent / ".env", BASE_DIR / ".env"]:
+            if p.exists():
+                with open(p) as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("OPENROUTER_API_KEY="):
+                            v = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            if v: key = v; break
+                if key: break
+    return key
+
+
+def _call_openrouter(messages: list, max_tokens: int = 1024, temperature: float = 0.7) -> dict:
+    import requests
+    api_key = _load_api_key()
+    if not api_key:
+        raise HTTPException(status_code=400, detail="No OPENROUTER_API_KEY")
+    hdrs = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:8000",
+        "X-OpenRouter-Title": "Distortion AI Builder",
+    }
+    payload = {
+        "model": os.environ.get("MODEL", "mistralai/ministral-3b-2512"),
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "messages": messages,
+        "response_format": {"type": "json_object"},
+    }
+    try:
+        r = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=hdrs, json=payload, timeout=30)
+        if not r.ok: raise HTTPException(status_code=502, detail=f"OpenRouter {r.status_code}")
+        return r.json()
+    except requests.Timeout:
+        raise HTTPException(status_code=504, detail="Timeout")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── AI Endpoints ────────────────────────────────────────────────────
+
+@app.post("/api/ai-build")
+async def ai_build(req: dict):
+    """Mode create: l'IA interviewe pour creer une dimension."""
+    msgs = [{"role": "system", "content": SYSTEM_CREATE}]
+    for m in req.get("messages", []):
+        if m.get("role") in ("user", "assistant"):
+            msgs.append({"role": m["role"], "content": m["content"]})
+    msg = req.get("user_message", "").strip()
+    if not msg and not msgs[1:]: msg = "Bonjour."
+    msgs.append({"role": "user", "content": msg})
+    if len(msgs) > 22: msgs = [msgs[0]] + msgs[-21:]
+
+    resp = _call_openrouter(msgs, temperature=0.7)
+    content = resp["choices"][0]["message"]["content"].strip()
+    ai = json.loads(content)
+    return {"text": ai.get("text", ""), "data": ai.get("data", {}), "done": ai.get("done", False)}
+
+
+@app.post("/api/ai-modify")
+async def ai_modify(req: dict):
+    """Mode modify: l'IA aide a editer une dimension existante."""
+    dim = req.get("dimension", {})
+    msgs = [{"role": "system", "content": SYSTEM_MODIFY + "\n\n" + _build_dimension_prompt(dim)}]
+    for m in req.get("messages", []):
+        if m.get("role") in ("user", "assistant"):
+            msgs.append({"role": m["role"], "content": m["content"]})
+    msg = req.get("user_message", "").strip()
+    if not msg: msg = "Voici ma dimension. Que veux-tu modifier ?"
+    msgs.append({"role": "user", "content": msg})
+    if len(msgs) > 22: msgs = [msgs[0]] + msgs[-21:]
+
+    resp = _call_openrouter(msgs, temperature=0.7)
+    content = resp["choices"][0]["message"]["content"].strip()
+    ai = json.loads(content)
+    return {"text": ai.get("text", ""), "data": ai.get("data", {}), "done": ai.get("done", False)}
+
+
+@app.post("/api/ai-test")
+async def ai_test(req: dict):
+    """Mode test: parler a un PNJ (dialogue libre)."""
+    dim = req.get("dimension", {})
+    npc_id = req.get("npc_id", "")
+    npc = next((n for n in dim.get("npcs", []) if n.get("id") == npc_id), None)
+    if not npc:
+        raise HTTPException(status_code=404, detail="NPC not found")
+
+    # Construire le system prompt comme le jeu
+    sys.path.insert(0, str(BASE_DIR))
+    import distortion_dialogue as dd_mod
+    intentions = dd_mod.filter_intentions(npc, dd_mod.init_game_state(dim))
+    sys_prompt = dd_mod.build_system_prompt(npc, intentions, req.get("msg_count", 1))
+    usr_prompt = dd_mod.build_user_prompt(
+        req.get("history", []), npc.get("name", npc_id), req.get("user_message", "")
+    )
+    # Test mode: pas de response_format json_object, on veut de la conversation libre
+    # Mais on garde le format pour la reproductibilite
+    msgs = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": usr_prompt}]
+
+    resp = _call_openrouter(msgs, max_tokens=256, temperature=0.7)
+    content = resp["choices"][0]["message"]["content"].strip()
+    try:
+        ai = json.loads(content)
+        return {"text": ai.get("text", ""), "action": ai.get("action")}
+    except json.JSONDecodeError:
+        return {"text": content, "action": None}
+
+
+@app.get("/ai-builder")
+async def serve_ai_builder():
+    p = BASE_DIR / "ai-builder.html"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="ai-builder.html not found")
+    return FileResponse(str(p), media_type="text/html")
 
 
 @app.get("/")

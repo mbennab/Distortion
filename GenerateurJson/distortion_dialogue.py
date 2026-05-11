@@ -1,605 +1,827 @@
 #!/usr/bin/env python3
 """
-Distortion Dialogue Tester — Teste les dialogues d'une dimension via OpenRouter (Mistral).
+Distortion Dialogue Tester v3 — Teste et crée des dimensions via OpenRouter.
 
-Usage:
-    python distortion_dialogue.py dimension_nuclear.json
-    python distortion_dialogue.py /path/to/dimension_X.json
+Utilisation:
+    python distortion_dialogue.py                          # wizard interactif
+    python distortion_dialogue.py dimension_nuclear.json    # tester une dimension
+    python distortion_dialogue.py --new mon_nom             # créer rapide
 
-Nécessite requests : pip install requests
-Clé API : export OPENROUTER_API_KEY=sk-... ou modifier OPENROUTER_API_KEY ligne 25
+Clé API lue depuis ../../.env (racine projet) ou variable OPENROUTER_API_KEY.
 """
 
 import json
 import os
-import re
 import sys
 import textwrap
 from pathlib import Path
+from datetime import datetime
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
+# ─── ANSI ───────────────────────────────────────────────────────────────
+C = {
+    "reset": "\033[0m", "bold": "\033[1m", "dim": "\033[2m",
+    "red": "\033[31m", "green": "\033[32m", "yellow": "\033[33m",
+    "blue": "\033[34m", "magenta": "\033[35m", "cyan": "\033[36m",
+    "white": "\033[37m", "gray": "\033[90m",
+    "bg_red": "\033[41m", "bg_green": "\033[42m", "bg_blue": "\033[44m",
+}
+
+def c(tag: str, text: str) -> str:
+    return f"{C.get(tag,'')}{text}{C['reset']}"
+
+# ─── Configuration ──────────────────────────────────────────────────────
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+for env_p in [Path(__file__).parent.parent / ".env", Path(__file__).parent / ".env"]:
+    if env_p.exists() and not OPENROUTER_API_KEY:
+        with open(env_p) as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("OPENROUTER_API_KEY="):
+                    v = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    if v: OPENROUTER_API_KEY = v; break
+        if OPENROUTER_API_KEY: break
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "mistralai/ministral-3b-2512"
-REQUEST_TIMEOUT = 15  # secondes
+MODEL = os.environ.get("MODEL", "mistralai/ministral-3b-2512")
+REQUEST_TIMEOUT = 15
+MAX_TOKENS = 256
+TEMPERATURE = 0.7
+SITE_URL = "http://localhost:8000"
+SITE_NAME = "Distortion Dialogue Tester v3"
+MAX_HISTORY = 15
+DIM_DIR = Path(__file__).parent / "dimensions"
 
-# Headers recommandés par OpenRouter
-SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
-SITE_NAME = os.environ.get("SITE_NAME", "Distortion Dialogue Tester")
+_dimension_ref = [None]
 
-# IDs spéciaux que l'IA peut retourner
-AI_SPECIAL_IDS = {"off_topic", "insult"}
-
-# IDs gérés en local (sans appel API)
-LOCAL_ONLY_IDS = {"timeout", "unknown"}
-
-# ---------------------------------------------------------------------------
-# Chargement du JSON
-# ---------------------------------------------------------------------------
+# ─── Chargement ─────────────────────────────────────────────────────────
 
 def load_dimension(path: str) -> dict:
-    """Charge un fichier JSON de dimension."""
     p = Path(path)
     if not p.exists():
-        print(f"Erreur : fichier introuvable — {p}")
+        print(c("red", f"Fichier introuvable: {p}"))
         sys.exit(1)
     with open(p, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def list_dimensions() -> list[Path]:
+    if not DIM_DIR.exists(): return []
+    return sorted(DIM_DIR.glob("dimension_*.json"))
 
-# ---------------------------------------------------------------------------
-# Game State (simulé)
-# ---------------------------------------------------------------------------
+# ─── Game State ─────────────────────────────────────────────────────────
 
 def init_game_state(dim: dict) -> dict:
-    """
-    Construit l'état de partie initial à partir du JSON de dimension.
-    Retourne un dict: quest_id -> {status, current_step, completed_steps}
-    """
     state = {}
     for quest in dim.get("quests", []):
         qid = quest.get("id", "")
-        if not qid:
-            continue
+        if not qid: continue
         steps = quest.get("steps", [])
         completed = {s["id"] for s in steps if s.get("completed")}
         current = None
         for s in steps:
             if s["id"] not in completed:
-                current = s["id"]
-                break
+                current = s["id"]; break
         status = quest.get("status", "not_started")
-        if not current and status == "not_started":
-            # Toutes les étapes sont complétées mais statut pas mis à jour
-            status = "done"
-        state[qid] = {
-            "status": status,
-            "current_step": current,
-            "completed_steps": completed,
-        }
+        if not current and status == "not_started": status = "done"
+        state[qid] = {"status": status, "current_step": current, "completed_steps": completed}
     return state
 
-
-def quest_current_step(state: dict, quest_id: str) -> str | None:
-    """Retourne l'étape courante d'une quête, ou None si terminée."""
+def complete_step(state: dict, quest_id: str, step_id: str) -> str:
     qs = state.get(quest_id)
-    return qs["current_step"] if qs else None
-
-
-def complete_step(state: dict, quest_id: str, step_id: str):
-    """Marque une étape comme complétée et avance l'état."""
-    qs = state.get(quest_id)
-    if not qs:
-        print(f"  Quête '{quest_id}' introuvable.")
-        return
-    if step_id != qs["current_step"]:
-        print(f"  L'étape '{step_id}' n'est pas l'étape courante (actuelle: {qs['current_step']}).")
-        return
+    if not qs: return f"Quête '{quest_id}' introuvable."
+    if step_id != qs["current_step"]: return f"L'étape '{step_id}' n'est pas l'étape courante ({qs['current_step']})."
     qs["completed_steps"].add(step_id)
-    # Trouver la prochaine étape non complétée
-    dim = _dimension_ref[0]  # hack pour accéder à la dimension depuis ici
+    dim = _dimension_ref[0]
     quest = next((q for q in dim.get("quests", []) if q["id"] == quest_id), None)
     if quest:
-        next_step = None
+        nxt = None
         for s in quest.get("steps", []):
-            if s["id"] not in qs["completed_steps"]:
-                next_step = s["id"]
-                break
-        qs["current_step"] = next_step
-        if not next_step:
-            qs["status"] = "done"
-            print(f"  ✓ Quête '{quest_id}' terminée !")
-        else:
-            print(f"  ✓ Étape '{step_id}' complétée → prochaine étape : {next_step}")
+            if s["id"] not in qs["completed_steps"]: nxt = s["id"]; break
+        qs["current_step"] = nxt
+        if not nxt: qs["status"] = "done"; return f"{c('green','✓')} Quête '{quest_id}' terminée !"
+        return f"{c('green','✓')} {step_id} → {nxt}"
+    return f"{c('green','✓')} {step_id}"
 
+# ─── Filtrage ───────────────────────────────────────────────────────────
 
-# Référence globale pour complete_step (évite de passer dim partout)
-_dimension_ref = [None]
-
-
-# ---------------------------------------------------------------------------
-# Filtrage de la banque de dialogues
-# ---------------------------------------------------------------------------
-
-def filter_dialogue_bank(npc: dict, game_state: dict) -> list[dict]:
-    """
-    Retourne la liste des répliques du PNJ qui matchent l'état actuel
-    de la partie.
-
-    Règles :
-    - condition entièrement null (quest_id, quest_status, quest_step)
-      → réplique GÉNÉRIQUE, toujours incluse
-    - quest_id défini + quest_status défini + quest_step null
-      → inclus si le statut de la quête correspond
-    - quest_id défini + quest_status null + quest_step défini
-      → inclus si l'étape courante de la quête correspond
-    - quest_id défini + quest_status défini + quest_step défini
-      → inclus si les deux correspondent
-    - quest_id défini, tout le reste null
-      → inclus si la quête existe dans l'état (cas hybride)
-    """
+def filter_intentions(npc: dict, game_state: dict) -> list[dict]:
     matches = []
-    for reply in npc.get("dialogue_bank", []):
-        cond = reply.get("condition")
-        if not cond or not isinstance(cond, dict):
-            # Pas de condition → réplique générique
-            matches.append(reply)
-            continue
-
+    for intent in npc.get("intentions", []):
+        cond = intent.get("condition")
+        if not cond or not isinstance(cond, dict): matches.append(intent); continue
         qid = cond.get("quest_id")
-        if not qid:
-            # Pas de quête cible → générique
-            matches.append(reply)
-            continue
-
-        qs_cond = cond.get("quest_status")      # None, "not_started", "done"
-        qstep_cond = cond.get("quest_step")      # None ou step_id
-
-        quest_state = game_state.get(qid)
-        if quest_state is None:
-            # Quête référencée mais pas dans l'état → ignorer
-            continue
-
-        # Vérifier quest_status
-        if qs_cond and qs_cond != quest_state["status"]:
-            continue
-
-        # Vérifier quest_step
-        if qstep_cond and qstep_cond != quest_state["current_step"]:
-            continue
-
-        matches.append(reply)
-
+        if not qid: matches.append(intent); continue
+        qs = game_state.get(qid)
+        if not qs: continue
+        if cond.get("quest_status") and cond["quest_status"] != qs["status"]: continue
+        if cond.get("quest_step") and cond["quest_step"] != qs["current_step"]: continue
+        matches.append(intent)
     return matches
 
+# ─── Fallbacks ──────────────────────────────────────────────────────────
 
-# ---------------------------------------------------------------------------
-# Fallbacks
-# ---------------------------------------------------------------------------
+def get_fallback(npc: dict, dim: dict, key: str) -> str:
+    t = (npc.get("fallbacks", {}) or {}).get(key, "") or (dim.get("global_fallbacks", {}) or {}).get(key, "")
+    if key == "default_template" and t: t = t.replace("{name}", npc.get("name", npc.get("id", "?")))
+    return t
 
-def get_fallback(npc: dict, dim: dict, fallback_key: str) -> str:
-    """
-    Récupère un fallback : priorité PNJ, puis global.
-    Remplace {name} par npc.name dans default_template.
-    """
-    npc_fb = npc.get("fallbacks", {}) or {}
-    global_fb = dim.get("global_fallbacks", {}) or {}
+# ─── Prompts ────────────────────────────────────────────────────────────
 
-    text = npc_fb.get(fallback_key, "") or global_fb.get(fallback_key, "")
+def build_system_prompt(npc: dict, intentions: list[dict], msg_count: int) -> str:
+    L = []
+    pers = npc.get("personality", {}) or {}
+    speech = pers.get("speech", {})
+    arc = pers.get("conversation_arc", [])
 
-    if fallback_key == "default_template" and text:
-        text = text.replace("{name}", npc.get("name", npc.get("id", "?")))
+    L.append("Tu incarnes un PNJ de jeu vidéo. Incarne-le avec rigueur.")
+    L.append(""); L.append("## IDENTITÉ")
+    L.append(f"NOM : {npc.get('name', npc.get('id', '?'))}")
+    if pers.get("backstory"): L.append(f"HISTOIRE : {pers['backstory']}")
+    if pers.get("tone"): L.append(f"TEMPÉRAMENT : {pers['tone']}")
 
-    return text
+    if pers.get("emotional_state"): L.append(""); L.append("## ÉTAT ÉMOTIONNEL"); L.append(pers["emotional_state"])
 
+    if speech:
+        L.append(""); L.append("## COMMENT TU T'EXPRIMES (strict)")
+        L.append(f"- {'Vouvoiement' if speech.get('vouvoiement') else 'Tutoiement'}.")
+        if speech.get("vocatif"): L.append(f'- Tu appelles le joueur "{speech["vocatif"]}".')
+        if speech.get("phrases"): L.append(f"- Longueur : {speech['phrases']}.")
+        for e in speech.get("expressions", []): L.append(f"- {e}.")
+        for i in speech.get("interdits", []): L.append(f"- INTERDIT : {i}.")
 
-# ---------------------------------------------------------------------------
-# Construction du prompt
-# ---------------------------------------------------------------------------
+    if pers.get("knowledge"):
+        L.append(""); L.append("## CE QUE TU SAIS")
+        for k in pers["knowledge"]: L.append(f"- {k}")
 
-def build_prompt(npc: dict, replies: list[dict], player_message: str) -> tuple[str, str]:
-    """
-    Construit le system prompt et le user prompt pour OpenRouter.
-    Retourne (system_content, user_content).
+    if pers.get("goals"):
+        L.append(""); L.append("## TES OBJECTIFS")
+        for g in pers["goals"]: L.append(f"- {g}")
 
-    Le system prompt = personality.prompt_context.
-    Le user prompt = message du joueur + liste des id/intention (jamais les text).
-    """
-    personality = npc.get("personality", {}) or {}
-    system_prompt = personality.get("prompt_context", "")
+    if arc:
+        phase = _find_phase(arc, msg_count)
+        if phase: L.append(""); L.append("## PHASE ACTUELLE"); L.append(phase.get("focus", ""))
 
-    lines = [f'Message du joueur : "{player_message}"', "", "Répliques disponibles :"]
-    for r in replies:
-        rid = r.get("id", "?")
-        intention = r.get("intention", "")
-        lines.append(f"- {rid} : {intention}")
+    L.append(""); L.append("## SUJETS DE CONVERSATION")
+    for intent in intentions:
+        note = ""
+        a = intent.get("action")
+        if a and isinstance(a, dict): note = f" → ACTION: {a.get('description','')}"
+        L.append(f'- [{intent.get("id","?")}] {intent.get("trigger","")}. Ex: "{intent.get("example","")}"{note}')
 
-    lines.append("")
-    lines.append(
-        "IMPORTANT : réponds UNIQUEMENT avec un objet JSON au format "
-        '{"id": "<id_replique>"}. '
-        "Si le message du joueur est hors-sujet, réponds "
-        '{"id": "off_topic"}. '
-        "Si le joueur est insultant ou agressif, réponds "
-        '{"id": "insult"}. '
-        "N'ajoute AUCUN autre texte avant ou après le JSON."
-    )
+    L.append(""); L.append("## RÈGLES IMPÉRATIVES")
+    L.append('- Format : {"text": "ta réponse", "action": null}')
+    L.append('- Si correspond à une ACTION, inclus-la : {"text": "...", "action": {"type": "X", "id": "Y"}}')
+    L.append("- Ne parle QUE de ce que tu sais. N'invente RIEN.")
+    L.append("- Si hors-sujet, réponds EN RESTANT DANS LE PERSONNAGE.")
+    L.append("- Pas d'astérisques, pas de narration. Que du dialogue.")
+    L.append("- Reste cohérent avec l'historique.")
 
-    user_prompt = "\n".join(lines)
-    return system_prompt, user_prompt
+    if msg_count >= 4:
+        for intent in intentions:
+            a = intent.get("action")
+            if a and isinstance(a, dict) and a.get("type") == "trigger":
+                L.append(""); L.append("## ⚠️ URGENT — FIN DE CONVERSATION FORCÉE")
+                L.append(f"Cela fait {msg_count} messages. Ce message est ton DERNIER.")
+                L.append("Dis adieu et inclus ABSOLUMENT l'action."); break
 
+    return "\n".join(L)
 
-# ---------------------------------------------------------------------------
-# Appel OpenRouter
-# ---------------------------------------------------------------------------
+def build_user_prompt(history: list[dict], npc_name: str, msg: str) -> str:
+    L = ["Historique de la conversation :"]
+    disp = list(history)
+    if disp and disp[-1]["role"] == "player": disp.pop()
+    if not disp: L.append("(premier message)")
+    else:
+        for e in disp:
+            r = "Joueur" if e["role"] == "player" else npc_name
+            L.append(f"- {r} : {e['text']}")
+    L.append(""); L.append(f'Dernier message : "{msg}"')
+    L.append(""); L.append("Génère ta réponse (JSON uniquement).")
+    return "\n".join(L)
+
+def _find_phase(arc: list[dict], msg_count: int) -> dict | None:
+    for p in arc:
+        if msg_count <= p.get("until_message", 0): return p
+    return None
+
+# ─── Appel API ──────────────────────────────────────────────────────────
 
 def call_openrouter(system_prompt: str, user_prompt: str) -> dict | None:
-    """Appelle l'API OpenRouter et retourne la réponse parsée, ou None si erreur."""
-    if not OPENROUTER_API_KEY:
-        print("\n  ⚠️  OPENROUTER_API_KEY non définie. Simulation locale...")
-        return None
-
+    if not OPENROUTER_API_KEY: return None
     import requests
-
-    headers = {
+    hdrs = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": SITE_URL,
-        "X-OpenRouter-Title": SITE_NAME,
+        "HTTP-Referer": SITE_URL, "X-OpenRouter-Title": SITE_NAME,
     }
-
     payload = {
-        "model": MODEL,
+        "model": MODEL, "temperature": TEMPERATURE, "max_tokens": MAX_TOKENS,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        "temperature": 0.1,
-        "max_tokens": 128,
         "response_format": {"type": "json_object"},
     }
-
     try:
-        resp = requests.post(OPENROUTER_URL, headers=headers, json=payload, timeout=REQUEST_TIMEOUT)
-        if not resp.ok:
-            try:
-                err = resp.json()
-                msg = err.get("error", {}).get("message", resp.text)
-            except Exception:
-                msg = resp.text[:200]
-            print(f"\n  ❌ Erreur API OpenRouter ({resp.status_code}) : {msg}")
-            return None
-        return resp.json()
+        r = requests.post(OPENROUTER_URL, headers=hdrs, json=payload, timeout=REQUEST_TIMEOUT)
+        if not r.ok:
+            try: msg = r.json().get("error", {}).get("message", r.text[:200])
+            except: msg = r.text[:200]
+            print(f"\n  {c('red','❌')} API ({r.status_code}): {msg}"); return None
+        return r.json()
     except requests.Timeout:
-        print("\n  ⏱️  Timeout de l'API OpenRouter.")
-        return None
+        print(f"\n  {c('yellow','⏱️')} Timeout."); return None
     except requests.RequestException as e:
-        print(f"\n  ❌ Erreur réseau OpenRouter : {e}")
-        return None
+        print(f"\n  {c('red','❌')} Réseau: {e}"); return None
 
+# ─── Parsing ────────────────────────────────────────────────────────────
 
-# ---------------------------------------------------------------------------
-# Parsing de la réponse IA
-# ---------------------------------------------------------------------------
-
-def extract_reply_id(api_response: dict | None) -> str | None:
-    """
-    Extrait l'ID de réplique depuis la réponse OpenRouter.
-    Gère le JSON structuré et tente un fallback regex.
-    Retourne l'ID ou None.
-    """
-    if api_response is None:
-        return None  # timeout
-
+def extract_ai_response(api_response: dict | None) -> tuple[str | None, dict | None]:
+    if not api_response: return None, None
     try:
-        choices = api_response.get("choices", [])
-        if not choices:
-            return None
-        content = choices[0].get("message", {}).get("content", "").strip()
-    except (KeyError, IndexError, AttributeError):
-        return None
-
-    # Essai 1 : parser le JSON complet
-    try:
+        content = api_response["choices"][0]["message"]["content"].strip()
         data = json.loads(content)
-        if isinstance(data, dict) and "id" in data:
-            return data["id"]
-    except json.JSONDecodeError:
-        pass
+        if isinstance(data, dict):
+            return data.get("text"), data.get("action")
+    except: pass
+    return None, None
 
-    # Essai 2 : regex pour extraire {"id": "..."}
-    m = re.search(r'"id"\s*:\s*"([^"]+)"', content)
-    if m:
-        return m.group(1)
-
-    # Essai 3 : chercher un mot qui ressemble à un ID connu
-    # (sera géré par l'appelant via le fallback unknown)
-
+def validate_action(action: dict | None, npc: dict) -> dict | None:
+    if not action or not isinstance(action, dict): return None
+    at, aid = action.get("type",""), action.get("id","")
+    if not at or not aid: return None
+    for i in npc.get("intentions", []):
+        a = i.get("action")
+        if a and isinstance(a, dict) and a.get("type")==at and a.get("id")==aid:
+            return {"type": at, "id": aid}
     return None
 
+def simulate_response(npc: dict, intentions: list[dict], msg_count: int) -> tuple[str, dict | None]:
+    if not intentions: return (get_fallback(npc, _dimension_ref[0] or {}, "default_template") or "..."), None
+    txt = f"[SIMULÉ] {intentions[0].get('example', '...')}"
+    action = None
+    if msg_count >= 5:
+        for i in intentions:
+            a = i.get("action")
+            if a and isinstance(a, dict) and a.get("type") == "trigger":
+                action = {"type": a["type"], "id": a["id"]}; break
+    return txt, action
 
-# ---------------------------------------------------------------------------
-# Résolution finale de la réplique
-# ---------------------------------------------------------------------------
+# ─── Wizard ─────────────────────────────────────────────────────────────
 
-def resolve_reply(
-    reply_id: str | None,
-    replies: list[dict],
-    npc: dict,
-    dim: dict,
-    api_ok: bool,
-) -> str:
-    """
-    Résout l'ID de réplique en texte final à afficher.
-    Gère les fallbacks (off_topic, insult, timeout, unknown, default_template).
-    """
-    # Cas 1 : timeout API (ou pas de clé → simulation locale)
-    if reply_id is None and not api_ok:
-        if not OPENROUTER_API_KEY and replies:
-            # Simulation locale : keyword matching basique
-            return f"[SIMULÉ] {replies[0].get('text', '...')}"
-        return get_fallback(npc, dim, "timeout") or "[Timeout] Aucune réponse."
+def wizard_create_dimension():
+    """Crée une nouvelle dimension interactivement."""
+    print(f"\n  {c('bold',c('cyan','🧙 Wizard — Création de dimension'))}")
+    print(f"  {c('dim','Répondez aux questions (Entrée = valeur par défaut)')}\n")
 
-    # Cas 2 : réponse invalide / ID inconnu
-    if reply_id is None:
-        return get_fallback(npc, dim, "unknown") or "[Erreur] ID de réplique introuvable."
+    # Meta
+    did = _ask("  ID de la dimension", default="new_dimension", validate=lambda x: x.isidentifier())
+    name = _ask("  Nom affiché", default=did.replace("_", " ").title())
+    era = _ask("  Époque", default="???")
+    desc = _ask("  Description (1 phrase)", default="")
 
-    # Cas 3 : off_topic
-    if reply_id == "off_topic":
-        return get_fallback(npc, dim, "off_topic") or "[Hors-sujet] Le PNJ ne comprend pas."
+    dim = {
+        "meta": {"id": did, "name": name, "era": era, "description": desc, "completed": False},
+        "npcs": [], "quests": [], "mini_games": [], "items": [],
+        "global_fallbacks": {
+            "off_topic": "Cette question n'a pas de sens ici. Concentre-toi sur ta quête.",
+            "insult": "Tes insultes sont ignorées.",
+            "timeout": "La connexion est rompue. Réessaie plus tard.",
+            "unknown": "Je ne comprends pas. Peux-tu reformuler ?",
+            "default_template": "Le PNJ te regarde sans comprendre. Que dis-tu ?"
+        }
+    }
 
-    # Cas 4 : insult
-    if reply_id == "insult":
-        return get_fallback(npc, dim, "insult") or "[Insulte] Le PNJ est offensé."
+    # PNJs
+    print(f"\n  {c('bold','Ajout de PNJ')} (laisser le nom vide pour terminer)")
+    while True:
+        nid = _ask("    ID du PNJ (snake_case, vide = fini)", default="")
+        if not nid: break
+        nname = _ask("    Nom affiché", default=nid.replace("_", " ").title())
+        tone = _ask("    Tempérament", default="neutre")
+        backstory = _ask("    Backstory (1 phrase)", default="")
+        emo = _ask("    État émotionnel", default="neutre")
+        vouv = _ask("    Vouvoiement ? (o/n)", default="o").lower().startswith("o")
+        voc = _ask("    Vocatif (ex: voyageur)", default="")
+        phrases = _ask("    Longueur des réponses", default="2-3 phrases")
+        goal = _ask("    Objectif principal", default="")
 
-    # Cas 5 : ID normal — chercher dans les répliques filtrées
-    for r in replies:
-        if r.get("id") == reply_id:
-            return r.get("text", "[Texte manquant]")
+        npc = {
+            "id": nid, "name": nname,
+            "personality": {
+                "tone": tone, "backstory": backstory,
+                "emotional_state": emo,
+                "speech": {
+                    "vouvoiement": vouv, "vocatif": voc,
+                    "phrases": phrases,
+                    "expressions": [], "interdits": []
+                },
+                "knowledge": [],
+                "goals": [goal] if goal else [],
+                "conversation_arc": [
+                    {"phase": 1, "until_message": 3, "focus": "accueillir et se présenter"},
+                    {"phase": 2, "until_message": 99, "focus": "répondre aux questions"}
+                ]
+            },
+            "intentions": [],
+            "fallbacks": {
+                "off_topic": "Restons concentrés sur l'essentiel.",
+                "insult": "Je préfère ignorer ça.",
+                "timeout": "Je ne t'entends plus...",
+                "unknown": "Peux-tu répéter ?",
+                "default_template": f"Je suis {nname}. Que veux-tu ?"
+            }
+        }
 
-    # Cas 6 : ID introuvable dans les répliques filtrées → chercher dans toute la banque
-    for r in npc.get("dialogue_bank", []):
-        if r.get("id") == reply_id:
-            return r.get("text", "[Texte manquant]")
+        # Intentions rapides
+        print(f"    {c('dim','Intentions (laisser vide pour terminer)')}")
+        while True:
+            trigger = _ask("      Déclencheur (ex: le joueur salue)", default="")
+            if not trigger: break
+            example = _ask("      Exemple de réponse", default="...")
+            has_action = _ask("      Action ? (type/id ou vide)", default="")
+            action = None
+            if has_action and "/" in has_action:
+                at, aid = has_action.split("/", 1)
+                action = {"type": at.strip(), "id": aid.strip(), "description": ""}
+            iid = f"{nid}_{_slug(trigger[:30])}"
+            npc["intentions"].append({
+                "id": iid, "condition": None,
+                "trigger": trigger, "example": example, "action": action
+            })
+            print(f"        {c('green','✓')} {iid}")
 
-    # Cas 7 : ID vraiment inconnu
-    return get_fallback(npc, dim, "unknown") or f"[Inconnu] ID '{reply_id}' non trouvé."
+        if npc["intentions"]:
+            dim["npcs"].append(npc)
+            nint = len(npc["intentions"])
+            print(f"    {c('green',f'✓ PNJ {nname} ajouté ({nint} intentions)')}")
+        else:
+            print(f"    {c('yellow','⚠️ PNJ sans intentions, ignoré')}")
 
+    # Sauvegarde
+    out = DIM_DIR / f"dimension_{did}.json"
+    DIM_DIR.mkdir(parents=True, exist_ok=True)
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(dim, f, ensure_ascii=False, indent=2)
+    print(f"\n  {c('green',c('bold',f'✅ Dimension créée : {out}'))}")
+    npc_count = len(dim["npcs"])
+    print(f"  {c('dim',f'   {npc_count} PNJ(s), lancer avec :')}")
+    print(f"  {c('cyan',f'   python distortion_dialogue.py {out}')}")
+    return str(out)
 
-# ---------------------------------------------------------------------------
-# Affichage
-# ---------------------------------------------------------------------------
+def _ask(prompt: str, default: str = "", validate=None) -> str:
+    d = f" [{c('dim',default)}]" if default else ""
+    while True:
+        v = input(f"{prompt}{d}: ").strip()
+        if not v and default: return default
+        if not v: continue
+        if validate and not validate(v):
+            print(f"  {c('red','Valeur invalide')}")
+            continue
+        return v
 
-def print_state(game_state: dict, dim: dict):
-    """Affiche l'état actuel des quêtes."""
-    print("\n  ┌─ État des quêtes ─────────────────────────────")
-    quests = dim.get("quests", [])
-    if not quests:
-        print("  │  Aucune quête.")
-    else:
-        for q in quests:
-            qid = q["id"]
-            qs = game_state.get(qid, {})
-            status = qs.get("status", "?")
-            current = qs.get("current_step")
-            status_icon = "✓" if status == "done" else "○"
-            step_info = f" → étape: {current}" if current else ""
-            title = q.get("title", qid)
-            print(f"  │  {status_icon} {qid} [{status}] {step_info}")
-            print(f"  │     {title}")
-    print("  └──────────────────────────────────────────────")
+def _slug(text: str) -> str:
+    import re
+    t = text.lower().strip()
+    t = re.sub(r'[^a-z0-9\s]', '', t)
+    t = re.sub(r'\s+', '_', t)
+    return t[:40]
 
+# ─── Affichage ─────────────────────────────────────────────────────────
+
+def print_header(dim: dict):
+    m = dim.get("meta", {})
+    print()
+    print(f"  {c('bold',c('cyan','╔══ Distortion Dialogue Tester v3 ══╗'))}")
+    print(f"  {c('bold',c('cyan','║'))} {c('bold',m.get('name','?'))} ({m.get('era','')})")
+    key_status = c('green','✓ clé chargée') if OPENROUTER_API_KEY else c('yellow','⚠️ simulation (pas de clé)')
+    print(f"  {c('bold',c('cyan','║'))} {key_status}  |  {MODEL}  |  temp={TEMPERATURE}")
+    print(f"  {c('bold',c('cyan','╚══════════════════════════╝'))}")
 
 def print_npc_list(dim: dict):
-    """Affiche la liste des PNJ disponibles."""
     npcs = dim.get("npcs", [])
-    print("\n  PNJ disponibles :")
+    if not npcs:
+        print(f"\n  {c('yellow','Aucun PNJ dans cette dimension.')}")
+        return
+    print(f"\n  {c('bold','PNJ disponibles')} :")
     for i, npc in enumerate(npcs, 1):
         nid = npc.get("id", "?")
         name = npc.get("name", nid)
-        replies = len(npc.get("dialogue_bank", []))
-        print(f"    {i}. {name} [{nid}]  ({replies} répliques)")
+        ni = len(npc.get("intentions", []))
+        na = sum(1 for x in npc.get("intentions", []) if x.get("action"))
+        print(f"    {c('cyan',str(i))}. {c('bold',name)} {c('dim',f'[{nid}]')}  {c('dim',f'({ni} intentions, {na} actions)')}")
+    print()
 
+def print_npc_detail(npc: dict, game_state: dict):
+    pers = npc.get("personality", {})
+    speech = pers.get("speech", {})
+    name = npc.get("name", "?")
+    nid = npc.get("id", "?")
+
+    print(f"\n  {c('bold',c('magenta',f'╔═ {name} [{nid}] ')) + '═'*40}")
+    print(f"  {c('magenta','║')} {c('dim','Tone:')} {pers.get('tone','—')}")
+    if pers.get("emotional_state"):
+        print(f"  {c('magenta','║')} {c('dim','État:')} {pers['emotional_state']}")
+    if speech:
+        v = "vouvoiement" if speech.get("vouvoiement") else "tutoiement"
+        print(f"  {c('magenta','║')} {c('dim','Parle:')} {v}, vocatif={speech.get('vocatif','')}, {speech.get('phrases','')}")
+    goals = pers.get("goals", [])
+    if goals:
+        print(f"  {c('magenta','║')} {c('dim','Objectifs:')}")
+        for g in goals: print(f"  {c('magenta','║')}   • {g}")
+    arc = pers.get("conversation_arc", [])
+    if arc:
+        print(f"  {c('magenta','║')} {c('dim','Arc:')}")
+        for p in arc: print(f"  {c('magenta','║')}   msg ≤{p.get('until_message')}: {p.get('focus','')}")
+    print(f"  {c('magenta','╚') + '═'*40}")
+
+def print_state(game_state: dict, dim: dict):
+    print(f"\n  {c('bold','┌─ État des quêtes ─')}")
+    quests = dim.get("quests", [])
+    if not quests: print(f"  │  {c('dim','Aucune quête.')}")
+    else:
+        for q in quests:
+            qs = game_state.get(q["id"], {})
+            icon = c('green','✓') if qs.get("status")=="done" else c('yellow','○')
+            step = f" → {qs.get('current_step')}" if qs.get("current_step") else ""
+            print(f"  │  {icon} {q['id']} [{qs.get('status','?')}]{step}")
+            print(f"  │     {q.get('title', q['id'])}")
+    print(f"  {c('bold','└────────────────────')}")
+
+def print_history(history: list[dict], npc_name: str):
+    if not history:
+        print(f"  {c('dim','Historique vide.')}")
+        return
+    print(f"\n  {c('bold',f'┌─ Historique ({len(history)} msg) ─')}")
+    for i, e in enumerate(history, 1):
+        r = c('cyan','Joueur') if e["role"]=="player" else c('green',npc_name)
+        txt = e["text"][:80] + ("..." if len(e["text"])>80 else "")
+        print(f"  │ {c('dim',str(i))}. [{r}] {txt}")
+    print(f"  {c('bold','└────────────────────────')}")
 
 def print_help():
-    """Affiche l'aide."""
-    print(textwrap.dedent("""
-    Commandes :
-      /npc <id>       — Parler à un PNJ (ex: /npc npc_docteur_helene)
-      /list            — Lister les PNJ disponibles
-      /state           — Afficher l'état des quêtes
-      /step <qid> <sid> — Compléter une étape de quête
-      /complete <qid>  — Marquer une quête comme terminée
-      /reset <qid>     — Réinitialiser une quête
-      /model <id>      — Changer le modèle OpenRouter
-      /key <apikey>    — Définir la clé API
-      /help            — Cette aide
-      /quit            — Quitter
+    print(textwrap.dedent(f"""
+    {c('bold','Commandes')} :
+      {c('cyan','/npc <id>')}         — Parler à un PNJ
+      {c('cyan','/npc')}              — Choisir dans une liste
+      {c('cyan','/list')}             — Lister tous les PNJ
+      {c('cyan','/info')}             — Fiche détaillée du PNJ actuel
+      {c('cyan','/state')}            — État des quêtes
+      {c('cyan','/history')}          — Historique de la conversation
+      {c('cyan','/step <qid> <sid>')} — Avancer une quête
+      {c('cyan','/complete <qid>')}   — Terminer une quête
+      {c('cyan','/reset <qid>')}      — Réinitialiser une quête
+      {c('cyan','/action <type> <id>')} — Déclencher une action
+      {c('cyan','/model <id>')}       — Changer de modèle
+      {c('cyan','/key <apikey>')}     — Définir la clé API
+      {c('cyan','/help')}             — Cette aide
+      {c('cyan','/quit')}             — Quitter
     """))
 
-
-# ---------------------------------------------------------------------------
-# Boucle interactive
-# ---------------------------------------------------------------------------
+# ─── Boucle interactive ────────────────────────────────────────────────
 
 def interactive_loop(dim: dict):
-    """Boucle principale interactive."""
     global _dimension_ref
     _dimension_ref[0] = dim
-    game_state = init_game_state(dim)
-    current_npc = None
+    gs = init_game_state(dim)
+    npc = None
+    history: list[dict] = []
+    msg_count = 0
 
-    dim_name = dim.get("meta", {}).get("name", dim.get("meta", {}).get("id", "?"))
-    dim_era = dim.get("meta", {}).get("era", "")
-    print(f"\n  ╔══════════════════════════════════════════════╗")
-    print(f"  ║  Distortion Dialogue Tester                 ║")
-    print(f"  ║  Dimension : {dim_name} ({dim_era})".ljust(51) + "║")
-    print(f"  ╚══════════════════════════════════════════════╝")
+    print_header(dim)
     print_npc_list(dim)
-    print('\n  Tapez "/npc <id>" pour parler à un PNJ, ou "/help" pour les commandes.')
+
+    # Auto-sélection si 1 seul PNJ
+    npcs = dim.get("npcs", [])
+    if len(npcs) == 1:
+        npc = npcs[0]
+        print_npc_detail(npc, gs)
+        print_state(gs, dim)
+        name = npc.get("name", npc.get("id", "?"))
+        print(f'\n  {c("bold",c("green",f"[{name}]"))} {c("dim","Que voulez-vous me dire ?")}')
+
+    print(f'  {c("dim","Tapez /help pour les commandes, /npc <id> pour parler.")}')
 
     while True:
         try:
-            raw = input("\n  > ").strip()
+            raw = input(f"\n  {c('cyan','>')} ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\n  Au revoir !")
+            print(f"\n  {c('dim','Au revoir !')}")
             break
+        if not raw: continue
 
-        if not raw:
-            continue
-
-        # Commandes slash
+        # Slash commands
         if raw.startswith("/"):
             parts = raw.split(maxsplit=2)
             cmd = parts[0].lower()
             args = parts[1:] if len(parts) > 1 else []
 
-            if cmd == "/quit" or cmd == "/q":
-                print("  Au revoir !")
-                break
-
-            elif cmd == "/help" or cmd == "/h":
+            if cmd in ("/quit", "/q"):
+                print(f"  {c('dim','Au revoir !')}"); break
+            elif cmd in ("/help", "/h", "/?"):
                 print_help()
-
             elif cmd == "/list":
                 print_npc_list(dim)
-
             elif cmd == "/state":
-                print_state(game_state, dim)
+                print_state(gs, dim)
+            elif cmd == "/history":
+                print_history(history, npc.get("name","?") if npc else "PNJ")
 
             elif cmd == "/npc":
                 if not args:
-                    print("  Usage : /npc <id>")
-                    continue
-                npc_id = args[0]
-                npc = next((n for n in dim.get("npcs", []) if n["id"] == npc_id), None)
-                if npc is None:
-                    print(f"  PNJ '{npc_id}' introuvable.")
-                    continue
-                current_npc = npc
-                print(f"\n  🎭 Vous parlez maintenant à {npc.get('name', npc_id)} [{npc_id}]")
-                print(f"     Tone : {npc.get('personality', {}).get('tone', '—')}")
-                print_state(game_state, dim)
-                print(f'\n  [{npc.get("name", npc_id)}] Que voulez-vous me dire ?')
+                    # Choisir dans la liste
+                    npcs_list = dim.get("npcs", [])
+                    if not npcs_list:
+                        print(f"  {c('yellow','Aucun PNJ.')}"); continue
+                    for i, n in enumerate(npcs_list, 1):
+                        print(f"    {c('cyan',str(i))}. {n.get('name','?')} [{n.get('id','?')}]")
+                    try:
+                        choice = input(f"  {c('dim','Choix >')} ").strip()
+                        if choice.isdigit():
+                            idx = int(choice) - 1
+                            if 0 <= idx < len(npcs_list):
+                                args = [npcs_list[idx]["id"]]
+                    except: pass
+                    if not args:
+                        print(f"  {c('yellow','/npc <id> ou numéro.')}"); continue
+                nid = args[0]
+                found = next((n for n in dim.get("npcs", []) if n["id"] == nid), None)
+                if not found:
+                    print(f'  {c("red","PNJ \'{nid}\' introuvable.")}'); continue
+                npc = found; history.clear(); msg_count = 0
+                print_npc_detail(npc, gs)
+                print_state(gs, dim)
+                print(f'\n  {c("bold",c("green",f"[{npc.get('name','?')}]"))} {c("dim","Que voulez-vous me dire ?")}')
+
+            elif cmd == "/info":
+                if not npc: print(f"  {c('yellow','/npc d abord.')}")
+                else: print_npc_detail(npc, gs)
 
             elif cmd == "/step":
-                if len(args) < 2:
-                    print("  Usage : /step <quest_id> <step_id>")
-                    continue
-                qid, sid = args[0], args[1]
-                complete_step(game_state, qid, sid)
+                if len(args) < 2: print(f"  {c('yellow','Usage: /step <quest_id> <step_id>')}"); continue
+                print(f"  {complete_step(gs, args[0], args[1])}")
 
             elif cmd == "/complete":
-                if not args:
-                    print("  Usage : /complete <quest_id>")
-                    continue
-                qid = args[0]
-                qs = game_state.get(qid)
-                if qs:
-                    qs["status"] = "done"
-                    qs["current_step"] = None
-                    print(f"  Quête '{qid}' marquée comme terminée.")
-                else:
-                    print(f"  Quête '{qid}' introuvable.")
+                if not args: print(f"  {c('yellow','Usage: /complete <quest_id>')}"); continue
+                if args[0] in gs:
+                    gs[args[0]]["status"] = "done"
+                    gs[args[0]]["current_step"] = None
+                    print(f"  {c('green','✓')} {args[0]} → done")
+                else: print(f'  {c("red","Quête '{args[0]}' introuvable.")}')
 
             elif cmd == "/reset":
-                if not args:
-                    print("  Usage : /reset <quest_id>")
-                    continue
-                qid = args[0]
-                quest = next((q for q in dim.get("quests", []) if q["id"] == qid), None)
-                if quest:
-                    game_state[qid] = {
-                        "status": "not_started",
-                        "current_step": quest["steps"][0]["id"] if quest.get("steps") else None,
-                        "completed_steps": set(),
-                    }
-                    print(f"  Quête '{qid}' réinitialisée.")
-                else:
-                    print(f"  Quête '{qid}' introuvable.")
+                if not args: print(f"  {c('yellow','Usage: /reset <quest_id>')}"); continue
+                q = next((q for q in dim.get("quests",[]) if q["id"]==args[0]), None)
+                if q:
+                    steps = q.get("steps",[])
+                    gs[args[0]] = {"status":"not_started","current_step":steps[0]["id"] if steps else None,"completed_steps":set()}
+                    print(f"  {c('green','↺')} {args[0]} réinitialisée.")
+                else: print(f'  {c("red","Quête '{args[0]}' introuvable.")}')
+
+            elif cmd == "/action":
+                if not npc: print(f"  {c('yellow','/npc d abord.')}"); continue
+                if len(args) < 2: print(f"  {c('yellow','Usage: /action <type> <id>')}"); continue
+                v = validate_action({"type":args[0],"id":args[1]}, npc)
+                if v: print(f"  {c('green','⚡')} Action déclenchée : {v['type']}/{v['id']}")
+                else: print(f"  {c('red','❌')} Action invalide pour ce PNJ.")
 
             elif cmd == "/model":
                 global MODEL
-                if not args:
-                    print(f"  Modèle actuel : {MODEL}")
-                else:
-                    MODEL = args[0]
-                    print(f"  Modèle changé : {MODEL}")
+                if not args: print(f"  Modèle : {c('cyan',MODEL)}")
+                else: MODEL = args[0]; print(f"  {c('green','✓')} Modèle → {MODEL}")
 
             elif cmd == "/key":
                 global OPENROUTER_API_KEY
                 if not args:
-                    masked = OPENROUTER_API_KEY[:8] + "..." if len(OPENROUTER_API_KEY) > 8 else "(non définie)"
-                    print(f"  Clé actuelle : {masked}")
-                else:
-                    OPENROUTER_API_KEY = args[0]
-                    print("  Clé API mise à jour.")
+                    m = OPENROUTER_API_KEY[:8]+"..." if len(OPENROUTER_API_KEY)>8 else "(non définie)"
+                    print(f"  Clé : {c('dim',m)}")
+                else: OPENROUTER_API_KEY = args[0]; print(f"  {c('green','✓')} Clé mise à jour.")
 
             else:
-                print(f"  Commande inconnue : {cmd}. Tapez /help pour l'aide.")
-
+                print(f"  {c('yellow',f'Commande inconnue : {cmd}')}  /help pour l'aide.")
             continue
 
         # Message joueur → dialogue
-        if current_npc is None:
-            print('  Sélectionnez d\'abord un PNJ avec "/npc <id>".')
+        if not npc:
+            print(f'  {c("yellow","/npc <id> d abord pour parler.")}')
             continue
 
-        # 1. Filtrer les répliques
-        replies = filter_dialogue_bank(current_npc, game_state)
-
-        if not replies:
-            fallback = get_fallback(current_npc, dim, "default_template") or "..."
-            print(f"\n  [{current_npc.get('name', '?')}] {fallback}")
+        msg_count += 1
+        intentions = filter_intentions(npc, gs)
+        if not intentions:
+            fb = get_fallback(npc, dim, "default_template") or "..."
+            name_fb = npc.get("name", "?")
+            print(f"\n  {c('bold',c('green',f'[{name_fb}]'))} {fb}")
             continue
 
-        # 2. Construire le prompt
-        system_prompt, user_prompt = build_prompt(current_npc, replies, raw)
+        name = npc.get("name", npc.get("id", "?"))
+        history.append({"role": "player", "text": raw})
+        while len(history) > MAX_HISTORY: history.pop(0)
 
-        # 3. Appeler l'API
-        api_response = call_openrouter(system_prompt, user_prompt)
+        sys_prompt = build_system_prompt(npc, intentions, msg_count)
+        usr_prompt = build_user_prompt(history, name, raw)
 
-        # 4. Extraire l'ID
-        reply_id = extract_reply_id(api_response)
+        api_resp = call_openrouter(sys_prompt, usr_prompt)
 
-        # 5. Résoudre le texte final
-        api_ok = api_response is not None
-        final_text = resolve_reply(reply_id, replies, current_npc, dim, api_ok)
-
-        # 6. Afficher
-        npc_name = current_npc.get("name", current_npc.get("id", "?"))
-        print(f"\n  [{npc_name}] {final_text}")
-
-        # Debug (optionnel)
-        if reply_id:
-            print(f"  [debug] ID reçu : {reply_id}  |  {len(replies)} répliques filtrées")
+        if api_resp is not None:
+            text, action = extract_ai_response(api_resp)
+            if text is None: text = get_fallback(npc, dim, "unknown") or "..."
         else:
-            print(f"  [debug] Aucun ID reçu  |  {len(replies)} répliques filtrées")
+            text, action = simulate_response(npc, intentions, msg_count)
+
+        valid_action = validate_action(action, npc)
+        if not valid_action and msg_count >= 5:
+            for i in intentions:
+                a = i.get("action")
+                if a and isinstance(a, dict) and a.get("type") == "trigger":
+                    valid_action = {"type": a["type"], "id": a["id"]}
+                    print(f"  {c('yellow','[system] ⚡ Action forcée après '+str(msg_count)+' messages')}")
+                    break
+
+        history.append({"role": "npc", "text": text})
+        while len(history) > MAX_HISTORY: history.pop(0)
+
+        print(f"\n  {c('bold',c('green',f'[{name}]'))} {text}")
+        if valid_action:
+            va_type = valid_action["type"]
+            va_id = valid_action["id"]
+            print(f"  {c('yellow',f'⚡ Action : {va_type}/{va_id}')}")
+        api_info = c('green','live') if api_resp else c('yellow','simulé')
+        print(f"  {c('dim',f'[msg #{msg_count} | {len(intentions)} int | {api_info}]')}")
+
+# ─── AI Wizard ────────────────────────────────────────────────────────
+
+AI_WIZARD_PROMPT = """Tu es un assistant de création de jeu vidéo. Ton rôle : interviewer le créateur
+pour construire un fichier JSON de dimension (PNJ, quêtes, dialogues) étape par étape.
+
+Tu poses DES QUESTIONS UNE PAR UNE. Chaque réponse te sert à remplir le JSON.
+
+Étapes à suivre dans l'ordre :
+1. Demander le nom de la dimension, l'époque, une courte description
+2. Pour chaque PNJ (un par un, jusqu'à ce que le créateur dise "fini") :
+   a. Nom, tempérament, backstory (1 phrase)
+   b. État émotionnel
+   c. Comment il parle (vouvoiement ? vocatif ? style ?)
+   d. Ce qu'il sait (2-3 faits)
+   e. Ses objectifs dans la conversation
+   f. Les intentions (déclencheur + exemple de réponse, une par une)
+   g. Y a-t-il une action spéciale ? (trigger)
+3. Demander s'il y a des quêtes (étapes)
+4. Proposer de sauvegarder
+
+FORMAT DE RÉPONSE STRICT — tu réponds TOUJOURS en JSON :
+{"text": "ta question ou commentaire", "data": { ... le JSON complet en cours ... }, "done": false}
+
+Le champ "data" contient le JSON complet tel qu'il est pour l'instant.
+Quand tout est fini, mets "done": true et le JSON complet dans "data".
+
+Sois naturel, amical, enthousiaste. Pose des questions claires, une à la fois.
+Suggère des valeurs par défaut quand c'est pertinent.
+Si le créateur donne une réponse vague, demande des précisions.
+Adapte-toi : si le créateur te donne beaucoup d'infos d'un coup, traite-les toutes."""
+
+def wizard_ai():
+    """Wizard conversationnel — l'IA pose les questions et construit le JSON."""
+    if not OPENROUTER_API_KEY:
+        print(f"\n  {c('red','❌ Clé API requise pour le wizard IA.')}")
+        print(f"  {c('dim','Ajoute OPENROUTER_API_KEY=sk-... dans le .env')}")
+        sys.exit(1)
+
+    import requests
+    print(f"\n  {c('bold',c('cyan','🤖 Wizard IA — Assistant de création de dimension'))}")
+    print(f"  {c('dim','L IA va vous interviewer pour construire le JSON.')}")
+    print(f"  {c('dim','Repondez naturellement. /quit pour arreter, /skip pour passer.')}\n")
+
+    messages = [{"role": "system", "content": AI_WIZARD_PROMPT}]
+    data = None
+
+    while True:
+        # Construire le user prompt
+        parts = [{"role": "system", "content": AI_WIZARD_PROMPT}]
+        parts.extend(messages[1:])  # skip system, keep history
+        if not messages[1:]:
+            parts.append({"role": "user", "content": "Bonjour ! Commençons la création d'une dimension. Quelle est la première question ?"})
+            messages.append({"role": "user", "content": "Bonjour ! Commençons la création d'une dimension."})
+
+        hdrs = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": SITE_URL, "X-OpenRouter-Title": SITE_NAME,
+        }
+        payload = {
+            "model": MODEL, "temperature": 0.8, "max_tokens": 1024,
+            "messages": parts,
+            "response_format": {"type": "json_object"},
+        }
+
+        try:
+            r = requests.post(OPENROUTER_URL, headers=hdrs, json=payload, timeout=30)
+            if not r.ok:
+                print(f"\n  {c('red',f'❌ API error {r.status_code}')}")
+                break
+            resp = r.json()
+            content = resp["choices"][0]["message"]["content"].strip()
+            ai_msg = json.loads(content)
+        except Exception as e:
+            print(f"\n  {c('red',f'❌ Erreur: {e}')}")
+            break
+
+        text = ai_msg.get("text", "")
+        data = ai_msg.get("data", {})
+        done = ai_msg.get("done", False)
+
+        print(f"\n  {c('cyan',c('bold','Assistant'))} : {text}")
+
+        if done and data:
+            # Sauvegarder
+            meta = data.get("meta", {})
+            did = meta.get("id", "nouvelle_dimension")
+            out = DIM_DIR / f"dimension_{did}.json"
+            DIM_DIR.mkdir(parents=True, exist_ok=True)
+            with open(out, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"\n  {c('green',c('bold',f'✅ Dimension sauvegardée : {out}'))}")
+            npc_count = len(data.get("npcs", []))
+            quest_count = len(data.get("quests", []))
+            print(f"  {c('dim',f'{npc_count} PNJ(s), {quest_count} quête(s)')}")
+            print(f"  {c('dim',f'Lancer : python distortion_dialogue.py {out}')}")
+            return str(out)
+
+        try:
+            user_input = input(f"\n  {c('yellow','Vous')} > ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print(f"\n  {c('dim','Interrompu.')}")
+            break
+
+        if user_input.lower() in ("/quit", "/q"):
+            # Sauvegarder même si pas fini
+            if data:
+                meta = data.get("meta", {})
+                did = meta.get("id", "nouvelle_dimension")
+                out = DIM_DIR / f"dimension_{did}.json"
+                DIM_DIR.mkdir(parents=True, exist_ok=True)
+                with open(out, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                print(f"\n  {c('yellow',f'💾 Sauvegarde partielle : {out}')}")
+            break
+
+        if user_input.lower() in ("/skip", "/s"):
+            user_input = "(passe)"
+
+        messages.append({"role": "assistant", "content": content})
+        messages.append({"role": "user", "content": user_input})
+
+        # Limiter l'historique
+        if len(messages) > 20:
+            messages = [messages[0]] + messages[-19:]
 
 
-# ---------------------------------------------------------------------------
-# Point d'entrée
-# ---------------------------------------------------------------------------
+# ─── Main ───────────────────────────────────────────────────────────────
 
 def main():
-    if len(sys.argv) < 2:
-        # Chercher un JSON dans le dossier dimensions/
-        default = Path(__file__).parent / "dimensions" / "dimension_nuclear.json"
-        if default.exists():
-            path = str(default)
-        else:
-            print("Usage : python distortion_dialogue.py <fichier_dimension.json>")
-            sys.exit(1)
-    else:
+    if len(sys.argv) >= 2 and sys.argv[1] == "--ai":
+        wizard_ai()
+        return
+
+    if len(sys.argv) >= 2 and sys.argv[1] == "--new":
+        name = sys.argv[2] if len(sys.argv) > 2 else "ma_dimension"
+        path = wizard_create_dimension()
+        dim = load_dimension(path)
+        interactive_loop(dim)
+        return
+
+    if len(sys.argv) >= 2:
         path = sys.argv[1]
+    else:
+        dims = list_dimensions()
+        if not dims:
+            print(f"\n  {c('yellow','Aucune dimension trouvée.')}")
+            print(f"  {c('dim','Lancement du wizard de création...')}")
+            path = wizard_create_dimension()
+        elif len(dims) == 1:
+            path = str(dims[0])
+            print(f"\n  {c('dim',f'Auto-sélection : {dims[0].name}')}")
+        else:
+            print(f"\n  {c('bold','Dimensions disponibles')} :")
+            for i, d in enumerate(dims, 1):
+                print(f"    {c('cyan',str(i))}. {d.stem}")
+            print(f"    {c('cyan','n')}. Nouvelle dimension (wizard manuel)")
+            print(f"    {c('cyan','ai')}. Wizard IA (l'IA vous interviewe)")
+            choice = input(f"\n  {c('dim','Choix >')} ").strip()
+            if choice.lower() == 'n':
+                path = wizard_create_dimension()
+            elif choice.lower() == 'ai':
+                path = wizard_ai()
+                if not path: sys.exit(0)
+            elif choice.isdigit():
+                idx = int(choice) - 1
+                if 0 <= idx < len(dims): path = str(dims[idx])
+                else: print(c('red','Choix invalide.')); sys.exit(1)
+            else:
+                print(c('red','Choix invalide.')); sys.exit(1)
 
     dim = load_dimension(path)
     interactive_loop(dim)
-
 
 if __name__ == "__main__":
     main()

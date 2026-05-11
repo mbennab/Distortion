@@ -9,14 +9,16 @@ signal dialogue_ended
 signal dialogue_response(npc_name: String, text: String)
 signal dialogue_error(message: String)
 signal quest_updated(quest_id: String, status: String, current_step: String)
-signal reply_resolved(reply_id: String)
+signal action_triggered(action: Dictionary)
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 const MODEL = "mistralai/ministral-3b-2512"
 const REQUEST_TIMEOUT = 15.0
 const SITE_URL = "http://localhost:8000"
 const SITE_NAME = "Distortion"
-const AI_SPECIAL_IDS = ["off_topic", "insult"]
+const MAX_TOKENS = 256
+const TEMPERATURE = 0.7
+const MAX_HISTORY = 15
 
 var http_request: HTTPRequest
 var dimension: Dictionary = {}
@@ -26,6 +28,8 @@ var current_npc_id: String = ""
 var api_key: String = ""
 var is_active: bool = false
 var pending: bool = false
+var conversation_history: Array[Dictionary] = []
+var _message_count: int = 0
 
 
 func _ready() -> void:
@@ -98,6 +102,7 @@ func start_dialogue(npc_id: String) -> void:
 	print("[DialogueSystem] start_dialogue: %s (%s)" % [npc_id, npc.get("name", "?")])
 	current_npc = npc
 	current_npc_id = npc_id
+	_message_count = 0
 	is_active = true
 	dialogue_started.emit(npc_id, npc.get("name", npc_id))
 
@@ -106,6 +111,7 @@ func stop_dialogue() -> void:
 	is_active = false
 	current_npc = {}
 	current_npc_id = ""
+	conversation_history.clear()
 	dialogue_ended.emit()
 
 
@@ -115,24 +121,30 @@ func send_message(player_message: String) -> void:
 	if current_npc.is_empty():
 		return
 
-	var replies = filter_dialogue_bank(current_npc_id)
-	print("[DialogueSystem] send_message: '%s' → %d replies" % [player_message, replies.size()])
-	if replies.is_empty():
+	print("[DialogueSystem] send_message: '%s' (msg #%d)" % [player_message, _message_count + 1])
+	_message_count += 1
+
+	var intentions = filter_intentions(current_npc_id)
+	if intentions.is_empty():
 		var fallback = get_fallback(current_npc_id, "default_template")
 		dialogue_response.emit(current_npc.get("name", "?"), fallback)
 		return
 
 	if api_key == "":
-		print("[DialogueSystem] ERROR: no API key")
-		dialogue_error.emit("OPENROUTER_API_KEY not set. Set the environment variable or .env file to use dialogue.")
+		dialogue_error.emit("OPENROUTER_API_KEY manquante. Configurez la variable d'environnement ou le fichier .env")
 		return
 
-	var system_prompt = current_npc.get("personality", {}).get("prompt_context", "")
-	var user_prompt = build_user_prompt(replies, player_message)
-	_send_api_request(system_prompt, user_prompt, replies)
+	# Stocker le message joueur dans l'historique (la réponse PNJ sera ajoutée au retour API)
+	conversation_history.append({"role": "player", "text": player_message})
+	while conversation_history.size() > MAX_HISTORY:
+		conversation_history.pop_front()
+
+	var system_prompt = _build_system_prompt(intentions)
+	var user_prompt = _build_user_prompt(player_message)
+	_send_api_request(system_prompt, user_prompt)
 
 
-func _send_api_request(system_prompt: String, user_prompt: String, replies: Array) -> void:
+func _send_api_request(system_prompt: String, user_prompt: String) -> void:
 	if pending:
 		return
 	pending = true
@@ -150,18 +162,18 @@ func _send_api_request(system_prompt: String, user_prompt: String, replies: Arra
 			{"role": "system", "content": system_prompt},
 			{"role": "user", "content": user_prompt},
 		],
-		"temperature": 0.1,
-		"max_tokens": 128,
+		"temperature": TEMPERATURE,
+		"max_tokens": MAX_TOKENS,
 		"response_format": {"type": "json_object"},
 	}
 
 	var json_string = JSON.stringify(body)
-	print("[DialogueSystem] Sending API request to OpenRouter...")
+	print("[DialogueSystem] Sending API request to OpenRouter (tokens=%d, temp=%.1f)..." % [MAX_TOKENS, TEMPERATURE])
 	var err = http_request.request(OPENROUTER_URL, headers, HTTPClient.METHOD_POST, json_string)
 	if err != OK:
 		pending = false
 		print("[DialogueSystem] ERROR: request() returned %d" % err)
-		dialogue_error.emit("Failed to send request: %d" % err)
+		dialogue_error.emit("Échec de l'envoi de la requête: %d" % err)
 		return
 	print("[DialogueSystem] Request sent, waiting for response...")
 
@@ -182,41 +194,103 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 	if response_code != 200:
 		var err_body = body.get_string_from_utf8()
 		print("[DialogueSystem] API error: %s" % err_body.left(200))
-		dialogue_error.emit("API error %d: %s" % [response_code, err_body.left(200)])
+		dialogue_error.emit("Erreur API %d: %s" % [response_code, err_body.left(200)])
 		return
 
 	var reply_body = body.get_string_from_utf8()
 	print("[DialogueSystem] Response body: %s" % reply_body.left(300))
-	var replies = filter_dialogue_bank(current_npc_id)
+
+	# Parse the OpenRouter response
 	var api_response: Dictionary = {}
 	var json = JSON.new()
 	if json.parse(reply_body) == OK:
 		api_response = json.data
 
-	var reply_id = extract_reply_id(api_response)
-	print("[DialogueSystem] Extracted reply_id: '%s'" % reply_id)
-	var final_text = resolve_reply(reply_id, replies)
-	print("[DialogueSystem] Resolved text: '%s'" % final_text.left(100))
+	var choices = api_response.get("choices", [])
+	if choices.is_empty():
+		var fallback = get_fallback(current_npc_id, "unknown")
+		dialogue_response.emit(current_npc.get("name", "?"), fallback)
+		return
+
+	var content = choices[0].get("message", {}).get("content", "").strip_edges()
+
+	# Parse the AI's JSON response (expects {"text": "...", "action": null|{...}})
+	var ai_json = JSON.new()
+	var ai_data: Dictionary = {}
+	if ai_json.parse(content) == OK and ai_json.data is Dictionary:
+		ai_data = ai_json.data
+
 	var npc_name = current_npc.get("name", current_npc.get("id", "?"))
-	dialogue_response.emit(npc_name, final_text)
-	reply_resolved.emit(reply_id)
+	var text = ai_data.get("text", "")
+
+	# Fallback si le texte est vide
+	if text == "":
+		text = get_fallback(current_npc_id, "unknown")
+
+	# Ajouter la réponse PNJ à l'historique
+	conversation_history.append({"role": "npc", "text": text})
+	while conversation_history.size() > MAX_HISTORY:
+		conversation_history.pop_front()
+
+	print("[DialogueSystem] AI text: '%s'" % text.left(100))
+
+	# Émettre la réponse texte
+	dialogue_response.emit(npc_name, text)
+
+	# Valider et émettre l'action
+	var action_emitted = false
+	var action = ai_data.get("action")
+	if action != null and action is Dictionary:
+		var valid_action = _validate_action(action)
+		if not valid_action.is_empty():
+			print("[DialogueSystem] Action validée: %s/%s" % [valid_action.type, valid_action.id])
+			action_triggered.emit(valid_action)
+			action_emitted = true
+		else:
+			print("[DialogueSystem] Action rejetée (invalide): %s" % str(action))
+
+	# Filet de sécurité : forcer l'action après 5 messages si le PNJ en a une
+	if not action_emitted and _message_count >= 5:
+		for intent in current_npc.get("intentions", []):
+			var forced_action = intent.get("action")
+			if forced_action != null and forced_action is Dictionary and forced_action.get("type") == "trigger":
+				print("[DialogueSystem] Forçage action après %d messages: %s/%s" % [_message_count, forced_action.type, forced_action.id])
+				action_triggered.emit({"type": forced_action.type, "id": forced_action.id})
+				break
 
 
-func filter_dialogue_bank(npc_id: String) -> Array:
+func _validate_action(action: Dictionary) -> Dictionary:
+	if not action.has("type") or not action.has("id"):
+		return {}
+
+	var action_type = action.get("type", "")
+	var action_id = action.get("id", "")
+
+	for intent in current_npc.get("intentions", []):
+		var intent_action = intent.get("action")
+		if intent_action == null or not intent_action is Dictionary:
+			continue
+		if intent_action.get("type") == action_type and intent_action.get("id") == action_id:
+			return {"type": action_type, "id": action_id}
+
+	return {}
+
+
+func filter_intentions(npc_id: String) -> Array:
 	var npc = _find_npc(npc_id)
 	if npc.is_empty():
 		return []
 
 	var matches: Array = []
-	for reply in npc.get("dialogue_bank", []):
-		var cond = reply.get("condition")
+	for intent in npc.get("intentions", []):
+		var cond = intent.get("condition")
 		if cond == null or not cond is Dictionary:
-			matches.append(reply)
+			matches.append(intent)
 			continue
 
 		var qid = cond.get("quest_id")
 		if qid == null or qid == "":
-			matches.append(reply)
+			matches.append(intent)
 			continue
 
 		var qs = game_state.get(qid)
@@ -231,68 +305,160 @@ func filter_dialogue_bank(npc_id: String) -> Array:
 		if qstep_cond != null and qstep_cond != qs.get("current_step", ""):
 			continue
 
-		matches.append(reply)
+		matches.append(intent)
 
 	return matches
 
 
-func build_user_prompt(replies: Array, player_message: String) -> String:
+func _build_system_prompt(filtered_intentions: Array) -> String:
 	var lines: Array[String] = []
-	lines.append('Message du joueur : "%s"' % player_message)
+	var npc = current_npc
+	var pers = npc.get("personality", {})
+
+	lines.append("Tu incarnes un PNJ de jeu vidéo. Incarne-le avec rigueur et naturel.")
 	lines.append("")
-	lines.append("Répliques disponibles :")
-	for r in replies:
-		var rid = r.get("id", "?")
-		var intention = r.get("intention", "")
-		lines.append("- %s : %s" % [rid, intention])
+	lines.append("## IDENTITÉ")
+	lines.append("NOM : %s" % npc.get("name", npc.get("id", "?")))
+
+	var backstory = pers.get("backstory", "")
+	if backstory != "":
+		lines.append("HISTOIRE : %s" % backstory)
+
+	var tone = pers.get("tone", "")
+	if tone != "":
+		lines.append("TEMPÉRAMENT : %s" % tone)
+
+	# --- ÉTAT ÉMOTIONNEL ---
+	var emotional = pers.get("emotional_state", "")
+	if emotional != "":
+		lines.append("")
+		lines.append("## ÉTAT ÉMOTIONNEL ACTUEL")
+		lines.append("%s" % emotional)
+
+	# --- COMMENT TU PARLES ---
+	var speech = pers.get("speech", {})
+	if not speech.is_empty():
+		lines.append("")
+		lines.append("## COMMENT TU T'EXPRIMES (règles strictes)")
+		if speech.has("vouvoiement") and speech.vouvoiement:
+			lines.append("- Tu vouvoies TOUJOURS le joueur.")
+		elif speech.has("vouvoiement") and not speech.vouvoiement:
+			lines.append("- Tu tutoies le joueur.")
+		var voc = speech.get("vocatif", "")
+		if voc != "":
+			lines.append("- Tu appelles le joueur \"%s\"." % voc)
+		var phrases = speech.get("phrases", "")
+		if phrases != "":
+			lines.append("- Longueur : %s." % phrases)
+		var expressions: Array = speech.get("expressions", [])
+		for e in expressions:
+			lines.append("- %s." % e)
+		var interdits: Array = speech.get("interdits", [])
+		for i in interdits:
+			lines.append("- INTERDIT : %s." % i)
+
+	# --- CONNAISSANCES ---
+	var knowledge = pers.get("knowledge", [])
+	if not knowledge.is_empty():
+		lines.append("")
+		lines.append("## CE QUE TU SAIS")
+		for k in knowledge:
+			lines.append("- %s" % k)
+
+	# --- OBJECTIFS ---
+	var goals: Array = pers.get("goals", [])
+	if not goals.is_empty():
+		lines.append("")
+		lines.append("## TES OBJECTIFS (prioritaires)")
+		for g in goals:
+			lines.append("- %s" % g)
+
+	# --- ARC DE CONVERSATION ---
+	var arc: Array = pers.get("conversation_arc", [])
+	if not arc.is_empty():
+		var current_phase = _find_current_phase(arc)
+		if not current_phase.is_empty():
+			lines.append("")
+			lines.append("## PHASE ACTUELLE DE LA CONVERSATION")
+			lines.append("Tu es dans cette phase : %s" % current_phase.get("focus", "conversation normale"))
+			var next_phase = _find_next_phase(arc)
+			if not next_phase.is_empty():
+				lines.append("Prochaine phase : %s" % next_phase.get("focus", "continuer"))
+
+	# --- INTENTIONS ---
 	lines.append("")
-	lines.append('IMPORTANT : réponds UNIQUEMENT avec un objet JSON au format {"id": "<id_replique>"}.')
-	lines.append('Si le message du joueur est hors-sujet, réponds {"id": "off_topic"}.')
-	lines.append('Si le joueur est insultant ou agressif, réponds {"id": "insult"}.')
-	lines.append("N'ajoute AUCUN autre texte avant ou après le JSON.")
+	lines.append("## SUJETS DE CONVERSATION POSSIBLES")
+	for intent in filtered_intentions:
+		var iid = intent.get("id", "?")
+		var trigger = intent.get("trigger", "")
+		var example = intent.get("example", "")
+		var action = intent.get("action")
+		var action_note = ""
+		if action != null and action is Dictionary:
+			var action_desc = action.get("description", "")
+			action_note = " → ACTION: %s" % action_desc
+		lines.append("- [%s] %s. Ex: \"%s\"%s" % [iid, trigger, example, action_note])
+
+	# --- RÈGLES ---
+	lines.append("")
+	lines.append("## RÈGLES IMPÉRATIVES")
+	lines.append('- Format de réponse : UNIQUEMENT {"text": "ta réponse", "action": null}')
+	lines.append('- Si la situation correspond à une ACTION, inclus-la : {"text": "...", "action": {"type": "X", "id": "Y"}}')
+	lines.append("- Ne parle QUE de ce que tu sais (voir CE QUE TU SAIS). N'invente RIEN.")
+	lines.append("- Si le joueur est hors-sujet ou insultant, réponds EN RESTANT DANS LE PERSONNAGE.")
+	lines.append("- Pas d'astérisques, pas de narration, pas de description d'action. Que du dialogue.")
+	lines.append("- Reste cohérent avec l'historique de la conversation.")
+
+	# --- FORÇAGE TERMINAISON ---
+	if _message_count >= 4:
+		for intent in filtered_intentions:
+			var action = intent.get("action")
+			if action != null and action is Dictionary and action.get("type") == "trigger":
+				lines.append("")
+				lines.append("## ⚠️ URGENT — FIN DE CONVERSATION FORCÉE")
+				lines.append("Cela fait %d messages. Tu es à l'agonie et c'est la fin." % _message_count)
+				lines.append("Ce message est ton DERNIER. Dis adieu et inclus ABSOLUMENT l'action.")
+				lines.append("Ne parle plus d'autre chose.")
+				break
+
 	return "\n".join(lines)
 
 
-func extract_reply_id(api_response: Dictionary) -> String:
-	var choices = api_response.get("choices", [])
-	if choices.is_empty():
-		return ""
-	var content = choices[0].get("message", {}).get("content", "").strip_edges()
-
-	var json = JSON.new()
-	if json.parse(content) == OK:
-		var data = json.data
-		if data is Dictionary and "id" in data:
-			return data["id"]
-
-	var regex = RegEx.new()
-	regex.compile('"id"\\s*:\\s*"([^"]+)"')
-	var m = regex.search(content)
-	if m:
-		return m.get_string(1)
-
-	return ""
+func _find_current_phase(arc: Array) -> Dictionary:
+	for p in arc:
+		if _message_count <= p.get("until_message", 0):
+			return p
+	return {}
 
 
-func resolve_reply(reply_id: String, filtered_replies: Array) -> String:
-	if reply_id == "":
-		return get_fallback(current_npc_id, "unknown")
+func _find_next_phase(arc: Array) -> Dictionary:
+	var found_current = false
+	for p in arc:
+		if found_current:
+			return p
+		if _message_count <= p.get("until_message", 0):
+			found_current = true
+	return {}
 
-	if reply_id == "off_topic":
-		return get_fallback(current_npc_id, "off_topic")
 
-	if reply_id == "insult":
-		return get_fallback(current_npc_id, "insult")
-
-	for r in filtered_replies:
-		if r.get("id") == reply_id:
-			return r.get("text", "[Texte manquant]")
-
-	for r in current_npc.get("dialogue_bank", []):
-		if r.get("id") == reply_id:
-			return r.get("text", "[Texte manquant]")
-
-	return get_fallback(current_npc_id, "unknown")
+func _build_user_prompt(player_message: String) -> String:
+	var lines: Array[String] = []
+	lines.append("Historique de la conversation :")
+	# Afficher tout l'historique sauf le dernier message joueur (affiché séparément)
+	var display_history = conversation_history.duplicate()
+	if not display_history.is_empty() and display_history.back().role == "player":
+		display_history.pop_back()
+	if display_history.is_empty():
+		lines.append("(premier message de la conversation)")
+	else:
+		for entry in display_history:
+			var role_label = "Joueur" if entry.role == "player" else current_npc.get("name", "PNJ")
+			lines.append("- %s : %s" % [role_label, entry.text])
+	lines.append("")
+	lines.append('Dernier message du joueur : "%s"' % player_message)
+	lines.append("")
+	lines.append("Génère ta réponse (JSON uniquement, pas d'autre texte).")
+	return "\n".join(lines)
 
 
 func get_fallback(npc_id: String, key: String) -> String:

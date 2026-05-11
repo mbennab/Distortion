@@ -214,6 +214,15 @@ tr:hover td{background:rgba(255,255,255,.03)}
 .loading-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(9,12,16,.7);z-index:100;backdrop-filter:blur(2px)}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.collapse-header{cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 0;user-select:none;color:var(--accent);font-weight:600;font-size:13px}
+.collapse-header:hover{color:var(--accent-hover)}
+.collapse-header .arrow{transition:transform .2s;display:inline-block;font-size:10px}
+.collapse-header.open .arrow{transform:rotate(90deg)}
+.collapse-body{overflow:hidden;transition:max-height .3s ease}
+.collapse-body.closed{max-height:0 !important}
+.quick-add-bar{display:flex;gap:8px;margin:8px 0}
+.quick-add-bar input{flex:1;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:12px}
+.quick-add-bar input:focus{outline:none;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -233,6 +242,7 @@ tr:hover td{background:rgba(255,255,255,.03)}
       </div>
     </div>
     <div class="header-right">
+      <a href="/ai-builder" class="btn" style="font-size:11px;padding:4px 10px;text-decoration:none;background:var(--accent-dim);border-color:var(--accent);color:var(--accent)">🤖 AI Builder</a>
       <button class="btn-icon" onclick="togglePanel('tree')" title="Arbre de visualisation">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </button>
@@ -416,8 +426,14 @@ tr:hover td{background:rgba(255,255,255,.03)}
         <div class="form-row">
           <div><label>Condition <span class="field-hint" data-tip="statut ou étape de la quête"></span></label><select id="replyCondition" onchange="onReplyConditionChange()"><option value="not_started">not_started</option></select></div>
         </div>
-        <div><label>Intention du joueur</label><input type="text" id="replyIntention" placeholder="Ce que le joueur cherche à faire / exprime"></div>
-        <div><label>Réponse du PNJ</label><textarea id="replyText" rows="4" placeholder="Ce que le PNJ répond au joueur"></textarea></div>
+        <div><label>Déclencheur</label><input type="text" id="replyTrigger" placeholder="Quand le joueur... (ex: le joueur salue)"></div>
+        <div><label>Exemple de réponse</label><textarea id="replyExample" rows="4" placeholder="Ce que le PNJ pourrait répondre (guide pour l'IA)"></textarea></div>
+        <div><label>Action (optionnel)</label>
+          <div style="display:flex;gap:8px">
+            <select id="replyActionType" style="flex:1"><option value="">Aucune</option><option value="trigger">Trigger</option></select>
+            <input type="text" id="replyActionId" placeholder="ID action" style="flex:2">
+          </div>
+        </div>
       </form>
     </div>
     <div class="modal-footer">
@@ -450,7 +466,7 @@ async function apiFetch(url,opts={}){
   showLoading();
   try{
     const r=await fetch(url,{headers:{'Content-Type':'application/json',...opts.headers},...opts});
-    if(!r.ok){const e=await r.text();throw new Error(e||r.statusText)}
+    if(!r.ok){const e=await r.example();throw new Error(e||r.statusText)}
     return opts.raw?r:await r.json()
   }catch(e){showToast(e.message,'error');throw e}
   finally{hideLoading()}
@@ -542,7 +558,7 @@ function populateNpcs(){
   el.innerHTML=npcs.map((n,i)=>`<div class="item-entry${n.id===selectedNpcId?' selected':''}" onclick="selectNpc('${escHtml(n.id)}')">
     <span class="name">${escHtml(n.name||n.id)}</span>
     <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">${escHtml(n.id)}</span>
-    <span class="badge badge-gray" style="margin-left:auto;font-size:10px">${(n.dialogue_bank||[]).length} 💬</span>
+    <span class="badge badge-gray" style="margin-left:auto;font-size:10px">${(n.intentions||[]).length} 💬</span>
   </div>`).join('');
   if(selectedNpcId&&npcs.some(n=>n.id===selectedNpcId))renderNpcForm(selectedNpcId);
   else if(npcs.length){selectedNpcId=npcs[0].id;renderNpcForm(selectedNpcId)}
@@ -564,7 +580,7 @@ function renderNpcForm(id){
   if(!npc){document.getElementById('npcFormContainer').innerHTML='<div style="color:var(--muted);padding:20px;text-align:center">PNJ introuvable</div>';return}
   const p=npc.personality||{};
   const f=npc.fallbacks||{};
-  const db=npc.dialogue_bank||[];
+  const db=npc.intentions||[];
   const quests=currentDimension.quests||[];
   const getStatusLabel=s=>{if(s==='not_started')return'badge-gray';if(s==='done')return'badge-green';return'badge-orange'};
   const getStatusText=s=>s==='not_started'?'NS':s==='done'?'Done':'Étape';
@@ -574,33 +590,51 @@ function renderNpcForm(id){
         <div><label>ID <span class="field-hint" data-tip="identifiant unique du PNJ"></span></label><input type="text" id="npcId" class="mono" value="${escHtml(npc.id)}" onchange="updateNpcField('id',this.value)"></div>
         <div><label>Nom <span class="field-hint" data-tip="nom affiché en jeu"></span></label><input type="text" id="npcName" value="${escHtml(npc.name||'')}" onchange="updateNpcField('name',this.value)"></div>
       </div>
-      <div><label>Tone <span class="field-hint" data-tip="style de parole et registre de langue du PNJ"></span></label><input type="text" id="npcTone" value="${escHtml(p.tone||'')}" onchange="updateNpcPersonality('tone',this.value)"></div>
-      <div><label>Prompt Context <span class="field-hint" data-tip="instruction système injectée dans le prompt Mistral"></span></label><textarea id="npcPromptContext" rows="3" onchange="updateNpcPersonality('prompt_context',this.value)">${escHtml(p.prompt_context||'')}</textarea></div>
-    </form>
+       <div><label>Tone</label><input type="text" id="npcTone" value="${escHtml(p.tone||'')}" onchange="updateNpcPersonality('tone',this.value)"></div>
+       <div><label>Backstory</label><textarea rows="2" onchange="updateNpcPersonality('backstory',this.value)">${escHtml(p.backstory||'')}</textarea></div>
+       <div><label>État émotionnel</label><input type="text" value="${escHtml(p.emotional_state||'')}" onchange="updateNpcPersonality('emotional_state',this.value)"></div>
+     </form>
+     <div class="section-title" style="margin-top:10px">Speech (comment le PNJ parle)</div>
+     <form onchange="markDirty()">
+       <div class="row2">
+         <div><label>Vouvoiement</label><select onchange="updateNpcSpeech('vouvoiement',this.value==='true')"><option value="true" ${p.speech?.vouvoiement!==false?'selected':''}>Oui</option><option value="false" ${p.speech?.vouvoiement===false?'selected':''}>Non</option></select></div>
+         <div><label>Vocatif</label><input type="text" value="${escHtml(p.speech?.vocatif||'')}" onchange="updateNpcSpeech('vocatif',this.value)"></div>
+       </div>
+       <div><label>Longueur phrases</label><input type="text" value="${escHtml(p.speech?.phrases||'')}" onchange="updateNpcSpeech('phrases',this.value)"></div>
+       <div><label>Expressions (séparer par |)</label><textarea rows="2" onchange="updateNpcSpeech('expressions',this.value.split('|').map(s=>s.trim()).filter(Boolean))">${(p.speech?.expressions||[]).join('|')}</textarea></div>
+       <div><label>Interdits (séparer par |)</label><textarea rows="2" onchange="updateNpcSpeech('interdits',this.value.split('|').map(s=>s.trim()).filter(Boolean))">${(p.speech?.interdits||[]).join('|')}</textarea></div>
+     </form>
+     <div class="section-title" style="margin-top:10px">Connaissances & Objectifs</div>
+     <form onchange="markDirty()">
+       <div><label>Connaissances (une par ligne)</label><textarea rows="3" onchange="updateNpcPersonality('knowledge',this.value.split('\n').map(s=>s.trim()).filter(Boolean))">${(p.knowledge||[]).join('\n')}</textarea></div>
+       <div><label>Objectifs (une par ligne)</label><textarea rows="3" onchange="updateNpcPersonality('goals',this.value.split('\n').map(s=>s.trim()).filter(Boolean))">${(p.goals||[]).join('\n')}</textarea></div>
+     </form>
+     <div style="margin-top:12px">
+       <div class="section-title">
+         <span>Fallbacks</span>
+       </div>
+       <form onchange="markDirty()">
+         <div><label>Off-topic</label><input type="text" value="${escHtml(f.off_topic||'')}" onchange="updateNpcFallback('off_topic',this.value)"></div>
+         <div><label>Insult</label><input type="text" value="${escHtml(f.insult||'')}" onchange="updateNpcFallback('insult',this.value)"></div>
+         <div><label>Timeout</label><input type="text" value="${escHtml(f.timeout||'')}" onchange="updateNpcFallback('timeout',this.value)"></div>
+         <div><label>Unknown</label><input type="text" value="${escHtml(f.unknown||'')}" onchange="updateNpcFallback('unknown',this.value)"></div>
+         <div><label>Default Template</label><input type="text" value="${escHtml(f.default_template||'')}" onchange="updateNpcFallback('default_template',this.value)"></div>
+       </form>
+     </div>
     <div style="margin-top:12px">
-      <div class="section-title">
-        <span>Fallbacks <span class="field-hint" data-tip="réponses de secours du PNJ"></span></span>
-      </div>
-      <form onchange="markDirty()">
-        <div><label>Off-topic <span class="field-hint" data-tip="si le joueur est hors-sujet"></span></label><input type="text" value="${escHtml(f.off_topic||'')}" onchange="updateNpcFallback('off_topic',this.value)"></div>
-        <div><label>Insult <span class="field-hint" data-tip="si le joueur insulte"></span></label><input type="text" value="${escHtml(f.insult||'')}" onchange="updateNpcFallback('insult',this.value)"></div>
-        <div><label>Default Template <span class="field-hint" data-tip="dernier recours, doit contenir {name}"></span></label><input type="text" value="${escHtml(f.default_template||'')}" onchange="updateNpcFallback('default_template',this.value)"></div>
-      </form>
-    </div>
-    <div style="margin-top:12px">
-      <div class="section-title">
-        <span>Dialogue Bank</span>
-        <button class="btn btn-primary btn-sm" onclick="openAddReplyModal('${escHtml(npc.id)}')">+ Ajouter réplique</button>
-      </div>
-      <table>
-        <thead><tr><th>ID</th><th>Quest</th><th>Status</th><th>Step</th><th>Intention joueur</th><th></th></tr></thead>
-        <tbody>
-          ${db.map((r,i)=>`<tr>
-            <td class="mono" style="font-size:12px">${escHtml(r.id)}</td>
-            <td class="mono" style="font-size:12px">${escHtml(r.condition?.quest_id||'')}</td>
-            <td><span class="badge ${getStatusLabel(r.condition?.quest_status)}">${getStatusText(r.condition?.quest_status)}</span></td>
-            <td class="mono" style="font-size:12px">${escHtml(r.condition?.quest_step||'—')}</td>
-            <td style="font-size:12px" title="${escHtml(r.text||'')}">${escHtml(r.intention||'')}</td>
+       <div class="section-title">
+         <span>Intentions</span>
+         <button class="btn btn-primary btn-sm" onclick="openAddReplyModal('${escHtml(npc.id)}')">+ Ajouter</button>
+       </div>
+       <table>
+         <thead><tr><th>ID</th><th>Quest</th><th>Status</th><th>Step</th><th>Déclencheur</th><th></th></tr></thead>
+         <tbody>
+           ${db.map((r,i)=>`<tr>
+             <td class="mono" style="font-size:12px">${escHtml(r.id)}</td>
+             <td class="mono" style="font-size:11px">${r.condition?.quest_id||'—'}</td>
+             <td style="font-size:11px">${r.condition?.quest_status||'—'}</td>
+             <td class="mono" style="font-size:11px">${r.condition?.quest_step||'—'}</td>
+             <td style="font-size:12px" title="${escHtml(r.example||'')}">${escHtml(r.trigger||'')}${r.action?' ⚡':''}</td>
             <td>
               <button class="btn-icon" onclick="editReply('${escHtml(npc.id)}',${i})" title="Modifier">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -611,6 +645,10 @@ function renderNpcForm(id){
           </tr>`).join('')}
         </tbody>
       </table>
+      <div class="quick-add-bar">
+        <input type="text" id="quickIntentionInput" placeholder="Ajout rapide: déclencheur | exemple | trigger/action_id" onkeydown="if(event.key==='Enter')quickAddIntention('${escHtml(npc.id)}')">
+        <button class="btn btn-primary btn-sm" onclick="quickAddIntention('${escHtml(npc.id)}')">+</button>
+      </div>
     </div>
     <div style="margin-top:12px">
       <button class="btn btn-danger" onclick="deleteNpc('${escHtml(npc.id)}')">Supprimer ce PNJ</button>
@@ -649,11 +687,26 @@ function updateNpcFallback(key,val){
   markDirty()
 }
 
+function updateNpcSpeech(field,val){
+  const npc=getNpc(selectedNpcId);
+  if(!npc)return;
+  if(!npc.personality.speech)npc.personality.speech={};
+  npc.personality.speech[field]=val;
+  markDirty()
+}
+
+function buildActionFromForm(){
+  const type=document.getElementById('replyActionType').value;
+  const id=document.getElementById('replyActionId').value.trim();
+  if(!type||!id)return null;
+  return {type,id,description:''};
+}
+
 function addNpc(){
   if(!currentDimension)return;
   if(!currentDimension.npcs)currentDimension.npcs=[];
   const id='npc_'+(currentDimension.npcs.length+1);
-  const npc={id,name:'Nouveau PNJ',personality:{tone:'',prompt_context:'Tu es Nouveau PNJ. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l\'ID de la réplique la plus adaptée parmi celles listées ci-dessous. Réponds avec un JSON : {"id": "<id_replique>"}.'},dialogue_bank:[],fallbacks:{off_topic:'',insult:'',default_template:''}};
+  const npc={id,name:'Nouveau PNJ',personality:{tone:'',backstory:'',emotional_state:'',speech:{vouvoiement:true,vocatif:'',phrases:'',expressions:[],interdits:[]},knowledge:[],goals:[],conversation_arc:[]},intentions:[],fallbacks:{off_topic:'',insult:'',timeout:'',unknown:'',default_template:''}};
   currentDimension.npcs.push(npc);
   selectedNpcId=npc.id;
   populateNpcs();
@@ -682,17 +735,17 @@ function deleteNpc(id){
 
 function deleteReply(npcId,idx){
   const npc=getNpc(npcId);
-  if(!npc||!npc.dialogue_bank)return;
-  const reply=npc.dialogue_bank[idx];
+  if(!npc||!npc.intentions)return;
+  const reply=npc.intentions[idx];
   const label=reply?reply.id:'réplique '+idx;
-  const dbSnapshot=[...npc.dialogue_bank];
+  const dbSnapshot=[...npc.intentions];
   const performDelete=()=>{
-    npc.dialogue_bank.splice(idx,1);
+    npc.intentions.splice(idx,1);
     renderNpcForm(npcId);
     markDirty()
   };
   const undo=()=>{
-    npc.dialogue_bank=dbSnapshot;
+    npc.intentions=dbSnapshot;
     renderNpcForm(npcId);
     markDirty()
   };
@@ -703,8 +756,8 @@ function deleteReply(npcId,idx){
 function editReply(npcId,idx){
   editingReplyIndex=idx;
   const npc=getNpc(npcId);
-  if(!npc||!npc.dialogue_bank||!npc.dialogue_bank[idx])return;
-  const r=npc.dialogue_bank[idx];
+  if(!npc||!npc.intentions||!npc.intentions[idx])return;
+  const r=npc.intentions[idx];
   pendingReplyNpcId=npcId;
   const quests=currentDimension.quests||[];
   const sel=document.getElementById('replyQuestId');
@@ -715,8 +768,8 @@ function editReply(npcId,idx){
   if(cstep)document.getElementById('replyCondition').value='step:'+cstep;
   else document.getElementById('replyCondition').value='status:'+(cs||'not_started');
   document.getElementById('replyId').value=r.id||'';
-  document.getElementById('replyIntention').value=r.intention||'';
-  document.getElementById('replyText').value=r.text||'';
+   document.getElementById('replyTrigger').value=r.trigger||'';
+   document.getElementById('replyExample').value=r.example||'';
   // Update modal title
   document.querySelector('#modalAddReply .modal-header h3').textContent='Modifier la réplique';
   document.querySelector('#modalAddReply .btn-primary').textContent='Modifier';
@@ -730,11 +783,13 @@ function openAddReplyModal(npcId){
   const sel=document.getElementById('replyQuestId');
   sel.innerHTML=quests.map(q=>`<option value="${escHtml(q.id)}">${escHtml(q.title||q.id)}</option>`).join('');
   const npc=getNpc(npcId);
-  const db=npc?.dialogue_bank||[];
+  const db=npc?.intentions||[];
   const idx=db.filter(r=>r.condition?.quest_status==='not_started').length+1;
   document.getElementById('replyId').value=npcId+'_not_started_'+String(idx).padStart(2,'0');
-  document.getElementById('replyIntention').value='';
-  document.getElementById('replyText').value='';
+   document.getElementById('replyTrigger').value='';
+   document.getElementById('replyExample').value='';
+   document.getElementById('replyActionType').value='';
+   document.getElementById('replyActionId').value='';
   onReplyConditionChange();
   document.getElementById('replyCondition').value='status:not_started';
   document.querySelector('#modalAddReply .modal-header h3').textContent='Ajouter une réplique';
@@ -757,7 +812,7 @@ function updateReplyId(){
   const npcId=pendingReplyNpcId;
   const cond=document.getElementById('replyCondition').value;
   const npc=getNpc(npcId);
-  const db=npc?.dialogue_bank||[];
+  const db=npc?.intentions||[];
   let status=cond,step=null;
   if(cond.startsWith('status:')){status=cond.slice(7);step=null}
   else if(cond.startsWith('step:')){status=null;step=cond.slice(5)}
@@ -775,7 +830,7 @@ function submitAddReply(){
   const npcId=pendingReplyNpcId;
   const npc=getNpc(npcId);
   if(!npc){showToast('PNJ introuvable','error');return}
-  if(!npc.dialogue_bank)npc.dialogue_bank=[];
+  if(!npc.intentions)npc.intentions=[];
   const id=document.getElementById('replyId').value.trim();
   if(!id){showToast('ID requis','error');return}
   const cond=document.getElementById('replyCondition').value;
@@ -785,15 +840,16 @@ function submitAddReply(){
   const replyData={
     id,
     condition:{quest_id:document.getElementById('replyQuestId').value,quest_status,quest_step},
-    intention:document.getElementById('replyIntention').value,
-    text:document.getElementById('replyText').value
+    trigger:document.getElementById('replyTrigger').value,
+    example:document.getElementById('replyExample').value,
+    action: buildActionFromForm()
   };
   if(editingReplyIndex!==null){
-    npc.dialogue_bank[editingReplyIndex]=replyData;
+    npc.intentions[editingReplyIndex]=replyData;
     editingReplyIndex=null;
     showToast('Réplique modifiée','success')
   }else{
-    npc.dialogue_bank.push(replyData);
+    npc.intentions.push(replyData);
     showToast('Réplique ajoutée','success')
   }
   closeModal('addReply');
@@ -893,7 +949,7 @@ function updateQuestField(field,val){
     });
     (currentDimension.mini_games||[]).forEach(m=>{if(m.linked_quest_id===oldId)m.linked_quest_id=val});
     (currentDimension.items||[]).forEach(it=>{if(it.required_by_quest===oldId)it.required_by_quest=val});
-    (currentDimension.npcs||[]).forEach(n=>(n.dialogue_bank||[]).forEach(r=>{if(r.condition?.quest_id===oldId)r.condition.quest_id=val}));
+    (currentDimension.npcs||[]).forEach(n=>(n.intentions||[]).forEach(r=>{if(r.condition?.quest_id===oldId)r.condition.quest_id=val}));
     selectedQuestId=val;
     populateQuests()
   }else quest[field]=val;
@@ -1453,7 +1509,7 @@ function renderTreeView(){
   else{
     const questNpcMap={};
     const mgMap={};
-    npcs.forEach(npc=>{(npc.dialogue_bank||[]).forEach(r=>{
+    npcs.forEach(npc=>{(npc.intentions||[]).forEach(r=>{
       const qid=r.condition?.quest_id;if(!qid)return;
       if(!questNpcMap[qid])questNpcMap[qid]={};
       const step=r.condition?.quest_step||'__none__';
@@ -1484,7 +1540,7 @@ function renderTreeView(){
         if(allNpc.length||(mgMap[qid]||[]).length){
           h+='<div class="tree-children">';
           allNpc.forEach(e=>{
-            h+='<div class="tree-node-header" style="font-size:11px;color:var(--accent);padding-left:24px" title="'+escHtml(e.reply.intention||'')+'">🗣️ '+escHtml(e.npcName)+' <span style="color:var(--muted);font-weight:400">— '+escHtml((e.reply.intention||'').substring(0,50))+'</span></div>'
+            h+='<div class="tree-node-header" style="font-size:11px;color:var(--accent);padding-left:24px" title="'+escHtml(e.reply.trigger||'')+'">🗣️ '+escHtml(e.npcName)+' <span style="color:var(--muted);font-weight:400">— '+escHtml((e.reply.trigger||'').substring(0,50))+'</span></div>'
           });
           (mgMap[qid]||[]).filter(m=>m.requires_quest_step===step.id).forEach(mg=>{
             h+='<div class="tree-node-header" style="font-size:11px;color:var(--warning);padding-left:24px">🎮 '+escHtml(mg.id)+'</div>'
@@ -1505,7 +1561,7 @@ function renderTreeView(){
   html+='<div class="section" style="margin-top:16px"><div class="section-title">Arbre des dialogues (PNJ)</div>';
   if(!npcs.length)html+='<div style="color:var(--muted);font-size:13px">Aucun PNJ</div>';
   else npcs.forEach(npc=>{
-    const db=npc.dialogue_bank||[];
+    const db=npc.intentions||[];
     html+='<div class="tree-node"><div class="tree-node-header" onclick="selectNpcAndTab(\''+escHtml(npc.id)+'\')" style="font-weight:500">👤 '+escHtml(npc.name||npc.id)+' <span style="color:var(--muted);font-weight:400">('+db.length+' répliques)</span></div>';
     if(!db.length){html+='<div class="tree-children"><div style="color:var(--muted);font-size:11px;padding:4px 16px">Aucune réplique</div></div></div>';return}
     html+='<div class="tree-children">';
@@ -1531,7 +1587,7 @@ function renderTreeView(){
         const byStep={};
         items.forEach(r=>{const s=r.condition?.quest_step||'__none__';if(!byStep[s])byStep[s]=[];byStep[s].push(r)});
         Object.entries(byStep).forEach(([step,replies])=>{
-          if(step==='__none__')replies.forEach(r=>html+='<div class="tree-node-header" style="font-size:11px;color:var(--muted);padding-left:16px"><span>'+escHtml(r.id)+'</span> <span style="color:var(--muted)">— '+escHtml((r.intention||'').substring(0,40))+'</span></div>');
+          if(step==='__none__')replies.forEach(r=>html+='<div class="tree-node-header" style="font-size:11px;color:var(--muted);padding-left:16px"><span>'+escHtml(r.id)+'</span> <span style="color:var(--muted)">— '+escHtml((r.trigger||'').substring(0,40))+'</span></div>');
           else{
             html+='<div class="tree-node"><div class="tree-node-header" style="font-size:11px;padding-left:16px"><span class="tree-arrow">›</span><span class="mono">'+escHtml(step)+'</span></div><div class="tree-children">';
             replies.forEach(r=>html+='<div class="tree-node-header" style="font-size:11px;color:var(--muted);padding-left:24px"><span>'+escHtml(r.id)+'</span></div>');
@@ -1589,7 +1645,7 @@ function runValidation(){
   const miniGames=currentDimension.mini_games||[];
   const allQuestIds=new Set(quests.map(q=>q.id));
   npcs.forEach(n=>{
-    const db=n.dialogue_bank||[];
+    const db=n.intentions||[];
     const covered=new Set();
     db.forEach(r=>{
       const cs=r.condition;
@@ -1622,7 +1678,7 @@ function runValidation(){
     if(mg.linked_quest_id&&!allQuestIds.has(mg.linked_quest_id))anomalies.push({msg:'Mini-jeu "'+mg.id+'" linked_quest_id "'+mg.linked_quest_id+'" inexistant',path:'mini_games → '+mg.id,nav:`switchTab('mini-games');selectMiniGame('${escHtml(mg.id)}')`})
   });
   quests.forEach(q=>{if(!q.steps||!q.steps.length)anomalies.push({msg:'Quête "'+q.id+'" sans étapes',path:'quests → '+q.id,nav:`switchTab('quests');selectQuest('${escHtml(q.id)}')`})});
-  npcs.forEach(n=>{if(!n.dialogue_bank||!n.dialogue_bank.length)anomalies.push({msg:'PNJ "'+n.id+'" sans dialogue_bank',path:'npcs → '+n.id,nav:`switchTab('npcs');selectNpc('${escHtml(n.id)}')`})});
+  npcs.forEach(n=>{if(!n.intentions||!n.intentions.length)anomalies.push({msg:'PNJ "'+n.id+'" sans intentions',path:'npcs → '+n.id,nav:`switchTab('npcs');selectNpc('${escHtml(n.id)}')`})});
   const idPattern=/^[a-z][a-z0-9_]*$/;
   [...npcs,...items,...quests,...miniGames].forEach(e=>{if(e.id&&!idPattern.test(e.id))anomalies.push({msg:'ID non snake_case: "'+e.id+'"',path:''})});
   updateWarningBadge(anomalies.length);
@@ -1694,6 +1750,42 @@ document.querySelectorAll('.tab').forEach(t=>{
     tip.classList.remove('visible');
   });
 })();
+
+// Collapsible sections
+function toggleCollapse(header){
+  header.classList.toggle('open');
+  const body=header.nextElementSibling;
+  if(body.classList.contains('closed')){
+    body.classList.remove('closed');
+    body.style.maxHeight=body.scrollHeight+'px';
+  }else{
+    body.classList.add('closed');
+    body.style.maxHeight='0px';
+  }
+}
+
+// Quick-add intention from one-line description
+function quickAddIntention(npcId){
+  const input=document.getElementById('quickIntentionInput');
+  if(!input||!input.value.trim()) return;
+  const parts=input.value.trim().split('|');
+  const trigger=parts[0].trim();
+  const example=parts.length>1?parts[1].trim():trigger;
+  const actionPart=parts.length>2?parts[2].trim():'';
+  let action=null;
+  if(actionPart&&actionPart.includes('/')){
+    const [at,aid]=actionPart.split('/');
+    action={type:at.trim(),id:aid.trim(),description:''};
+  }
+  const npc=getNpc(npcId);
+  if(!npc){if(!npc.intentions)npc.intentions=[];}
+  const id=npcId+'_'+trigger.toLowerCase().replace(/[^a-z0-9]+/g,'_').substring(0,30);
+  npc.intentions.push({id,condition:null,trigger,example,action});
+  input.value='';
+  renderNpcForm(npcId);
+  markDirty();
+  showToast('Intention ajoutée: '+id,'success');
+}
 
 loadDimensionList()
 </script>

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://fevsbp3ny4fq"]
 
-[ext_resource type="GDScript" path="res://MoyenAge/MoyenAge.gd" id="1_gd"]
-[ext_resource type="PackedScene" uid="uid://cfznq8bk1pvxm" path="res://MoyenAge/fondMoyenAge.tscn" id="2_fond"]
+[ext_resource type="Script" uid="uid://c42mwoqbk44by" path="res://MoyenAge/MoyenAge.gd" id="1_gd"]
+[ext_resource type="PackedScene" uid="uid://cf0nq8bk1pvxm" path="res://MoyenAge/fondMoyenAge.tscn" id="2_fond"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
 [ext_resource type="PackedScene" uid="uid://cgtwres8few4t" path="res://MoyenAge/pnj_roi.tscn" id="4_roi"]
 [ext_resource type="PackedScene" uid="uid://cphdrnp2uds1l" path="res://MoyenAge/prison_moyen_age.tscn" id="5_prison"]
@@ -15,9 +15,9 @@ script = ExtResource("1_gd")
 
 [node name="TimeAunote" parent="." unique_id=409968594 instance=ExtResource("3_perso")]
 
-[node name="pnj-roi" parent="." instance=ExtResource("4_roi")]
+[node name="pnj-roi" parent="." unique_id=1308936682 instance=ExtResource("4_roi")]
 
-[node name="prison_moyen_age" parent="." instance=ExtResource("5_prison")]
+[node name="prison_moyen_age" parent="." unique_id=1964089611 instance=ExtResource("5_prison")]
 visible = false
 
 [node name="magasin_moyen_age" parent="." instance=ExtResource("6_magasin")]

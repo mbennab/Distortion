@@ -12,33 +12,20 @@ texture = ExtResource("1_bg")
 centered = false
 
 [node name="limite-sous-sol" type="StaticBody2D" parent="." unique_id=1865390137]
-collision_layer = 32
+collision_layer = 16
 
-[node name="mur-gauche" type="CollisionShape2D" parent="limite-sous-sol" unique_id=2022727788]
-position = Vector2(0, 341)
-scale = Vector2(1, 11.3667)
-shape = SubResource("RectangleShape2D_p1y6m")
-
-[node name="mur-droit" type="CollisionShape2D" parent="limite-sous-sol" unique_id=161900400]
-position = Vector2(1024, 341)
-scale = Vector2(1, 11.3667)
-shape = SubResource("RectangleShape2D_p1y6m")
-
-[node name="mur-haut" type="CollisionShape2D" parent="limite-sous-sol" unique_id=1246170128]
-position = Vector2(512, 0)
-shape = SubResource("RectangleShape2D_p1y6m")
-
-[node name="mur-bas" type="CollisionShape2D" parent="limite-sous-sol" unique_id=816524271]
-position = Vector2(505.5, 682)
-shape = SubResource("RectangleShape2D_p1y6m")
+[node name="Collision" type="CollisionPolygon2D" parent="limite-sous-sol" unique_id=1379519978]
+position = Vector2(711, 182)
+build_mode = 1
+polygon = PackedVector2Array(-5, -32, -94, -36, -137, -31, -266, -29, -628, -33, -635, 63, -560, 66, -419, 64, -414, 206, -437, 239, -609, 235, -608, 276, -558, 277, -561, 333, -609, 331, -608, 375, -470, 376, -394, 380, -394, 463, -326, 462, -327, 248, -327, 65, -188, 66, -54, 65, -53, 106, -26, 106, -30, 204, -117, 202, -189, 221, -272, 225, -313, 230, -310, 341, -274, 377, -244, 403, -199, 404, -199, 468, -78, 467, 55, 468, 54, 397, 165, 398, 171, 298, 227, 275, 261, 273, 261, 231, 117, 235, 101, 204, 99, 137, 99, 68, 228, 64, 232, -45, 230, -132, 61, -133, 62, -64)
 
 [node name="Markers2D" type="Node2D" parent="." unique_id=979993664]
 
 [node name="entreeEscalier" type="Marker2D" parent="Markers2D" unique_id=966698038]
-position = Vector2(512, 600)
+position = Vector2(699, 235)
 
 [node name="pnjPos" type="Marker2D" parent="Markers2D" unique_id=608531473]
-position = Vector2(256, 500)
+position = Vector2(461, 496)
 
 [node name="escalier" type="Node2D" parent="." unique_id=473445642]
 
@@ -49,6 +36,4 @@ position = Vector2(875, 159)
 shape = SubResource("RectangleShape2D_p1y6m")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=510988406]
-position = Vector2(512, 341)
 anchor_mode = 0
-zoom = Vector2(1.125, 1.125)

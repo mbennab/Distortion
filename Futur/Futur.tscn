@@ -4,29 +4,29 @@
 [ext_resource type="PackedScene" uid="uid://7ehnjutvjerd" path="res://Futur/fondFutur.tscn" id="2_fond"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
 [ext_resource type="Script" uid="uid://ba0ytj6fhkxsq" path="res://Futur/pnj_futur.gd" id="4_my58h"]
-[ext_resource type="Texture2D" uid="uid://cepstrsda43py" path="res://art/Futur/pnj-futur-idle.png" id="5_mfetk"]
+[ext_resource type="Texture2D" uid="uid://bliy5eebt7ssv" path="res://art/Futur/pnj-punk.png" id="6_mfetk"]
 [ext_resource type="PackedScene" uid="uid://dpnve3db7i0rp" path="res://Futur/SousSol.tscn" id="6_soussol"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_my58h"]
-atlas = ExtResource("5_mfetk")
-region = Rect2(0, 0, 257, 433)
+[sub_resource type="AtlasTexture" id="AtlasTexture_2plbm"]
+atlas = ExtResource("6_mfetk")
+region = Rect2(0, 0, 306, 542)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_mfetk"]
-atlas = ExtResource("5_mfetk")
-region = Rect2(257, 0, 257, 433)
+[sub_resource type="AtlasTexture" id="AtlasTexture_anmvl"]
+atlas = ExtResource("6_mfetk")
+region = Rect2(306, 0, 306, 542)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_dgnmj"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_my58h")
+"texture": SubResource("AtlasTexture_2plbm")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_mfetk")
+"texture": SubResource("AtlasTexture_anmvl")
 }],
 "loop": true,
 "name": &"idle-futur1",
-"speed": 2.0
+"speed": 0.5
 }]
 
 [node name="Futurrrrr" type="Node2D" unique_id=1593019004]
@@ -36,16 +36,14 @@ script = ExtResource("1_gd")
 
 [node name="TimeAunote" parent="." unique_id=409968594 instance=ExtResource("3_perso")]
 
-[node name="timerSortie" type="Timer" parent="." unique_id=1773903034]
-wait_time = 1.5
-one_shot = true
-
 [node name="SousSol" parent="." unique_id=1032565229 instance=ExtResource("6_soussol")]
+visible = false
+scale = Vector2(2.4, 2.4)
 
 [node name="pnj-futur" type="Node2D" parent="." unique_id=690371241]
 script = ExtResource("4_my58h")
 
 [node name="pnjfuturAnimation" type="AnimatedSprite2D" parent="pnj-futur" unique_id=543238187]
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.42, 0.42)
 sprite_frames = SubResource("SpriteFrames_dgnmj")
 animation = &"idle-futur1"
