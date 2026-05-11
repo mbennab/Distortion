@@ -24,7 +24,7 @@ func _ready() -> void:
 	roi_pos = $"fondMoyenAge/Markers2D/roiPos".position
 	hide()
 	_setup_spawn_particles()
-	DialogueSystem.reply_resolved.connect(_on_reply_resolved)
+	DialogueSystem.action_triggered.connect(_on_action_triggered)
 	prison = $prison_moyen_age
 	var limites_prison = prison.get_node_or_null("limiteDeplacement")
 	if limites_prison:
@@ -169,10 +169,10 @@ func stop() -> void:
 	_cleanup_knights()
 
 
-func _on_reply_resolved(reply_id: String) -> void:
+func _on_action_triggered(action: Dictionary) -> void:
 	if not started or _roi_adieu_triggered:
 		return
-	if reply_id == "roi_adieu":
+	if action.get("type") == "trigger" and action.get("id") == "roi_adieu":
 		_trigger_roi_adieu_sequence()
 
 
