@@ -1,9 +1,9 @@
 extends Node2D
 
-@export var npc_id: String = "npc_cheffe_futur"
-@export var npc_name: String = "La Cheffe"
+@export var npc_id: String = "npc_punk_futur"
+@export var npc_name: String = "Le Punk"
 
-var pnjcheffeAnimation: AnimatedSprite2D
+var pnjfuturAnimation: AnimatedSprite2D
 var zone_dialogue: Area2D
 var player_nearby: bool = false
 var bubble: Label
@@ -12,8 +12,8 @@ var bubble_timer: Timer
 func _ready() -> void:
 	hide()
 	add_to_group("npc_dialogue")
-	pnjcheffeAnimation = $pnjcheffeAnimation
-	pnjcheffeAnimation.play()
+	pnjfuturAnimation = $pnjfuturAnimation
+	pnjfuturAnimation.play()
 
 	zone_dialogue = $ZoneDialogue
 	zone_dialogue.body_entered.connect(_on_body_entered)
@@ -75,7 +75,7 @@ func _on_body_exited(body: Node2D) -> void:
 		DialogueUI.hide_prompt()
 
 func apparition(position: Vector2) -> void:
-	pnjcheffeAnimation.animation = "idle-cheffe"
+	pnjfuturAnimation.animation = "idle-futur1"
 	self.position = position
 	show()
 

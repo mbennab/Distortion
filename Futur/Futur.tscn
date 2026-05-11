@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://7ehnjutvjerd" path="res://Futur/fondFutur.tscn" id="2_fond"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
 [ext_resource type="Script" uid="uid://ba0ytj6fhkxsq" path="res://Futur/pnj_futur.gd" id="4_my58h"]
+[ext_resource type="Script" uid="uid://dlswp3lggh57l" path="res://Futur/pnj_punk.gd" id="5_punk"]
 [ext_resource type="Texture2D" uid="uid://bliy5eebt7ssv" path="res://art/Futur/pnj-punk.png" id="6_mfetk"]
 [ext_resource type="PackedScene" uid="uid://dpnve3db7i0rp" path="res://Futur/SousSol.tscn" id="6_soussol"]
 [ext_resource type="Script" uid="uid://crt0c7ceuwj0f" path="res://Futur/pnj_cheffe.gd" id="7_2plbm"]
@@ -51,6 +52,12 @@ region = Rect2(0, 0, 369, 640)
 atlas = ExtResource("8_anmvl")
 region = Rect2(369, 0, 369, 640)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_punk"]
+radius = 120.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cheffe"]
+radius = 120.0
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_4ktp6"]
 animations = [{
 "frames": [{
@@ -77,7 +84,14 @@ visible = false
 scale = Vector2(2.4, 2.4)
 
 [node name="pnj-futur" type="Node2D" parent="." unique_id=690371241]
-script = ExtResource("4_my58h")
+script = ExtResource("5_punk")
+
+[node name="ZoneDialogue" type="Area2D" parent="pnj-futur"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-futur/ZoneDialogue"]
+shape = SubResource("CircleShape2D_punk")
 
 [node name="pnjfuturAnimation" type="AnimatedSprite2D" parent="pnj-futur" unique_id=543238187]
 scale = Vector2(0.42, 0.42)
@@ -116,9 +130,16 @@ theme_override_font_sizes/font_size = 14
 text = "• Parler à la cheffe"
 
 [node name="pnj-cheffe" type="Node2D" parent="." unique_id=250108443]
-scale = Vector2(0.4, 0.4)
 script = ExtResource("7_2plbm")
 
+[node name="ZoneDialogue" type="Area2D" parent="pnj-cheffe"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-cheffe/ZoneDialogue"]
+shape = SubResource("CircleShape2D_cheffe")
+
 [node name="pnjcheffeAnimation" type="AnimatedSprite2D" parent="pnj-cheffe" unique_id=1742195157]
+scale = Vector2(0.4, 0.4)
 sprite_frames = SubResource("SpriteFrames_4ktp6")
 animation = &"idle-cheffe"
