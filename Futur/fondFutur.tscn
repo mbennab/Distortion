@@ -33,7 +33,7 @@ polygon = PackedVector2Array(1901, 1131, 1910, 1525, 1904, 1215)
 polygon = PackedVector2Array(2173, 1137, 2173, 1536, 2173, 1329)
 
 [node name="image" type="Sprite2D" parent="." unique_id=1394868288]
-scale = Vector2(1.185, 1.185)
+scale = Vector2(2.2539532, 2.2427182)
 texture = ExtResource("1_yp6m1")
 centered = false
 
@@ -43,7 +43,7 @@ centered = false
 position = Vector2(1201, 437)
 
 [node name="pnjfuturPos" type="Marker2D" parent="Markers2D" unique_id=1536971535]
-position = Vector2(480, 1167)
+position = Vector2(2055, 696)
 
 [node name="entreeEscalier" type="Marker2D" parent="Markers2D" unique_id=599228988]
 position = Vector2(2048, 1314)
