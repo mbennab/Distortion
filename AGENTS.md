@@ -65,7 +65,7 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
     - 3-second intro screen shows objectives before first throw
     - `ROUND_PARAMS` const array drives per-round `[fall_duration, catch_radius, anticip_time]`
     - Emits `done(success: bool)` — interface unchanged, `magasin_moyen_age.gd` requires no edits
-    - **Known calibration**: `PLAYER_SPEED = 720`, landing zone margins 110px — worst-case distance (402px) always reachable in every round's fall duration
+	- **Known calibration**: `PLAYER_SPEED = 720`, landing zone margins 110px — worst-case distance (402px) always reachable in every round's fall duration
 - `pnj_roi.gd`: standard PNJ pattern with `ZoneDialogue`, `show_bubble/hide_bubble`, `add_to_group("npc_dialogue")`
 
 ## Futur specific
@@ -99,39 +99,39 @@ Player types message → send_message() → filter_intentions() → build rich s
   "id": "npc_roi_moyenage",
   "name": "Le Roi du Château",
   "personality": {
-    "tone": "...",
-    "backstory": "...",
-    "emotional_state": "mourant, affaibli...",
-    "speech": {
-      "vouvoiement": true,
-      "vocatif": "voyageur",
-      "phrases": "très courtes, 1-2 phrases haletantes",
-      "expressions": ["tousse entre les mots", "sa voix faiblit"],
+	"tone": "...",
+	"backstory": "...",
+	"emotional_state": "mourant, affaibli...",
+	"speech": {
+	  "vouvoiement": true,
+	  "vocatif": "voyageur",
+	  "phrases": "très courtes, 1-2 phrases haletantes",
+	  "expressions": ["tousse entre les mots", "sa voix faiblit"],
 	  "interdits": ["ne connais PAS l'assassin"]
-    },
+	},
 	"knowledge": ["il est poignardé", "son royaume se meurt"],
 	"goals": ["trouver de l'aide", "appeler ses gardes avant de mourir"],
-    "conversation_arc": [
-      {"phase": 1, "until_message": 2, "focus": "expliquer ce qui arrive"},
+	"conversation_arc": [
+	  {"phase": 1, "until_message": 2, "focus": "expliquer ce qui arrive"},
 	  {"phase": 2, "until_message": 4, "focus": "chercher de l'aide"},
 	  {"phase": 3, "until_message": 5, "focus": "agonie, appeler les gardes"}
-    ]
+	]
   },
   "intentions": [
-    {
+	{
 	  "id": "roi_adieu",
 	  "condition": null,
 	  "trigger": "le joueur dit au revoir",
 	  "example": "GARDES ! Venez m'aider...",
-      "action": {"type": "trigger", "id": "roi_adieu", "description": "Le roi meurt, les gardes arrivent."}
-    }
+	  "action": {"type": "trigger", "id": "roi_adieu", "description": "Le roi meurt, les gardes arrivent."}
+	}
   ],
   "fallbacks": {
-    "off_topic": "...",
-    "insult": "...",
-    "timeout": "...",
-    "unknown": "...",
-    "default_template": "..."
+	"off_topic": "...",
+	"insult": "...",
+	"timeout": "...",
+	"unknown": "...",
+	"default_template": "..."
   }
 }]
 ```
