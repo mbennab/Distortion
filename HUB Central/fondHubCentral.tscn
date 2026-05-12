@@ -11,14 +11,6 @@ size = Vector2(60, 60)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rouge"]
 size = Vector2(60, 60)
 
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_tbeiy"]
-a = Vector2(92, 483)
-b = Vector2(92, 406)
-
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_uchnh"]
-a = Vector2(1066, 460)
-b = Vector2(1187, 476)
-
 [node name="fondHubCentral" type="Node2D" unique_id=358863711]
 position = Vector2(1, -11)
 
@@ -67,19 +59,6 @@ position = Vector2(733, 282)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="portesVoyageTemps/zonePorteRouge" unique_id=1234719812]
 shape = SubResource("RectangleShape2D_rouge")
 
-[node name="portesVoyageSalles" type="StaticBody2D" parent="." unique_id=1397184758]
-
-[node name="porteGauche" type="StaticBody2D" parent="portesVoyageSalles" unique_id=576000317]
-
-[node name="porte gauche" type="CollisionShape2D" parent="portesVoyageSalles/porteGauche" unique_id=1412576089]
-position = Vector2(0, 23)
-shape = SubResource("SegmentShape2D_tbeiy")
-
-[node name="porteDroite" type="StaticBody2D" parent="portesVoyageSalles" unique_id=2131978326]
-
-[node name="porte droite" type="CollisionShape2D" parent="portesVoyageSalles/porteDroite" unique_id=1802315612]
-position = Vector2(-917, -29)
-shape = SubResource("SegmentShape2D_uchnh")
 
 [node name="Markers2D" type="Node2D" parent="." unique_id=462566541]
 
