@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://7ehnjutvjerd" path="res://Futur/fondFutur.tscn" id="2_fond"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
 [ext_resource type="Script" uid="uid://ba0ytj6fhkxsq" path="res://Futur/pnj_futur.gd" id="4_my58h"]
-[ext_resource type="Script" uid="uid://dlswp3lggh57l" path="res://Futur/pnj_punk.gd" id="5_punk"]
+[ext_resource type="Script" path="res://Futur/pnj_mecano.gd" id="5_punk"]
 [ext_resource type="Texture2D" uid="uid://bliy5eebt7ssv" path="res://art/Futur/pnj-punk.png" id="6_mfetk"]
 [ext_resource type="PackedScene" uid="uid://dpnve3db7i0rp" path="res://Futur/SousSol.tscn" id="6_soussol"]
 [ext_resource type="Script" uid="uid://crt0c7ceuwj0f" path="res://Futur/pnj_cheffe.gd" id="7_2plbm"]
