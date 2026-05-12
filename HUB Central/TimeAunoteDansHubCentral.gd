@@ -20,6 +20,11 @@ var particles
 var next_scene = ""
 
 
+var _ambient_player: AudioStreamPlayer
+var _ambient_streams: Array[AudioStream] = []
+var _portal_glows: Array[Sprite2D] = []
+var _glow_tweens: Array[Tween] = []
+
 func _ready():
 	hide()
 	positionEntreePrincipale = $"fondHubCentral/Markers2D/entreePrincipale".position
@@ -35,6 +40,8 @@ func _ready():
 	chienHub = $"chien-hub"
 	chienPos = $"fondHubCentral/Markers2D/chienPos".position
 	_setup_particles()
+	_setup_portal_glows()
+	_setup_ambient_audio()
 	_connect_portal_signals()
 
 func _setup_particles():
@@ -74,6 +81,92 @@ func _create_color_ramp(color):
 	gradient.set_color(1, Color(color, 0.0))
 	return gradient
 
+func _setup_ambient_audio() -> void:
+	_ambient_player = AudioStreamPlayer.new()
+	_ambient_player.bus = "Master"
+	_ambient_player.volume_db = -8.0
+	add_child(_ambient_player)
+
+	var dir := DirAccess.open("res://audio/hub/")
+	if dir:
+		dir.list_dir_begin()
+		var file_name := dir.get_next()
+		while file_name != "":
+			if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+				var stream := load("res://audio/hub/" + file_name) as AudioStream
+				if stream:
+					_ambient_streams.append(stream)
+			file_name = dir.get_next()
+		dir.list_dir_end()
+
+func _play_ambient() -> void:
+	if not _ambient_streams.is_empty():
+		var idx := randi() % _ambient_streams.size()
+		_ambient_player.stream = _ambient_streams[idx]
+		_ambient_player.play()
+
+func _stop_ambient() -> void:
+	_ambient_player.stop()
+
+func _setup_portal_glows() -> void:
+	var glow_texture := _create_glow_texture()
+	var portals := [
+		{"area": zonePorteRouge, "color": Color.GREEN},
+		{"area": zonePorteBleue, "color": Color.PURPLE},
+		{"area": zonePorteJaune, "color": Color.ORANGE},
+	]
+	for i in portals.size():
+		var p: Dictionary = portals[i]
+		var sprite := Sprite2D.new()
+		sprite.texture = glow_texture
+		sprite.modulate = p["color"]
+		sprite.z_index = 5
+		sprite.centered = true
+		sprite.scale = Vector2(0.8, 0.8)
+		sprite.visible = false
+		sprite.position = to_local(p["area"].global_position)
+		add_child(sprite)
+		_portal_glows.append(sprite)
+
+		var tween := create_tween()
+		tween.set_loops()
+		tween.tween_property(sprite, "modulate:a", 0.15, 1.6)
+		tween.parallel().tween_property(sprite, "scale", Vector2(0.7, 0.7), 1.6)
+		tween.tween_property(sprite, "modulate:a", 0.5, 1.6)
+		tween.parallel().tween_property(sprite, "scale", Vector2(1.2, 1.2), 1.6)
+		tween.stop()
+		_glow_tweens.append(tween)
+
+func _create_glow_texture() -> ImageTexture:
+	var size := 256
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var center := Vector2(size / 2.0, size / 2.0)
+	var max_dist := size / 2.0
+	for y in range(size):
+		for x in range(size):
+			var dist := Vector2(x, y).distance_to(center)
+			if dist > max_dist:
+				image.set_pixel(x, y, Color.TRANSPARENT)
+				continue
+			var alpha := 1.0 - dist / max_dist
+			alpha = ease(alpha, 4.0)
+			image.set_pixel(x, y, Color(1, 1, 1, alpha))
+	return ImageTexture.create_from_image(image)
+
+func _start_portal_glows() -> void:
+	for i in _portal_glows.size():
+		_portal_glows[i].visible = true
+		_portal_glows[i].position = to_local(
+			[zonePorteRouge, zonePorteBleue, zonePorteJaune][i].global_position
+		)
+		_glow_tweens[i].play()
+
+func _stop_portal_glows() -> void:
+	for i in _glow_tweens.size():
+		_glow_tweens[i].stop()
+	for glow in _portal_glows:
+		glow.visible = false
+
 func _connect_portal_signals():
 	zonePorteJaune.body_entered.connect(_on_porte_jaune_entered)
 	zonePorteBleue.body_entered.connect(_on_porte_bleue_entered)
@@ -82,17 +175,17 @@ func _connect_portal_signals():
 func _on_porte_jaune_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
 		next_scene = "MoyenAge"
-		_trigger_portal("jaune", zonePorteJaune.global_position, Color.YELLOW)
+		_trigger_portal("jaune", zonePorteJaune.global_position, Color.ORANGE)
 
 func _on_porte_bleue_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
 		next_scene = "Present"
-		_trigger_portal("bleue", zonePorteBleue.global_position, Color.DODGER_BLUE)
+		_trigger_portal("bleue", zonePorteBleue.global_position, Color.PURPLE)
 
 func _on_porte_rouge_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
 		next_scene = "Futur"
-		_trigger_portal("rouge", zonePorteRouge.global_position, Color.RED)
+		_trigger_portal("rouge", zonePorteRouge.global_position, Color.GREEN)
 
 func _trigger_portal(porte_name, pos, color):
 	print(porte_name)
@@ -122,6 +215,8 @@ func start(spawn_id: String = "entree"):
 	pnjHub.apparition(pnjPos)
 	chienHub.apparition(chienPos)
 	_set_collisions_enabled(true)
+	_start_portal_glows()
+	_play_ambient()
 	started = true
 	stopped = false
 
@@ -129,7 +224,11 @@ func stop():
 	hide()
 	$ObjectiveHUD.hide()
 	DialogueUI.close_dialogue()
+	_stop_portal_glows()
+	_stop_ambient()
 	_set_collisions_enabled(false)
+	chienHub.stop_idle()
+	pnjHub.stop_idle()
 	started = false
 	stopped = true
 

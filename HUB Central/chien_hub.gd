@@ -22,6 +22,7 @@ var _bubble_timer: Timer
 var _prompt_label: Label
 var _bark_sounds: Array[AudioStream] = []
 var _bark_player: AudioStreamPlayer
+var _idle_bark_timer: Timer
 
 
 func _ready() -> void:
@@ -37,6 +38,7 @@ func _ready() -> void:
 	_setup_bubble()
 	_setup_prompt()
 	_setup_bark_audio()
+	_setup_idle_bark()
 
 
 func _setup_bubble() -> void:
@@ -94,6 +96,27 @@ func _setup_bark_audio() -> void:
 		dir.list_dir_end()
 
 
+func _setup_idle_bark() -> void:
+	_idle_bark_timer = Timer.new()
+	_idle_bark_timer.one_shot = true
+	_idle_bark_timer.timeout.connect(_on_idle_bark_timeout)
+	add_child(_idle_bark_timer)
+
+
+func _schedule_next_idle_bark() -> void:
+	_idle_bark_timer.start(_rng.randf_range(10.0, 30.0))
+
+
+func _on_idle_bark_timeout() -> void:
+	if not visible:
+		return
+	if _player_nearby or _bubble.visible:
+		_schedule_next_idle_bark()
+		return
+	_bark()
+	_schedule_next_idle_bark()
+
+
 func _update_prompt_position() -> void:
 	_prompt_label.position = Vector2(-_prompt_label.size.x / 2.0, -95)
 
@@ -147,9 +170,18 @@ func _bark() -> void:
 		_bark_player.stream = _bark_sounds[_rng.randi_range(0, _bark_sounds.size() - 1)]
 		_bark_player.play()
 
+	_schedule_next_idle_bark()
+
+
+func stop_idle() -> void:
+	_idle_bark_timer.stop()
+	_bark_player.stop()
+	_hide_bubble()
+
 
 func apparition(pos: Vector2) -> void:
 	_animation.animation = "idle-dog"
 	_animation.speed_scale = 2.0
 	self.position = pos
 	show()
+	_schedule_next_idle_bark()
