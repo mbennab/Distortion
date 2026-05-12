@@ -1,5 +1,7 @@
 extends Node2D
 
+const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
+
 var timeAunote
 var pnjHub
 var chienHub
@@ -104,6 +106,7 @@ func _process(_delta):
 	deplacement(_delta)
 
 func start(spawn_id: String = "entree"):
+	TimeAunoteScript.disguised = false
 	show()
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://HUB Central/dimension_hub.json")

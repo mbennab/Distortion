@@ -1,5 +1,7 @@
 extends Node2D
 
+const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
+
 var pnj_marchand
 var player_near_habits := false
 var minigame_running := false
@@ -102,6 +104,10 @@ func _on_minigame_done(success: bool) -> void:
 	if success:
 		disguise_obtained = true
 		$zoneHabits.monitoring = false
+		TimeAunoteScript.disguised = true
+		var player = get_parent().get_node("TimeAunote")
+		if player and player.has_method("apply_disguise"):
+			player.apply_disguise()
 		var label := Label.new()
 		label.text = "Déguisement obtenu !"
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
