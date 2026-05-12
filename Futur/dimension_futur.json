@@ -24,15 +24,15 @@
 		  ],
 		  "interdits": [
 			"ne propose PAS d'aide",
-			"ne pose PAS de questions",
-		  ]
+			"ne pose PAS de questions"
+  ]
 		},
 		"knowledge": [
 		  "elle est à côté de sa chef",
 		  "elle ne connaît pas le voyageur et est curieuse",
 		  "son groupe à un plan qui consiste à aller en ville avec la voiture",
-		  "S'appele Nero",
-		],
+		  "S'appele Nero"
+  ],
 		"goals": [
 		  "lui dire d'aller parler à la cheffe du plan",
 		  "lui expliquer ce qu'elle sait du plan et que la voiture est très importante",
@@ -99,8 +99,8 @@
 		  "elle à besoin d'aide pour rejoindre la ville mais le voyageur doit d'abord se présenter aux autres",
 		  "il y a d'autres PNJs dans le secteur à qui parler",
 		  "son groupe cherche à faire tomber le dictateur Alfredo Sinko Nochez dans la ville de Kadath",
-		  "S'appele Billie",
-		],
+		  "S'appele Billie"
+  ],
 		"goals": [
 		  "se présente d'abord au voyageur",
 		  "envoyer le voyageur parler aux autres PNJs ",
