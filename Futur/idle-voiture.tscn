@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://d18qioxy43g6i"]
+
+[ext_resource type="Texture2D" uid="uid://ci0m8nmhm8gdt" path="res://art/voiturefutur.png" id="1_n22k6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5f72y"]
+atlas = ExtResource("1_n22k6")
+region = Rect2(0, 0, 1000, 577)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uo37m"]
+atlas = ExtResource("1_n22k6")
+region = Rect2(1000, 0, 1000, 577)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_l7xf5"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5f72y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uo37m")
+}],
+"loop": true,
+"name": &"voiture",
+"speed": 5.0
+}]
+
+[node name="voiture" type="Node2D" unique_id=857988698]
+
+[node name="voiturevroom" type="AnimatedSprite2D" parent="." unique_id=1508492745]
+sprite_frames = SubResource("SpriteFrames_l7xf5")
+animation = &"voiture"
+frame_progress = 0.73951536
