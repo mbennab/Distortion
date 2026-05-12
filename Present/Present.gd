@@ -7,6 +7,7 @@ var stopped: bool = true
 var can_move: bool = false
 var speed: float = 350.0
 var spawn_particles: CPUParticles2D
+var _objective_label: Label
 
 func _ready() -> void:
 	position_entree_principale = $"fondPresent/Markers2D/entreePrincipale".position
@@ -70,8 +71,15 @@ func _handle_movement(delta: float) -> void:
 	time_aunote.animation(direction)
 	time_aunote.move_and_collide(direction * speed * delta)
 
+func _update_objective(text: String) -> void:
+	if _objective_label:
+		_objective_label.text = text
+
 func start(spawn_id: String = "entree") -> void:
 	show()
+	_objective_label = $ObjectiveHUD/Panel/Objective
+	_update_objective("Explorer le Present")
+	$ObjectiveHUD.show()
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 8
 	time_aunote.position = position_entree_principale
@@ -108,6 +116,7 @@ func _play_spawn_animation() -> void:
 
 func stop() -> void:
 	hide()
+	$ObjectiveHUD.hide()
 	can_move = false
 	started = false
 	stopped = true
