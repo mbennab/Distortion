@@ -222,15 +222,15 @@ func start(spawn_id: String = "entree") -> void:
 		time_aunote.position = $"SousSol/fondSousSol/Markers2D/entreeEscalier".position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
-			time_aunote.scale = Vector2(0.8, 0.8)
-			time_aunote.rotation = 0.0
-			can_move = true
-			var collision_node := time_aunote.get_node("collision") as CollisionShape2D
-			collision_node.disabled = false
-			started = true
-			stopped = false
-			_update_objective("Parler aux personnes du sous-sol")
-			return
+		time_aunote.scale = Vector2(0.8, 0.8)
+		time_aunote.rotation = 0.0
+		can_move = true
+		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+		collision_node.disabled = false
+		started = true
+		stopped = false
+		_update_objective("Parler aux personnes du sous-sol")
+		return
 
 	time_aunote.position = position_entree_principale
 	time_aunote.hide()
