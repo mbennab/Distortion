@@ -39,7 +39,7 @@ Main.tscn (Node2D)
 
 **Flux de jeu :**
 1. Le HUB s'affiche. Parlez au **Gardien du Nexus** qui vous guide vers les portails.
-2. **Portail jaune** → Moyen Âge : parlez au roi mourant, découvrez son assassinat, échappez-vous de la prison en crochetant la serrure.
+2. **Portail jaune** → Moyen Âge : parlez au roi mourant, découvrez son assassinat, échappez-vous de la prison en crochetant la serrure, puis rendez-vous au magasin pour **marchander des habits et obtenir un déguisement**.
 3. **Portail bleu** → Présent nucléaire (en développement).
 4. **Portail rouge** → Futur : explorez, empruntez l'escalier vers le SousSol.
 
@@ -57,6 +57,22 @@ Le dialogue est généré par l'IA (OpenRouter, modèle `mistralai/ministral-3b-
 - **Intentions** : sujets de conversation avec exemples de réponse et actions de jeu optionnelles
 
 Les actions (ex: `roi_adieu`) déclenchent des événements narratifs dans le jeu (cinématiques, quêtes).
+
+---
+
+## Mini-jeux
+
+### Marchandage des Étoffes (magasin médiéval)
+Mini-jeu en 3 phases pour obtenir un déguisement auprès du marchand :
+
+| Phase | Type | Description |
+|-------|------|-------------|
+| **1. Stratégie** | Choix + budget | Choisir 1 tunique, 1 manteau et 1 chapeau parmi 6 pièces d'étoffes, en respectant un budget de 30 écus et un timer de 15s. Le marchand donne des indices sur la qualité. |
+| **2. Skill** | Attraper | Le marchand lance les 3 vêtements en arc parabolique — déplacer le personnage pour les attraper. Difficulté croissante + effets visuels (particules, screen shake, COMBO). |
+| **3. Narratif** | Négociation | Score final sur 6 étoiles. Choisir la bonne tactique de négociation (pitié / bluff / charme) selon la qualité du déguisement. |
+
+### Crochetage (prison)
+Mini-jeu de timing : appuyer sur E quand l'indicateur passe dans la zone verte pour crocheter la serrure en 5 étapes.
 
 ---
 

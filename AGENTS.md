@@ -49,6 +49,12 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
   - **Minigame cleanup**: `stop_minigame()` frees the CanvasLayer instance; `MoyenAge.stop()` calls it on era exit
   - `MiniJeuCrochetage.gd`: guards `_input()` with `is_inside_tree()` to prevent stray input capture
 - `pnj_marchand.gd`: standard PNJ pattern in `magasin_moyen_age` sub-zone (reachable after escaping prison)
+- `magasin_moyen_age.gd`: shop sub-zone — manages `zoneHabits` Area2D, prompts "E pour marchander", instantiates `MiniJeuMarchandage`
+  - **MiniJeuMarchandage** (`Scripts/MiniJeuMarchandage.gd`, 958 lines): CanvasLayer-based 3-phase minigame
+    - **Phase 1 (Stratégie)**: 3×2 grid of 6 fabric items with visual patterns (stripes/dots/checker/solid), candle timer, 30écu budget — pick 1 tunique + 1 manteau + 1 chapeau
+    - **Phase 2 (Skill)**: merchant throws 3 items in parabolic arcs — player moves left/right to catch. Dust particles, screen shake, COMBO text, pulsing catch zone, anticipation ring
+    - **Phase 3 (Narratif)**: score 0-6 from choices+catches, animated stars, marchand/player faces, 3 negotiation tactics (pitié/bluff/charme) — correct tactic = success → `done(true)`
+    - Emits `done(success: bool)` — same signal as before, zero changes to `magasin_moyen_age.gd` integration
 - `pnj_roi.gd`: standard PNJ pattern with `ZoneDialogue`, `show_bubble/hide_bubble`, `add_to_group("npc_dialogue")`
 
 ## Futur specific
