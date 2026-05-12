@@ -62,14 +62,23 @@ Les actions (ex: `roi_adieu`) déclenchent des événements narratifs dans le je
 
 ## Mini-jeux
 
-### Marchandage des Étoffes (magasin médiéval)
-Mini-jeu en 3 phases pour obtenir un déguisement auprès du marchand :
+### Marchandage des Habits (magasin médiéval)
+Le marchand vous lance ses affaires — attrapez les bons vêtements, esquivez les pièges.
 
-| Phase | Type | Description |
-|-------|------|-------------|
-| **1. Stratégie** | Choix + budget | Choisir 1 tunique, 1 manteau et 1 chapeau parmi 6 pièces d'étoffes, en respectant un budget de 30 écus et un timer de 15s. Le marchand donne des indices sur la qualité. |
-| **2. Skill** | Attraper | Le marchand lance les 3 vêtements en arc parabolique — déplacer le personnage pour les attraper. Difficulté croissante + effets visuels (particules, screen shake, COMBO). |
-| **3. Narratif** | Négociation | Score final sur 6 étoiles. Choisir la bonne tactique de négociation (pitié / bluff / charme) selon la qualité du déguisement. |
+**Objectif :** attraper au moins **4 vêtements sur 5** et se faire piéger au maximum **1 fois**.
+
+| Élément | Détail |
+|---------|--------|
+| **Rounds** | 8 lancers (5 bons vêtements + 3 pièges mélangés aléatoirement) |
+| **Contrôle** | ← → pour déplacer le personnage |
+| **Items** | Bons items en couleur tissu — pièges en rouge avec ⚠ |
+| **Difficulté** | Durée de chute 2.0 s → 0.62 s, zone d'attrape 55 px → 13 px |
+| **Trajectoires** | Arc parabolique aléatoire + déviation latérale croissante (wobble) |
+| **Marchand** | Se déplace entre 4 positions — le lancer part depuis sa position |
+| **Sprites** | Personnage joueur et marchand en pixel art réel |
+| **Barre d'objectifs** | Affichage temps réel `🎯 X/4 vêtements · ⚠ Y/2 pièges` |
+
+Résultat : `done(true)` → déguisement obtenu, progression vers la sortie du Moyen Âge.
 
 ### Crochetage (prison)
 Mini-jeu de timing : appuyer sur E quand l'indicateur passe dans la zone verte pour crocheter la serrure en 5 étapes.

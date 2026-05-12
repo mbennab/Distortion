@@ -50,11 +50,21 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
   - `MiniJeuCrochetage.gd`: guards `_input()` with `is_inside_tree()` to prevent stray input capture
 - `pnj_marchand.gd`: standard PNJ pattern in `magasin_moyen_age` sub-zone (reachable after escaping prison)
 - `magasin_moyen_age.gd`: shop sub-zone — manages `zoneHabits` Area2D, prompts "E pour marchander", instantiates `MiniJeuMarchandage`
-  - **MiniJeuMarchandage** (`Scripts/MiniJeuMarchandage.gd`, 958 lines): CanvasLayer-based 3-phase minigame
-    - **Phase 1 (Stratégie)**: 3×2 grid of 6 fabric items with visual patterns (stripes/dots/checker/solid), candle timer, 30écu budget — pick 1 tunique + 1 manteau + 1 chapeau
-    - **Phase 2 (Skill)**: merchant throws 3 items in parabolic arcs — player moves left/right to catch. Dust particles, screen shake, COMBO text, pulsing catch zone, anticipation ring
-    - **Phase 3 (Narratif)**: score 0-6 from choices+catches, animated stars, marchand/player faces, 3 negotiation tactics (pitié/bluff/charme) — correct tactic = success → `done(true)`
-    - Emits `done(success: bool)` — same signal as before, zero changes to `magasin_moyen_age.gd` integration
+  - **MiniJeuMarchandage** (`Scripts/MiniJeuMarchandage.gd`, ~660 lines): CanvasLayer-based catching minigame (single phase)
+    - **8 rounds** total: 5 good items to catch + 3 decoys (red, ⚠) to dodge
+    - Win condition: `good_catches >= 4 AND decoy_caught <= 1` → `done(true)`
+    - **Difficulty curve**: fall duration 2.0s → 0.62s, catch radius 55px → 13px across rounds
+    - **Parabolic trajectory** with random arc height (clamped to viewport) and lateral wobble that grows with round index
+    - **Merchant moves** between 4 horizontal positions each round; throw originates from merchant position
+    - **Player sprites**: `perso_idle_face.png` / `perso_marche_face1/2.png` (hframes=2, frame=0), animated on move
+    - **Merchant sprite**: `art/MoyenAge/marchand.png` (hframes=2, frame=0), bobs vertically, tilts during wind-up
+    - No landing-zone indicator — player must track item visually
+    - FX: screen shake, golden flash on catch, red flash on decoy hit, dust particles, torch ambiance
+    - Persistent `_obj_lbl` shows `🎯 X/4 vêtements · ⚠ Y/2 piège(s)` updated each round
+    - 3-second intro screen shows objectives before first throw
+    - `ROUND_PARAMS` const array drives per-round `[fall_duration, catch_radius, anticip_time]`
+    - Emits `done(success: bool)` — interface unchanged, `magasin_moyen_age.gd` requires no edits
+    - **Known calibration**: `PLAYER_SPEED = 720`, landing zone margins 110px — worst-case distance (402px) always reachable in every round's fall duration
 - `pnj_roi.gd`: standard PNJ pattern with `ZoneDialogue`, `show_bubble/hide_bubble`, `add_to_group("npc_dialogue")`
 
 ## Futur specific

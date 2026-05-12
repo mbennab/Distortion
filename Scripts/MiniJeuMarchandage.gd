@@ -2,101 +2,143 @@ extends CanvasLayer
 
 signal done(success: bool)
 
-enum Phase { STRATEGIE, SKILL, NARRATIF, DONE }
+# ── Difficulté par round (8 lancers) ─────────────────────────────────────────
+const TOTAL_ROUNDS   := 8
+const GOOD_ROUNDS    := 5   # items à attraper
+const DECOY_ROUNDS   := 3   # items à esquiver
+const WIN_CATCHES    := 4   # bonnes prises minimum
+const WIN_MAX_DECOYS := 1   # décoys rattrapés maximum pour gagner
+const PLAYER_SPEED   := 720.0
 
-const TIMER_MAX := 15.0
-const BUDGET := 30
-const COLUMNS := 3
-const ROWS := 2
-const CELL_W := 190
-const CELL_H := 155
-const GRID_ORIGIN_Y := 135
-const PLAYER_SPEED := 380.0
-const FALL_DURATION := 2.2
-const CATCH_RADIUS := 58.0
-
-var _phase := Phase.STRATEGIE
-var _timer := TIMER_MAX
-var _cursor := Vector2i(0, 0)
-var _selected: Array[int] = []
-var _items: Array[Dictionary] = []
-var _budget_spent := 0
-var _good_choices := 0
-var _hover_bounce := 0.0
-var _transition_alpha := 0.0
-var _transitioning := false
-
-var _skill_round := 0
-var _player_x := 0.0
-var _fall_elapsed := 0.0
-var _fall_x_start := 0.0
-var _fall_x_land := 0.0
-var _fall_radius := 80.0
-var _falling := false
-var _catch_feedback_timer := 0.0
-var _catch_feedback_text := ""
-var _catches: Array[bool] = []
-var _chosen_items: Array[Dictionary] = []
-var _shake_amount := 0.0
-var _dust_particles: Array[Dictionary] = []
-var _pulse_t := 0.0
-var _anticipation_timer := 0.0
-var _anticipating := false
-
-var _dialogue_cursor := 0
-var _final_score := 0
-var _negotiation_done := false
-var _succeeded := false
-var _star_anim_t := 0.0
-var _star_anim_done := false
-
-var _bg: ColorRect
-var _draw_node: Node2D
-var _title_label: Label
-var _timer_label: Label
-var _budget_label: Label
-var _hint_label: Label
-var _feedback_label: Label
-var _phase_label: Label
-var _option_labels: Array[Label] = []
-var _marchand_text: Label
-
-var _fabric_colors := [
-	Color(0.55, 0.32, 0.18),
-	Color(0.25, 0.35, 0.55),
-	Color(0.45, 0.5, 0.35),
-	Color(0.6, 0.5, 0.3),
-	Color(0.5, 0.25, 0.25),
-	Color(0.35, 0.3, 0.45),
-]
-var _fabric_style: Array[String] = []
-var _item_icons: Array[Dictionary] = []
-
-var _tunique_pool := [
-	{"name": "Tunique en lin", "price": 15, "good_hint": "Cette étoffe vient de Flandre, touchez-moi ça !", "bad_hint": "Un excellent rapport qualité-prix, si vous voulez mon avis..."},
-	{"name": "Tunique en laine", "price": 14, "good_hint": "Tissée serré, elle vous tiendra chaud tout l'hiver.", "bad_hint": "Elle a été... légèrement portée. Très légèrement."},
-	{"name": "Tunique de voyage", "price": 13, "good_hint": "Double couture aux épaules — increvable !", "bad_hint": "Regardez-moi cette couleur ! ...Bon, elle est un peu passée."},
-	{"name": "Tunique de paysan", "price": 6, "good_hint": "Simple mais solide, comme ceux qui la portent.", "bad_hint": "Je vous la laisse à prix d'ami. Un ami très proche."},
-	{"name": "Tunique en chanvre", "price": 8, "good_hint": "Respirante et robuste, parfaite pour la route.", "bad_hint": "Elle gratte un peu au début, on s'y fait."},
-]
-var _manteau_pool := [
-	{"name": "Manteau de voyage", "price": 12, "good_hint": "Avec capuche doublée de fourrure. Voyez le travail !", "bad_hint": "La capuche est... optionnelle. Elle s'enlève toute seule."},
-	{"name": "Cape en laine", "price": 10, "good_hint": "Tissée par les meilleurs artisans du royaume.", "bad_hint": "Un peu mitée sur les bords, mais ça ne se voit pas trop."},
-	{"name": "Cape de rôdeur", "price": 11, "good_hint": "Foncée, discrète — idéale pour passer inaperçu.", "bad_hint": "Idéale si vous voulez qu'on vous ignore... ou qu'on vous plaigne."},
-	{"name": "Manteau rapiécé", "price": 5, "good_hint": "Les pièces sont cousues main ! Regardez ces points.", "bad_hint": "Il a vécu, ce manteau. Beaucoup vécu."},
-]
-var _chapeau_pool := [
-	{"name": "Chapeau à large bord", "price": 8, "good_hint": "Idéal pour se fondre dans la foule, croyez-moi.", "bad_hint": "Le bord est un peu... asymétrique. C'est la mode."},
-	{"name": "Capuche de moine", "price": 7, "good_hint": "Passez inaperçu avec cette capuche discrète et sobre.", "bad_hint": "On dirait presque un moine. Presque."},
-	{"name": "Coiffe de voyage", "price": 9, "good_hint": "Protège du soleil ET de la pluie. Un must !", "bad_hint": "Elle protège de la pluie... sauf quand il pleut vraiment."},
+# Paramètres par round : [durée_chute, rayon_attrap, durée_anticip]
+# Calibré pour que le joueur puisse TOUJOURS atteindre la zone depuis le centre
+# en moins de (durée_chute) secondes à 720px/s
+const ROUND_PARAMS := [
+	[2.00, 55.0, 0.50],
+	[1.75, 47.0, 0.44],
+	[1.50, 39.0, 0.38],
+	[1.28, 32.0, 0.33],
+	[1.08, 26.0, 0.28],
+	[0.90, 21.0, 0.24],
+	[0.75, 17.0, 0.20],
+	[0.62, 13.0, 0.16],
 ]
 
+# ── State ─────────────────────────────────────────────────────────────────────
+var _round         := 0
+var _global_t      := 0.0
+var _good_catches  := 0
+var _decoy_caught  := 0
+var _combo         := 0
+var _game_over     := false
+
+# Résultats par round : 1=bonne prise, 0=raté bon, -1=décoy rattrapé, 2=décoy esquivé
+var _results: Array[int] = []
+
+# Round courant
+var _cur_is_decoy  := false
+var _cur_name      := ""
+var _cur_color     := Color.WHITE
+var _anticipating  := false
+var _anticip_timer := 0.0
+var _falling       := false
+var _fall_elapsed  := 0.0
+var _fall_x_start  := 0.0
+var _fall_x_land   := 0.0
+var _fall_radius   := 60.0
+var _fall_duration := 2.0
+var _item_spin     := 0.0
+var _arc_height    := 220.0  # hauteur de l'arc, varie par round
+var _wobble_seed   := 0.0    # phase du sinus de déviation
+var _item_visual_x := 0.0    # X réel avec déviation (pour catch detection)
+var _merch_x       := 90.0   # position X du marchand, change entre rounds
+
+# Player
+var _player_x      := 0.0
+var _player_walk_t := 0.0
+var _player_moving := false
+
+# FX
+var _shake         := 0.0
+var _pulse_t       := 0.0
+var _catch_flash_t := 0.0
+var _warn_flash_t  := 0.0   # flash rouge sur décoy raté
+var _fb_timer      := 0.0
+var _fb_text       := ""
+var _fb_ok         := true
+var _dust: Array[Dictionary] = []
+
+# ── Textures ──────────────────────────────────────────────────────────────────
+var _tex_idle:   Texture2D
+var _tex_walk1:  Texture2D
+var _tex_walk2:  Texture2D
+var _tex_merch:  Texture2D
+
+# ── Nodes ─────────────────────────────────────────────────────────────────────
+var _bg:           ColorRect
+var _draw_node:    Node2D
+var _player_spr:   Sprite2D
+var _merch_spr:    Sprite2D
+var _title_lbl:    Label
+var _hint_lbl:     Label
+var _fb_lbl:       Label
+var _round_lbl:    Label
+var _warn_lbl:     Label
+var _obj_lbl:      Label   # barre d'objectifs persistante
+
+# ── Pools d'items ─────────────────────────────────────────────────────────────
+var _good_pool := [
+	{"name": "Tunique en lin",    "col": Color(0.45, 0.50, 0.65)},
+	{"name": "Cape en laine",     "col": Color(0.52, 0.33, 0.22)},
+	{"name": "Coiffe de voyage",  "col": Color(0.48, 0.44, 0.32)},
+	{"name": "Manteau de voyage", "col": Color(0.38, 0.50, 0.36)},
+	{"name": "Cape de rôdeur",    "col": Color(0.33, 0.28, 0.42)},
+	{"name": "Tunique de paysan", "col": Color(0.55, 0.42, 0.26)},
+]
+var _decoy_pool := [
+	{"name": "⚠ Hardes pourries !", "col": Color(0.75, 0.15, 0.10)},
+	{"name": "⚠ Fausse étoffe !",   "col": Color(0.80, 0.18, 0.12)},
+	{"name": "⚠ Piège du marchand !","col": Color(0.70, 0.12, 0.08)},
+]
+
+var _item_sequence: Array[Dictionary] = []
+
+
+# =============================================================================
+# INIT
+# =============================================================================
 
 func _ready() -> void:
 	randomize()
+	_load_textures()
 	_build_ui()
-	_generate_items()
-	_enter_strategie()
+	_build_sequence()
+	_show_intro()
+
+
+func _show_intro() -> void:
+	_title_lbl.text = "Le Marchandage des Habits"
+	_round_lbl.text = "Le marchand vous lance ses affaires — soyez prêt !"
+	_round_lbl.add_theme_color_override("font_color", Color(0.75, 0.72, 0.58))
+	_hint_lbl.text  = (
+		"Objectif : attraper %d vêtements sur %d\n"
+		+ "Esquivez les %d pièges (items rouges ⚠)\n"
+		+ "← → pour vous déplacer"
+	) % [WIN_CATCHES, GOOD_ROUNDS, DECOY_ROUNDS]
+	_hint_lbl.add_theme_font_size_override("font_size", 15)
+	_obj_lbl.text = ""
+	await get_tree().create_timer(3.0).timeout
+	_hint_lbl.text = "← → pour vous déplacer"
+	_hint_lbl.add_theme_font_size_override("font_size", 16)
+	_round_lbl.add_theme_color_override("font_color", Color(0.45, 0.42, 0.38))
+	_enter_round()
+
+
+func _load_textures() -> void:
+	_tex_idle  = load("res://art/perso_idle_face.png")
+	_tex_walk1 = load("res://art/perso_marche_face1.png")
+	_tex_walk2 = load("res://art/perso_marche_face2.png")
+	_tex_merch = load("res://art/MoyenAge/marchand.png")
 
 
 func _build_ui() -> void:
@@ -104,7 +146,7 @@ func _build_ui() -> void:
 
 	_bg = ColorRect.new()
 	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_bg.color = Color(0.04, 0.02, 0.01, 0.88)
+	_bg.color = Color(0.04, 0.02, 0.01, 0.94)
 	_bg.size = vp
 	add_child(_bg)
 
@@ -112,847 +154,506 @@ func _build_ui() -> void:
 	_draw_node.draw.connect(_on_draw)
 	add_child(_draw_node)
 
-	_title_label = _make_label("", 28, Color(1, 0.95, 0.7))
-	_title_label.position = Vector2(vp.x / 2.0 - 260, 44)
-	_title_label.size = Vector2(520, 44)
-	add_child(_title_label)
+	# Merchant sprite (gauche)
+	if _tex_merch:
+		_merch_spr = Sprite2D.new()
+		_merch_spr.texture = _tex_merch
+		_merch_spr.hframes = 2
+		_merch_spr.frame = 0
+		_merch_spr.scale = Vector2(0.28, 0.28)
+		_merch_spr.position = Vector2(90, vp.y - 148)
+		add_child(_merch_spr)
 
-	_timer_label = _make_label("", 20, Color(1, 0.85, 0.3))
-	_timer_label.position = Vector2(vp.x / 2.0 - 100, 92)
-	_timer_label.size = Vector2(200, 30)
-	add_child(_timer_label)
+	# Player sprite
+	if _tex_idle:
+		_player_spr = Sprite2D.new()
+		_player_spr.texture = _tex_idle
+		_player_spr.hframes = 2
+		_player_spr.frame = 0
+		_player_spr.scale = Vector2(0.22, 0.22)
+		add_child(_player_spr)
 
-	_budget_label = _make_label("", 18, Color(0.9, 0.85, 0.5))
-	_budget_label.position = Vector2(vp.x - 220, 92)
-	_budget_label.size = Vector2(200, 30)
-	add_child(_budget_label)
+	# Labels
+	_title_lbl = _lbl("Attrapez les vêtements !", 28, Color(1, 0.92, 0.60))
+	_title_lbl.position = Vector2(vp.x / 2.0 - 280, 30)
+	_title_lbl.size = Vector2(560, 50)
+	add_child(_title_lbl)
 
-	_hint_label = _make_label("", 17, Color(0.75, 0.9, 0.75))
-	_hint_label.position = Vector2(vp.x / 2.0 - 300, vp.y - 100)
-	_hint_label.size = Vector2(600, 64)
-	_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	add_child(_hint_label)
+	_round_lbl = _lbl("", 15, Color(0.45, 0.42, 0.38))
+	_round_lbl.position = Vector2(20, 16)
+	_round_lbl.size = Vector2(280, 26)
+	_round_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	add_child(_round_lbl)
 
-	_feedback_label = _make_label("", 22, Color.WHITE)
-	_feedback_label.position = Vector2(vp.x / 2.0 - 260, vp.y / 2.0 - 40)
-	_feedback_label.size = Vector2(520, 80)
-	add_child(_feedback_label)
+	_hint_lbl = _lbl("← → pour vous déplacer", 16, Color(0.70, 0.88, 0.70))
+	_hint_lbl.position = Vector2(vp.x / 2.0 - 240, vp.y - 72)
+	_hint_lbl.size = Vector2(480, 48)
+	add_child(_hint_lbl)
 
-	_phase_label = _make_label("", 15, Color(0.45, 0.45, 0.45))
-	_phase_label.position = Vector2(20, 18)
-	_phase_label.size = Vector2(320, 28)
-	add_child(_phase_label)
+	_fb_lbl = _lbl("", 30, Color.WHITE)
+	_fb_lbl.position = Vector2(vp.x / 2.0 - 260, vp.y / 2.0 - 50)
+	_fb_lbl.size = Vector2(520, 70)
+	add_child(_fb_lbl)
 
-	_marchand_text = _make_label("", 19, Color(0.85, 0.75, 0.55))
-	_marchand_text.position = Vector2(vp.x / 2.0 - 320, 180)
-	_marchand_text.size = Vector2(640, 110)
-	_marchand_text.autowrap_mode = TextServer.AUTOWRAP_WORD
-	add_child(_marchand_text)
+	_warn_lbl = _lbl("", 32, Color(1, 0.15, 0.15))
+	_warn_lbl.position = Vector2(vp.x / 2.0 - 260, 86)
+	_warn_lbl.size = Vector2(520, 58)
+	add_child(_warn_lbl)
 
-	for i in 3:
-		var opt := _make_label("", 19, Color(0.85, 0.85, 0.7))
-		opt.position = Vector2(vp.x / 2.0 - 280, 340 + i * 52)
-		opt.size = Vector2(560, 46)
-		opt.visible = false
-		add_child(opt)
-		_option_labels.append(opt)
+	_obj_lbl = _lbl("", 15, Color(0.78, 0.76, 0.62))
+	_obj_lbl.position = Vector2(vp.x / 2.0 - 280, 82)
+	_obj_lbl.size = Vector2(560, 28)
+	add_child(_obj_lbl)
+
+	_player_x = vp.x / 2.0
 
 
-func _make_label(text: String, size: int, color: Color) -> Label:
+func _lbl(text: String, size: int, color: Color) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	return l
 
 
-# =============================================================
-#  PHASE 1 — STRATEGIE
-# =============================================================
-
-func _generate_items() -> void:
-	_items.clear()
-	_item_icons.clear()
-	_fabric_style.clear()
-	for _i in 6:
-		_fabric_style.append(["stripes", "dots", "solid", "checker"][randi() % 4])
-		_item_icons.append({
-			"col": _fabric_colors[randi() % _fabric_colors.size()],
-			"alt_col": _fabric_colors[randi() % _fabric_colors.size()],
-		})
-
-	var tunics := _tunique_pool.duplicate()
-	tunics.shuffle()
-	var manteaux := _manteau_pool.duplicate()
-	manteaux.shuffle()
-	var chapeau := _chapeau_pool.duplicate()
-	chapeau.shuffle()
-
-	var good_tunics := 2
-	for i in 3:
-		var is_good := i < good_tunics
-		var q := "bonne" if is_good else "mauvaise"
-		var hint: String = tunics[i].good_hint if is_good else tunics[i].bad_hint
-		_items.append({
-			"name": tunics[i].name, "type": "tunique", "quality": q,
-			"price": tunics[i].price, "hint": hint, "row": 0, "col": i,
-		})
-
-	var good_manteaux := 1
-	for i in 2:
-		var is_good := i < good_manteaux
-		var q := "bonne" if is_good else "mauvaise"
-		var hint: String = manteaux[i].good_hint if is_good else manteaux[i].bad_hint
-		_items.append({
-			"name": manteaux[i].name, "type": "manteau", "quality": q,
-			"price": manteaux[i].price, "hint": hint, "row": 1, "col": i,
-		})
-
-	var c: Dictionary = chapeau[0]
-	var is_good := randi() % 2 == 0
-	var q := "bonne" if is_good else "mauvaise"
-	var hint: String = c.good_hint if is_good else c.bad_hint
-	_items.append({
-		"name": c.name, "type": "chapeau", "quality": q,
-		"price": c.price, "hint": hint, "row": 1, "col": 2,
-	})
+func _build_sequence() -> void:
+	var good := _good_pool.duplicate()
+	good.shuffle()
+	var decoy := _decoy_pool.duplicate()
+	decoy.shuffle()
+	_item_sequence.clear()
+	for i in GOOD_ROUNDS:
+		_item_sequence.append({"name": good[i].name, "col": good[i].col, "decoy": false})
+	for i in DECOY_ROUNDS:
+		_item_sequence.append({"name": decoy[i].name, "col": decoy[i].col, "decoy": true})
+	_item_sequence.shuffle()
 
 
-func _enter_strategie() -> void:
-	_phase = Phase.STRATEGIE
-	_phase_label.text = "PHASE 1/3 — Choisissez vos vêtements"
-	_title_label.text = "Le Marchandage des Étoffes"
-	_timer = TIMER_MAX
-	_cursor = Vector2i(0, 0)
-	_selected.clear()
-	_budget_spent = 0
-	_good_choices = 0
-	_hover_bounce = 0.0
-	_budget_label.text = "Bourse : %d écus" % BUDGET
-	_update_hint_for_cursor()
-	_draw_node.queue_redraw()
+# =============================================================================
+# ROUND LOGIC
+# =============================================================================
+
+func _update_obj_lbl() -> void:
+	var needed  := WIN_CATCHES - _good_catches
+	var catches_col := Color(0.40, 0.92, 0.40) if needed <= 1 else Color(0.78, 0.76, 0.62)
+	var decoys_col  := Color(1, 0.35, 0.25) if _decoy_caught >= WIN_MAX_DECOYS else Color(0.78, 0.76, 0.62)
+	# On affiche les deux infos séparément via les deux overrides de couleur impossibles,
+	# donc on concatène en texte avec état lisible
+	var catches_txt := "%d/%d vêtements" % [_good_catches, WIN_CATCHES]
+	var decoys_txt  := "%d/%d piège(s)" % [_decoy_caught, WIN_MAX_DECOYS + 1]
+	if _decoy_caught > WIN_MAX_DECOYS:
+		_obj_lbl.add_theme_color_override("font_color", Color(1, 0.35, 0.25))
+	elif needed <= 1 and needed > 0:
+		_obj_lbl.add_theme_color_override("font_color", Color(0.40, 0.92, 0.40))
+	else:
+		_obj_lbl.add_theme_color_override("font_color", Color(0.78, 0.76, 0.62))
+	_obj_lbl.text = "🎯 %s  ·  ⚠ %s" % [catches_txt, decoys_txt]
 
 
-# =============================================================
-#  PHASE 2 — SKILL
-# =============================================================
-
-func _enter_skill() -> void:
-	_phase = Phase.SKILL
-	_skill_round = 0
-	_catches.clear()
-	_chosen_items.clear()
-	_dust_particles.clear()
-
-	for idx in _selected:
-		_chosen_items.append(_items[idx])
-
-	_player_x = get_viewport().get_visible_rect().size.x / 2.0
-	_falling = false
-	_anticipating = false
-	_catch_feedback_timer = 0.0
-	_catch_feedback_text = ""
-	_shake_amount = 0.0
-	_pulse_t = 0.0
-
-	_feedback_label.text = ""
-	_title_label.text = "Attrapez les vêtements !"
-	_phase_label.text = "PHASE 2/3 — Le marchand vous lance les habits"
-	_timer_label.text = ""
-	_budget_label.text = ""
-	_hint_label.text = "← → pour vous déplacer"
-	_marchand_text.text = ""
-
-	_start_fall()
-
-
-func _start_fall() -> void:
-	if _skill_round >= _chosen_items.size():
-		_enter_narratif()
+func _enter_round() -> void:
+	if _round >= TOTAL_ROUNDS:
+		_finish_game()
 		return
 
-	_anticipating = true
-	_anticipation_timer = 0.5
+	var params: Array = ROUND_PARAMS[_round]
+	_fall_duration = float(params[0])
+	_fall_radius   = float(params[1])
+	_anticip_timer = float(params[2])
+
+	var item       := _item_sequence[_round]
+	_cur_is_decoy  = item.decoy
+	_cur_name      = item.name
+	_cur_color     = item.col
+
+	_anticipating  = true
+	_falling       = false
+	_fall_elapsed  = 0.0
+	_item_spin   = randf_range(0.0, TAU)
+	_wobble_seed = randf_range(0.0, TAU)
 
 	var vp := get_viewport().get_visible_rect().size
-	var margin := 120.0
-	_fall_x_start = randf_range(margin, vp.x - margin)
-	_fall_x_land = randf_range(margin, vp.x - margin)
-	_fall_radius = lerpf(120.0, 75.0, float(_skill_round) / 2.0)
-	_fall_elapsed = 0.0
+	# Arc max safe : au pic (t=0.5), item_y = (start_y+gnd)/2 - arc_h >= 30
+	var start_y  := 80.0
+	var gnd_y    := vp.y - 140.0
+	var max_arc  := (start_y + gnd_y) / 2.0 - 45.0
+	_arc_height  = randf_range(60.0, max_arc)
+	var m  := 110.0
+	# Le marchand se déplace vers une nouvelle position
+	var merch_positions := [80.0, 130.0, vp.x - 130.0, vp.x - 80.0]
+	_merch_x       = merch_positions[randi() % merch_positions.size()]
+	_fall_x_start  = _merch_x
+	_fall_x_land   = randf_range(m, vp.x - m)
+	_item_visual_x = _fall_x_start
 
-	_title_label.text = "%s !" % _chosen_items[_skill_round].name
-	_phase_label.text = "PHASE 2/3 — Lancer %d/3" % (_skill_round + 1)
+	if _merch_spr:
+		_merch_spr.position.x = _merch_x
+
+	_round_lbl.text = "Lancer %d / %d" % [_round + 1, TOTAL_ROUNDS]
+	_update_obj_lbl()
+
+	# Avertissement visuel AVANT la chute si décoy
+	if _cur_is_decoy:
+		_warn_lbl.text = "⚠  PIÈGE — ESQUIVEZ !"
+	else:
+		_warn_lbl.text = ""
+
 	_draw_node.queue_redraw()
 
 
-func _catch_item(ok: bool) -> void:
-	_catches.append(ok)
+const _MSG_CATCH  := ["Attrapé !", "Bien joué !", "Dans la poche !", "Parfait !"]
+const _MSG_MISS   := ["Raté !", "Trop lent !", "Passé à côté !", "Malheureux !"]
+const _MSG_DODGE  := ["Esquivé !", "Bon réflexe !", "Vous l'aviez vu venir !", "Belle esquive !"]
+const _MSG_TRAP   := ["Piégé !", "C'était un piège !", "Le marchand ricane...", "Mauvais flair !"]
+const _MSG_COMBO  := ["EN FEU !", "Le marchand s'énerve !", "Incroyable !", "Inarrêtable !"]
+
+func _resolve_round(caught: bool) -> void:
 	_falling = false
-	if ok:
-		_catch_feedback_text = "Attrapé !"
-		_catch_feedback_timer = 1.0
-		var count := 0
-		for cc in _catches:
-			if cc:
-				count += 1
-		if count >= 2:
-			_catch_feedback_text = "COMBO x%d !" % count
-	else:
-		_catch_feedback_text = "Raté !"
-		_catch_feedback_timer = 1.0
-		_shake_amount = 6.0
-		var vp := get_viewport().get_visible_rect().size
-		for _k in randi_range(8, 15):
-			_dust_particles.append({
-				"x": _fall_x_land + randf_range(-40, 40),
-				"y": vp.y - 140.0 + randf_range(-10, 20),
-				"vx": randf_range(-60, 60),
-				"vy": randf_range(-80, -20),
-				"life": randf_range(0.4, 0.9),
-				"size": randf_range(1.5, 3.5),
-			})
-
-	_skill_round += 1
-	await get_tree().create_timer(0.8).timeout
-	_catch_feedback_text = ""
-	_dust_particles.clear()
-	_start_fall()
-
-
-# =============================================================
-#  PHASE 3 — NARRATIF
-# =============================================================
-
-func _enter_narratif() -> void:
-	_phase = Phase.NARRATIF
-	_dialogue_cursor = 0
-	_negotiation_done = false
-	_star_anim_t = 0.0
-	_star_anim_done = false
-
-	var vp := get_viewport().get_visible_rect().size
-	_player_x = vp.x / 2.0
-
-	var good_phase1 := _good_choices
-	var good_phase2 := 0
-	for ct in _catches:
-		if ct:
-			good_phase2 += 1
-	_final_score = good_phase1 + good_phase2
-
-	_title_label.text = "La Négociation"
-	_phase_label.text = "PHASE 3/3 — Convainquez le marchand"
-	_timer_label.text = ""
-	_budget_label.text = ""
-	_hint_label.text = "↑ ↓ pour choisir  ·  E pour parler"
-	_feedback_label.text = ""
-	_marchand_text.text = _marchand_verdict()
-	_marchand_text.position = Vector2(vp.x / 2.0 - 320, 155)
-
-	for i in 3:
-		_option_labels[i].visible = true
-
-	_update_option_labels()
-	_draw_node.queue_redraw()
-
-
-func _marchand_verdict() -> String:
-	var score := _final_score
-	var items_shown := ""
-	for item in _chosen_items:
-		items_shown += item.name + ", "
-	items_shown = items_shown.trim_suffix(", ")
-
-	if score <= 2:
-		return "Hmm... %s.\nFranchement, c'est pas folichon tout ça.\nVous avez de la chance que je sois de bonne humeur.\nAlors, qu'avez-vous à dire pour vous ?" % items_shown
-	elif score <= 4:
-		return "Pas mal, pas mal... %s.\nÇa pourrait être pire. Bon, je suis prêt\nà écouter votre meilleur argument." % items_shown
-	else:
-		return "Magnifique ! %s.\nVoilà un déguisement digne de ce nom.\nJe suis presque fier de mon travail.\nBon... vous voulez négocier quand même, hein ?" % items_shown
-
-
-func _update_option_labels() -> void:
-	var options := [
-		"[PITIÉ]   « Je suis un humble voyageur, ayez pitié... »",
-		"[BLUFF]    « Cette étoffe est trouée, regardez ! »",
-		"[CHARME]   « Votre réputation de tailleur est en jeu ! »",
-	]
-	for i in 3:
-		var text: String = options[i]
-		if i == _dialogue_cursor:
-			text = "▶ " + text
+	if _cur_is_decoy:
+		if caught:
+			_decoy_caught += 1
+			_combo        = 0
+			_fb_text      = _MSG_TRAP[randi() % _MSG_TRAP.size()]
+			_fb_ok        = false
+			_fb_timer     = 1.2
+			_shake        = 9.0
+			_warn_flash_t = 0.65
+			_results.append(-1)
+			_spawn_dust(_fall_x_land)
 		else:
-			text = "   " + text
-		_option_labels[i].text = text
-		_option_labels[i].add_theme_color_override("font_color", Color(1, 1, 0.35) if i == _dialogue_cursor else Color(0.65, 0.65, 0.55))
-
-
-func _resolve_negociation(tactic: String) -> void:
-	_negotiation_done = true
-	var score := _final_score
-	var effective := false
-
-	match tactic:
-		"pitie":
-			effective = score <= 2
-		"bluff":
-			effective = score >= 3 and score <= 4
-		"charme":
-			effective = score >= 5
-
-	_feedback_label.text = ""
-	_marchand_text.text = ""
-	for opt in _option_labels:
-		opt.visible = false
-	_hint_label.text = ""
-
-	if effective:
-		_succeeded = true
-		_title_label.text = "Marché conclu !"
-		_title_label.add_theme_color_override("font_color", Color(0.4, 1, 0.4))
-		var msg := ""
-		match tactic:
-			"pitie":
-				msg = "« Bon, bon, ne faites pas cette tête.\nPrenez, et disparaissez de ma vue. »"
-			"bluff":
-				msg = "« Pff, vous avez l'œil.\nD'accord, d'accord, emportez tout. »"
-			"charme":
-				msg = "« Ah, vous savez parler aux artisans !\nTrès bien, le lot est à vous. »"
-		_marchand_text.text = msg
+			_fb_text  = _MSG_DODGE[randi() % _MSG_DODGE.size()]
+			_fb_ok    = true
+			_fb_timer = 0.9
+			_results.append(2)
 	else:
-		_succeeded = false
-		_title_label.text = "Négociation échouée..."
-		_title_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
-		var msg := ""
-		match tactic:
-			"pitie":
-				msg = "« Arrêtez votre comédie, je ne suis pas dupe.\nDehors ! »"
-			"bluff":
-				msg = "« Vous me prenez pour un imbécile ?!\nCes étoffes sont impeccables ! Dehors ! »"
-			"charme":
-				msg = "« Ma réputation se porte très bien, merci.\nGardez vos flatteries et sortez. »"
-		_marchand_text.text = msg
+		if caught:
+			_good_catches += 1
+			_combo        += 1
+			_catch_flash_t = 0.55
+			if _combo >= 3:
+				_fb_text = "COMBO x%d — %s" % [_combo, _MSG_COMBO[randi() % _MSG_COMBO.size()]]
+			elif _combo == 2:
+				_fb_text = "COMBO x2 !"
+			else:
+				_fb_text = _MSG_CATCH[randi() % _MSG_CATCH.size()]
+			_fb_ok    = true
+			_fb_timer = 1.0
+			_results.append(1)
+		else:
+			_combo   = 0
+			_fb_text = _MSG_MISS[randi() % _MSG_MISS.size()]
+			_fb_ok   = false
+			_fb_timer = 1.0
+			_shake   = 7.0
+			_results.append(0)
+			_spawn_dust(_fall_x_land)
 
-	await get_tree().create_timer(2.5).timeout
-	done.emit(_succeeded)
+	_round += 1
+	_warn_lbl.text = ""
+	_update_obj_lbl()
+	await get_tree().create_timer(0.9).timeout
+	_fb_text = ""
+	_dust.clear()
+	_catch_flash_t = 0.0
+	_enter_round()
+
+
+func _spawn_dust(land_x: float) -> void:
+	var vp := get_viewport().get_visible_rect().size
+	for _k in randi_range(10, 18):
+		_dust.append({
+			"x":    land_x + randf_range(-50, 50),
+			"y":    vp.y - 140.0 + randf_range(-12, 16),
+			"vx":   randf_range(-70, 70),
+			"vy":   randf_range(-90, -25),
+			"life": randf_range(0.5, 1.0),
+			"size": randf_range(1.5, 4.0),
+		})
+
+
+func _finish_game() -> void:
+	_game_over  = true
+	var success := _good_catches >= WIN_CATCHES and _decoy_caught <= WIN_MAX_DECOYS
+	_hint_lbl.text = ""
+	_warn_lbl.text = ""
+	_obj_lbl.text  = ""
+	_round_lbl.text = ""
+
+	if success:
+		var perfect := _good_catches == GOOD_ROUNDS and _decoy_caught == 0
+		if perfect:
+			_title_lbl.text = "Impeccable !"
+			_fb_lbl.text    = "Le marchand est bouche bée.\nVous repartez avec le meilleur déguisement."
+		else:
+			_title_lbl.text = "Marché conclu !"
+			_fb_lbl.text    = "Le marchand grogne... mais tient sa parole.\n%d vêtements — de quoi se déguiser." % _good_catches
+		_title_lbl.add_theme_color_override("font_color", Color(0.4, 1, 0.4))
+		_fb_lbl.add_theme_color_override("font_color", Color(0.75, 0.95, 0.75))
+	else:
+		var reason := ""
+		if _decoy_caught > WIN_MAX_DECOYS:
+			reason = "Vous avez mordu à l'hameçon trop de fois.\n« Dehors ! » crie le marchand."
+		else:
+			var missing := WIN_CATCHES - _good_catches
+			reason = "Il vous manquait %d vêtement%s.\nLe marchand vous chasse de sa boutique." % [missing, "s" if missing > 1 else ""]
+		_title_lbl.text = "Le marché est rompu."
+		_title_lbl.add_theme_color_override("font_color", Color(1, 0.32, 0.32))
+		_fb_lbl.text = reason
+		_fb_lbl.add_theme_color_override("font_color", Color(1, 0.58, 0.58))
+
+	_fb_lbl.add_theme_font_size_override("font_size", 18)
+	await get_tree().create_timer(3.2).timeout
+	done.emit(success)
 	queue_free()
 
 
-# =============================================================
-#  PROCESS & INPUT
-# =============================================================
+# =============================================================================
+# PROCESS & INPUT
+# =============================================================================
 
 func _process(delta: float) -> void:
-	match _phase:
-		Phase.STRATEGIE:
-			_process_strategie(delta)
-		Phase.SKILL:
-			_process_skill(delta)
-		Phase.NARRATIF:
-			_process_narratif(delta)
+	if _game_over:
+		return
+
+	_global_t += delta
+
+	# Merchant sprite bob
+	if _merch_spr:
+		var bob := sin(_global_t * 2.5) * 1.5
+		var vp  := get_viewport().get_visible_rect().size
+		_merch_spr.position.y = vp.y - 148 + bob
+		if _anticipating:
+			_merch_spr.rotation = sin(_global_t * 8.0) * 0.06
+		else:
+			_merch_spr.rotation = lerpf(_merch_spr.rotation, 0.0, delta * 6.0)
+
+	if _fb_timer > 0.0:
+		_fb_timer -= delta
+		_fb_lbl.text = _fb_text
+		if _fb_timer <= 0.0:
+			_fb_lbl.text = ""
+
+	if _shake > 0.1:
+		_shake = lerpf(_shake, 0.0, delta * 8.0)
+	if _catch_flash_t > 0.0:
+		_catch_flash_t -= delta
+	if _warn_flash_t > 0.0:
+		_warn_flash_t -= delta
+
+	for p in _dust:
+		p.life -= delta
+		p.x    += p.vx * delta
+		p.y    += p.vy * delta
+		p.vy   += 130.0 * delta
+	var di := 0
+	while di < _dust.size():
+		if _dust[di].life <= 0.0:
+			_dust.remove_at(di)
+		else:
+			di += 1
+
+	_pulse_t += delta * 2.5
+
+	if _anticipating:
+		_anticip_timer -= delta
+		if _anticip_timer <= 0.0:
+			_anticipating = false
+			_falling      = true
+			_fall_elapsed = 0.0
+	elif _falling:
+		_fall_elapsed += delta
+		_item_spin    += delta * (4.0 + (float(_round) / TOTAL_ROUNDS) * 4.0)
+
+		var vp := get_viewport().get_visible_rect().size
+		_player_moving = false
+		if Input.is_action_pressed("marche_gauche"):
+			_player_x     = maxf(60.0, _player_x - PLAYER_SPEED * delta)
+			_player_walk_t += delta * 10.0
+			_player_moving = true
+		if Input.is_action_pressed("marche_droite"):
+			_player_x     = minf(vp.x - 60.0, _player_x + PLAYER_SPEED * delta)
+			_player_walk_t += delta * 10.0
+			_player_moving = true
+
+		# Update player sprite texture and position
+		if _player_spr:
+			if _player_moving:
+				_player_spr.texture = _tex_walk1 if int(_player_walk_t) % 2 == 0 else _tex_walk2
+			else:
+				_player_spr.texture = _tex_idle
+			var gnd := vp.y - 140.0
+			_player_spr.position = Vector2(_player_x, gnd - 40)
+
+		var t := clampf(_fall_elapsed / _fall_duration, 0.0, 1.0)
+		# Déviation latérale qui grandit avec le numéro de round
+		var wobble_amp := float(_round) / float(TOTAL_ROUNDS - 1) * 62.0
+		var wobble := sin(_fall_elapsed * 5.8 + _wobble_seed) * wobble_amp * clampf(t * 2.2, 0.0, 1.0)
+		_item_visual_x = lerpf(_fall_x_start, _fall_x_land, t) + wobble
+		if t >= 1.0:
+			_resolve_round(absf(_item_visual_x - _player_x) <= _fall_radius + 28.0)
 
 	_draw_node.queue_redraw()
 
 
 func _input(event: InputEvent) -> void:
-	if _phase == Phase.STRATEGIE:
-		_input_strategie(event)
-	elif _phase == Phase.SKILL:
-		_input_skill(event)
-	elif _phase == Phase.NARRATIF:
-		_input_narratif(event)
-
-
-# --- Phase 1 ---
-
-func _process_strategie(delta: float) -> void:
-	if _transitioning:
+	if not is_inside_tree():
 		return
-	_timer -= delta
-	_hover_bounce += delta * 3.0
-	if _timer <= 0.0:
-		_timer = 0.0
-		_force_selection()
-		return
-
-	_timer_label.text = "⏳ %.0fs" % ceilf(_timer)
-	if _timer < 5.0:
-		_timer_label.add_theme_color_override("font_color", Color(1, 0.25, 0.25))
-	else:
-		_timer_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
-
-	_budget_label.text = "🪙 %d / %d écus" % [_budget_spent, BUDGET]
-	if _budget_spent > BUDGET:
-		_budget_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
-	else:
-		_budget_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
-
-
-func _input_strategie(event: InputEvent) -> void:
-	if _transitioning:
-		return
-	if event.is_action_pressed("marche_gauche"):
-		get_viewport().set_input_as_handled()
-		_cursor.x = maxi(0, _cursor.x - 1)
-		_update_hint_for_cursor()
-	elif event.is_action_pressed("marche_droite"):
-		get_viewport().set_input_as_handled()
-		_cursor.x = mini(COLUMNS - 1, _cursor.x + 1)
-		_update_hint_for_cursor()
-	elif event.is_action_pressed("marche_haut"):
-		get_viewport().set_input_as_handled()
-		_cursor.y = maxi(0, _cursor.y - 1)
-		_update_hint_for_cursor()
-	elif event.is_action_pressed("marche_bas"):
-		get_viewport().set_input_as_handled()
-		_cursor.y = mini(ROWS - 1, _cursor.y + 1)
-		_update_hint_for_cursor()
-	elif event.is_action_pressed("interagir"):
-		get_viewport().set_input_as_handled()
-		_try_select()
-
-
-func _update_hint_for_cursor() -> void:
-	var idx := _cursor.y * COLUMNS + _cursor.x
-	if idx >= 0 and idx < _items.size():
-		_hint_label.text = "« " + _items[idx].hint + " »"
-
-
-func _try_select() -> void:
-	var idx := _cursor.y * COLUMNS + _cursor.x
-	if idx < 0 or idx >= _items.size():
-		return
-	if idx in _selected:
-		return
-
-	var item := _items[idx]
-	var already_has_type := false
-	for si in _selected:
-		if _items[si].type == item.type:
-			already_has_type = true
-			break
-	if already_has_type:
-		_hint_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
-		_hint_label.text = "⚠  Vous avez déjà choisi un %s !" % item.type
-		return
-
-	var remaining_slots := 3 - _selected.size()
-	if _budget_spent + item.price + remaining_slots * 4 > BUDGET:
-		_hint_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
-		_hint_label.text = "❌ Trop cher ! Il vous reste %d écus." % (BUDGET - _budget_spent)
-		return
-
-	_selected.append(idx)
-	_budget_spent += item.price
-	if item.quality == "bonne":
-		_good_choices += 1
-
-	if _selected.size() >= 3:
-		_finish_strategie()
-	else:
-		_hint_label.add_theme_color_override("font_color", Color(0.7, 0.95, 0.7))
-		_hint_label.text = "✔  Choisissez encore ! (%d/3 items sélectionnés)" % _selected.size()
-
-
-func _force_selection() -> void:
-	for i in _items.size():
-		if _selected.size() >= 3:
-			break
-		if i in _selected:
-			continue
-		var item := _items[i]
-		var already := false
-		for si in _selected:
-			if _items[si].type == item.type:
-				already = true
-				break
-		if already:
-			continue
-		_selected.append(i)
-		_budget_spent += item.price
-		if item.quality == "bonne":
-			_good_choices += 1
-	_finish_strategie()
-
-
-func _finish_strategie() -> void:
-	_timer = 0.0
-	_title_label.text = "C'est parti !"
-	_hint_label.text = ""
-	_timer_label.text = ""
-	_budget_label.text = ""
-	_feedback_label.text = ""
-	await get_tree().create_timer(0.7).timeout
-	_enter_skill()
-
-
-# --- Phase 2 ---
-
-func _process_skill(delta: float) -> void:
-	if _anticipating:
-		_anticipation_timer -= delta
-		if _anticipation_timer <= 0.0:
-			_anticipating = false
-			_falling = true
-			_fall_elapsed = 0.0
-		return
-
-	if _shake_amount > 0.1:
-		_shake_amount = lerpf(_shake_amount, 0.0, delta * 8.0)
-
-	for p in _dust_particles:
-		p.life -= delta
-		p.x += p.vx * delta
-		p.y += p.vy * delta
-		p.vy += 120.0 * delta
-	var i := 0
-	while i < _dust_particles.size():
-		if _dust_particles[i].life <= 0.0:
-			_dust_particles.remove_at(i)
-		else:
-			i += 1
-
-	_pulse_t += delta * 2.5
-
-	if _catch_feedback_timer > 0.0:
-		_catch_feedback_timer -= delta
-		_feedback_label.text = _catch_feedback_text
-		if _catch_feedback_timer <= 0.0:
-			_feedback_label.text = ""
-
-	if not _falling:
-		return
-
-	_fall_elapsed += delta
-	var t := clampf(_fall_elapsed / FALL_DURATION, 0.0, 1.0)
-	var item_x := lerpf(_fall_x_start, _fall_x_land, t)
-	var vp := get_viewport().get_visible_rect().size
-	var ground_y := vp.y - 140.0
-	var start_y := 60.0
-	var arc_height := 200.0
-	var item_y := lerpf(start_y, ground_y, t) - arc_height * sin(t * PI)
-
-	if t >= 1.0:
-		var dist := absf(item_x - _player_x)
-		var ok := dist <= _fall_radius + CATCH_RADIUS
-		_catch_item(ok)
-		return
-
-	if Input.is_action_pressed("marche_gauche"):
-		_player_x = maxf(60.0, _player_x - PLAYER_SPEED * delta)
-	if Input.is_action_pressed("marche_droite"):
-		_player_x = minf(vp.x - 60.0, _player_x + PLAYER_SPEED * delta)
-
-
-func _input_skill(event: InputEvent) -> void:
 	if event.is_action_pressed("marche_gauche") or event.is_action_pressed("marche_droite"):
 		get_viewport().set_input_as_handled()
 
 
-# --- Phase 3 ---
-
-func _process_narratif(_delta: float) -> void:
-	if not _star_anim_done:
-		_star_anim_t += _delta
-		if _star_anim_t >= 1.0:
-			_star_anim_t = 1.0
-			_star_anim_done = true
-
-
-func _input_narratif(event: InputEvent) -> void:
-	if _negotiation_done:
-		return
-
-	if event.is_action_pressed("marche_haut"):
-		get_viewport().set_input_as_handled()
-		_dialogue_cursor = maxi(0, _dialogue_cursor - 1)
-		_update_option_labels()
-	elif event.is_action_pressed("marche_bas"):
-		get_viewport().set_input_as_handled()
-		_dialogue_cursor = mini(2, _dialogue_cursor + 1)
-		_update_option_labels()
-	elif event.is_action_pressed("interagir"):
-		get_viewport().set_input_as_handled()
-		var tactics := ["pitie", "bluff", "charme"]
-		_resolve_negociation(tactics[_dialogue_cursor])
-
-
-# =============================================================
-#  DRAW
-# =============================================================
+# =============================================================================
+# DRAW
+# =============================================================================
 
 func _on_draw() -> void:
-	if _transitioning:
-		_draw_node.draw_rect(Rect2(0, 0, get_viewport().get_visible_rect().size.x, get_viewport().get_visible_rect().size.y), Color(0, 0, 0, _transition_alpha))
+	var vp  := get_viewport().get_visible_rect().size
+	var gnd := vp.y - 140.0
 
-	match _phase:
-		Phase.STRATEGIE:
-			_draw_strategie()
-		Phase.SKILL:
-			_draw_skill()
-		Phase.NARRATIF:
-			_draw_narratif()
-
-
-func _draw_fabric_swatch(x: float, y: float, w: float, h: float, idx: int) -> void:
-	var icon: Dictionary = _item_icons[idx]
-	var col: Color = icon.col
-	var alt_col: Color = icon.alt_col
-	var style: String = _fabric_style[idx]
-
-	_draw_node.draw_rect(Rect2(x, y, w, h), col)
-	_draw_node.draw_rect(Rect2(x, y, w, h), Color(0, 0, 0, 0.25), false, 1.0)
-
-	match style:
-		"stripes":
-			var stripe_h := 5.0
-			var sy := y
-			while sy < y + h:
-				_draw_node.draw_rect(Rect2(x, sy, w, stripe_h), alt_col)
-				sy += stripe_h * 2.0
-		"dots":
-			var dot_r := 2.5
-			var dx := x + 8.0
-			while dx < x + w:
-				var dy := y + 8.0
-				while dy < y + h:
-					_draw_node.draw_circle(Vector2(dx, dy), dot_r, alt_col)
-					dy += 16.0
-				dx += 14.0
-		"checker":
-			var cs := 10.0
-			var cx := 0
-			while cx * cs < w:
-				var cy := 0
-				while cy * cs < h:
-					if (cx + cy) % 2 == 0:
-						_draw_node.draw_rect(Rect2(x + cx * cs, y + cy * cs, cs, cs), alt_col)
-					cy += 1
-				cx += 1
-		"solid":
-			var highlight := col.lightened(0.15)
-			_draw_node.draw_rect(Rect2(x + 4, y + 4, w - 8, h - 8), highlight, false, 1.0)
-
-	_draw_node.draw_line(Vector2(x + w * 0.3, y), Vector2(x + w * 0.3, y + h), Color(0, 0, 0, 0.12), 0.8)
-	_draw_node.draw_line(Vector2(x + w * 0.7, y), Vector2(x + w * 0.7, y + h), Color(0, 0, 0, 0.12), 0.8)
+	_draw_torches(vp)
+	_draw_ground(vp, gnd)
+	_draw_fx(vp, gnd)
+	_draw_catch_zone(vp, gnd)
+	_draw_item(vp, gnd)
+	_draw_scoreboard(vp)
 
 
-func _draw_strategie() -> void:
-	var vp := get_viewport().get_visible_rect().size
-	var grid_w := COLUMNS * CELL_W
-	var origin_x := vp.x / 2.0 - grid_w / 2.0
-	var font := ThemeDB.fallback_font
-
-	# Candle timer visual
-	var candle_x := 40.0
-	var candle_y := 84.0
-	var candle_h := 50.0 * (_timer / TIMER_MAX)
-	_draw_node.draw_rect(Rect2(candle_x - 3, candle_y, 6, 52), Color(0.3, 0.25, 0.15))
-	_draw_node.draw_rect(Rect2(candle_x - 3, candle_y + 52 - candle_h, 6, candle_h), Color(0.9, 0.7, 0.3))
-	var flame_flicker := sin(_hover_bounce * 4.0) * 2.0
-	if _timer > 0:
-		_draw_node.draw_circle(Vector2(candle_x, candle_y + 50 - candle_h + flame_flicker), 4.0, Color(1, 0.7, 0.2, 0.9))
-		_draw_node.draw_circle(Vector2(candle_x, candle_y + 46 - candle_h + flame_flicker), 2.0, Color(1, 0.95, 0.5))
-
-	# Draw grid cells
-	for i in _items.size():
-		var item := _items[i]
-		var col: int = item.col
-		var row: int = item.row
-		var cx: float = origin_x + col * CELL_W + 8
-		var cy: float = GRID_ORIGIN_Y + row * CELL_H + 8
-		var cw := CELL_W - 16.0
-		var ch := CELL_H - 16.0
-
-		var is_cursor: bool = _cursor.x == col and _cursor.y == row
-		var is_selected := i in _selected
-
-		var bg_col := Color(0.12, 0.08, 0.04, 0.85)
-		if is_selected:
-			bg_col = Color(0.08, 0.28, 0.08, 0.85)
-		elif is_cursor:
-			bg_col = Color(0.22, 0.16, 0.06, 0.85)
-		_draw_node.draw_rect(Rect2(cx - 2, cy - 2, cw + 4, ch + 4), Color(0.05, 0.03, 0.01, 0.9))
-		_draw_node.draw_rect(Rect2(cx, cy, cw, ch), bg_col)
-
-		var swatch_h := ch * 0.42
-		_draw_fabric_swatch(cx + 6, cy + 6, cw - 12, swatch_h, i)
-
-		if is_cursor:
-			var pulse := absf(sin(_hover_bounce)) * 0.4 + 0.6
-			_draw_node.draw_rect(Rect2(cx - 1, cy - 1, cw + 2, ch + 2), Color(1, 0.8, 0.2, pulse), false, 2.5)
-		elif is_selected:
-			_draw_node.draw_rect(Rect2(cx - 1, cy - 1, cw + 2, ch + 2), Color(0.3, 0.9, 0.3, 0.8), false, 2.0)
-
-		var ty := cy + swatch_h + 16
-		var type_label := ""
-		match item.type:
-			"tunique": type_label = "TUNIQUE"
-			"manteau": type_label = "MANTEAU"
-			"chapeau": type_label = "CHAPEAU"
-		_draw_node.draw_string(font, Vector2(cx + 6, ty), type_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.5, 0.4, 0.3))
-		_draw_node.draw_string(font, Vector2(cx + 6, ty + 18), item.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.9, 0.85, 0.7))
-		_draw_node.draw_string(font, Vector2(cx + cw - 10, ty + 40), "%d écus" % item.price, HORIZONTAL_ALIGNMENT_RIGHT, -1, 16, Color(1, 0.9, 0.4))
-
-		if is_selected:
-			var sel_num := _selected.find(i) + 1
-			_draw_node.draw_string(font, Vector2(cx + cw - 14, cy + 8), "%d" % sel_num, HORIZONTAL_ALIGNMENT_CENTER, -1, 18, Color(0.3, 1, 0.3))
-
-	if _selected.size() > 0:
-		var px := vp.x - 150.0
-		var py := GRID_ORIGIN_Y + 10.0
-		_draw_node.draw_string(font, Vector2(px, py - 22), "Votre choix :", HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(0.7, 0.7, 0.6))
-		for j in _selected.size():
-			var si := _selected[j]
-			var ny := py + j * 40.0
-			_draw_node.draw_string(font, Vector2(px, ny), "%d. %s" % [j + 1, _items[si].name], HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(0.8, 0.85, 0.7))
+func _draw_torches(vp: Vector2) -> void:
+	_draw_torch(30.0,        vp.y / 2.0 - 60.0, _global_t)
+	_draw_torch(vp.x - 30.0, vp.y / 2.0 - 60.0, _global_t + 1.37)
 
 
-func _draw_skill() -> void:
-	var vp := get_viewport().get_visible_rect().size
-	var ground_y := vp.y - 140.0
-	var font := ThemeDB.fallback_font
+func _draw_torch(x: float, y: float, t: float) -> void:
+	_draw_node.draw_rect(Rect2(x - 4, y, 8, 40), Color(0.28, 0.18, 0.09))
+	_draw_node.draw_rect(Rect2(x - 7, y - 8, 14, 10), Color(0.38, 0.26, 0.12))
+	var fl := sin(t * 7.4) * 0.16 + sin(t * 11.3) * 0.08
+	var fh := 20.0 + fl * 5.0
+	var fw := 8.0  + fl * 2.5
+	_draw_node.draw_circle(Vector2(x, y - 8), fw * 1.6, Color(1, 0.45, 0.0, 0.06))
+	for fi in 3:
+		var lyr := float(fi) / 3.0
+		_draw_node.draw_circle(
+			Vector2(x + fl * 2.5, y - 6 - fh * (0.3 + lyr * 0.15)),
+			fw * (1.0 - lyr * 0.5),
+			Color(1.0 - lyr * 0.3, 0.58 - lyr * 0.38, lyr * 0.12, 0.85 - lyr * 0.3))
+	_draw_node.draw_circle(Vector2(x + fl * 3.0, y - 6 - fh * 0.68), 3.0, Color(1, 0.94, 0.68, 0.92))
 
-	var sx := randf_range(-_shake_amount, _shake_amount) if _shake_amount > 0.1 else 0.0
-	var sy := randf_range(-_shake_amount * 0.5, _shake_amount * 0.5) if _shake_amount > 0.1 else 0.0
 
-	# Ground surface
-	_draw_node.draw_rect(Rect2(0 + sx, ground_y + 30 + sy, vp.x, 4), Color(0.22, 0.12, 0.05))
-	_draw_node.draw_line(Vector2(50 + sx, ground_y + 34 + sy), Vector2(vp.x - 50 + sx, ground_y + 34 + sy), Color(0.15, 0.08, 0.03), 1.5)
+func _draw_ground(vp: Vector2, gnd: float) -> void:
+	var sx := randf_range(-_shake, _shake) if _shake > 0.1 else 0.0
+	var sy := randf_range(-_shake * 0.5, _shake * 0.5) if _shake > 0.1 else 0.0
+	_draw_node.draw_rect(Rect2(0 + sx, gnd + 26 + sy, vp.x, 4), Color(0.20, 0.11, 0.05))
+	_draw_node.draw_line(
+		Vector2(50 + sx, gnd + 30 + sy),
+		Vector2(vp.x - 50 + sx, gnd + 30 + sy),
+		Color(0.12, 0.07, 0.03), 1.5)
 
-	# Dust particles
-	for p in _dust_particles:
+
+func _draw_fx(vp: Vector2, gnd: float) -> void:
+	if _catch_flash_t > 0.0:
+		_draw_node.draw_rect(Rect2(0, 0, vp.x, vp.y), Color(1, 0.90, 0.28, clampf(_catch_flash_t / 0.55, 0.0, 1.0) * 0.20))
+	if _warn_flash_t > 0.0:
+		_draw_node.draw_rect(Rect2(0, 0, vp.x, vp.y), Color(1, 0.10, 0.05, clampf(_warn_flash_t / 0.6, 0.0, 1.0) * 0.18))
+	for p in _dust:
 		var alpha := clampf(p.life / 0.9, 0.0, 1.0)
-		_draw_node.draw_circle(Vector2(p.x + sx, p.y + sy), p.size, Color(0.6, 0.45, 0.25, alpha * 0.7))
+		_draw_node.draw_circle(Vector2(p.x, p.y), p.size, Color(0.62, 0.45, 0.25, alpha * 0.75))
 
-	# Player character
-	var px := _player_x + sx
-	var py := ground_y + sy
 
-	# Shadow
-	_draw_node.draw_rect(Rect2(px - 17, py + 4, 34, 6), Color(0, 0, 0, 0.2))
-
-	# Legs + feet
-	_draw_node.draw_rect(Rect2(px - 10, py - 10, 8, 14), Color(0.25, 0.2, 0.15))
-	_draw_node.draw_rect(Rect2(px + 2, py - 10, 8, 14), Color(0.25, 0.2, 0.15))
-	_draw_node.draw_rect(Rect2(px - 12, py + 2, 10, 5), Color(0.15, 0.1, 0.08))
-	_draw_node.draw_rect(Rect2(px + 2, py + 2, 10, 5), Color(0.15, 0.1, 0.08))
-	# Body
-	_draw_node.draw_rect(Rect2(px - 11, py - 36, 22, 28), Color(0.35, 0.45, 0.6))
-	# Belt
-	_draw_node.draw_rect(Rect2(px - 11, py - 12, 22, 4), Color(0.4, 0.25, 0.1))
-	# Head
-	_draw_node.draw_circle(Vector2(px, py - 48), 10, Color(0.85, 0.75, 0.6))
-	# Eyes
-	_draw_node.draw_circle(Vector2(px - 4, py - 50), 1.5, Color(0, 0, 0))
-	_draw_node.draw_circle(Vector2(px + 4, py - 50), 1.5, Color(0, 0, 0))
-	# Arms (reaching up)
-	var arm_angle := sin(_pulse_t) * 0.15
-	_draw_node.draw_line(Vector2(px - 11, py - 34), Vector2(px - 20, py - 48 + sin(arm_angle) * 5), Color(0.85, 0.75, 0.6), 3)
-	_draw_node.draw_line(Vector2(px + 11, py - 34), Vector2(px + 20, py - 48 + cos(arm_angle) * 5), Color(0.85, 0.75, 0.6), 3)
-
-	# Catch zone pulse ring
-	if _falling or _anticipating:
-		var pulse_radius := CATCH_RADIUS + sin(_pulse_t) * 8.0
-		var pulse_alpha := 0.3 + sin(_pulse_t * 1.5) * 0.2
-		_draw_node.draw_arc(Vector2(px, py - 10), pulse_radius, 0, TAU, 32, Color(0.3, 0.8, 0.3, pulse_alpha), 2.0, true)
-
-	# Anticipation indicator
-	if _anticipating:
-		var warn_t := _anticipation_timer / 0.5
-		var warn_r := lerpf(30.0, _fall_radius, 1.0 - warn_t)
-		_draw_node.draw_arc(Vector2(_fall_x_land + sx, ground_y + 8 + sy), warn_r, 0, TAU, 32, Color(1, 0.8, 0.2, 0.5), 2.0, true)
+func _draw_catch_zone(vp: Vector2, gnd: float) -> void:
+	if not (_falling or _anticipating):
 		return
+	# Anneau autour du joueur uniquement — pas d'indicateur d'atterrissage
+	var pr     := (_fall_radius + 28.0) + sin(_pulse_t) * 6.0
+	var pa     := 0.22 + sin(_pulse_t * 1.5) * 0.13
+	var ring_c := Color(0.28, 0.85, 0.28, pa) if not _cur_is_decoy else Color(0.85, 0.28, 0.28, pa)
+	_draw_node.draw_arc(Vector2(_player_x, gnd - 40), pr, 0, TAU, 32, ring_c, 2.0, true)
 
-	if not _falling and _skill_round < 3:
-		_draw_node.draw_rect(Rect2(_fall_x_land - _fall_radius / 2.0 + sx, ground_y + 24 + sy, _fall_radius, 6), Color(0, 0, 0, 0.25))
-		_draw_node.draw_string(font, Vector2(_fall_x_land - 40 + sx, ground_y + 40 + sy), "?", HORIZONTAL_ALIGNMENT_CENTER, -1, 18, Color(0.5, 0.5, 0.5))
-		return
 
+func _draw_item(_vp: Vector2, gnd: float) -> void:
 	if not _falling:
 		return
-
-	var t := clampf(_fall_elapsed / FALL_DURATION, 0.0, 1.0)
-	var item_x := lerpf(_fall_x_start, _fall_x_land, t)
-	var start_y := 60.0
-	var arc_height := 200.0
-	var item_y := lerpf(start_y, ground_y, t) - arc_height * sin(t * PI)
-
-	# Shadow follows item position (not landing)
-	_draw_node.draw_rect(Rect2(item_x - _fall_radius / 2.0 + sx, ground_y + 24 + sy, _fall_radius, 6), Color(0, 0, 0, 0.2))
-
-	# Item as fabric bundle
-	var item_idx: String = _chosen_items[_skill_round].type
-	var item_col := Color(0.7, 0.5, 0.3)
-	match item_idx:
-		"tunique": item_col = Color(0.45, 0.5, 0.65)
-		"manteau": item_col = Color(0.55, 0.35, 0.25)
-		"chapeau": item_col = Color(0.5, 0.45, 0.35)
-
-	# Draw item as a bundle with folds
-	_draw_node.draw_rect(Rect2(item_x - 32 + sx, item_y - 14 + sy, 64, 32), item_col.darkened(0.2))
-	_draw_node.draw_rect(Rect2(item_x - 28 + sx, item_y - 10 + sy, 56, 24), item_col)
-	_draw_node.draw_line(Vector2(item_x - 8 + sx, item_y - 14 + sy), Vector2(item_x - 4 + sx, item_y + 14 + sy), Color(0, 0, 0, 0.15), 1)
-	_draw_node.draw_line(Vector2(item_x + 8 + sx, item_y - 14 + sy), Vector2(item_x + 4 + sx, item_y + 14 + sy), Color(0, 0, 0, 0.15), 1)
-	# Label above
-	_draw_node.draw_string(font, Vector2(item_x - 60 + sx, item_y - 30 + sy), _chosen_items[_skill_round].name, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, Color(1, 0.95, 0.8))
-
-	# Caught/missed indicators
-	for k in _catches.size():
-		var ix := 80.0 + k * 40.0
-		if _catches[k]:
-			_draw_node.draw_string(font, Vector2(ix, 30), "✓", HORIZONTAL_ALIGNMENT_CENTER, -1, 22, Color(0.3, 1, 0.3))
-		else:
-			_draw_node.draw_string(font, Vector2(ix, 30), "✗", HORIZONTAL_ALIGNMENT_CENTER, -1, 22, Color(1, 0.3, 0.3))
-
-
-func _draw_narratif() -> void:
-	var vp := get_viewport().get_visible_rect().size
+	var t    := clampf(_fall_elapsed / _fall_duration, 0.0, 1.0)
+	var ix   := _item_visual_x
+	var iy   := lerpf(80.0, gnd, t) - _arc_height * sin(t * PI)
 	var font := ThemeDB.fallback_font
 
-	# Marchand face (simple but expressive)
-	var face_x := vp.x / 2.0 - 200.0
-	var face_y := 110.0
-	_draw_node.draw_circle(Vector2(face_x, face_y), 28, Color(0.8, 0.7, 0.55))
-	_draw_node.draw_circle(Vector2(face_x - 10, face_y - 4), 3, Color(0.1, 0.1, 0.1))
-	_draw_node.draw_circle(Vector2(face_x + 10, face_y - 4), 3, Color(0.1, 0.1, 0.1))
-	# Beard
-	_draw_node.draw_rect(Rect2(face_x - 18, face_y + 8, 36, 16), Color(0.4, 0.35, 0.25))
-	# Hat
-	_draw_node.draw_rect(Rect2(face_x - 24, face_y - 44, 48, 18), Color(0.35, 0.2, 0.1))
-	_draw_node.draw_rect(Rect2(face_x - 14, face_y - 58, 28, 18), Color(0.35, 0.2, 0.1))
+	# Item rotatif (pas d'ombre au sol pour ne pas trahir la position)
+	_draw_rotating_item(ix, iy, _cur_color, _item_spin, _cur_is_decoy)
 
-	# Player face (simple)
-	var pface_x := vp.x / 2.0 + 200.0
-	_draw_node.draw_circle(Vector2(pface_x, face_y), 24, Color(0.85, 0.75, 0.6))
-	_draw_node.draw_circle(Vector2(pface_x - 8, face_y - 3), 2.5, Color(0.2, 0.2, 0.8))
-	_draw_node.draw_circle(Vector2(pface_x + 8, face_y - 3), 2.5, Color(0.2, 0.2, 0.8))
-	# Hair
-	_draw_node.draw_rect(Rect2(pface_x - 22, face_y - 36, 44, 14), Color(0.3, 0.2, 0.1))
+	# Label nom uniquement en début de chute (disparaît après 40%)
+	var name_alpha := clampf(1.0 - (t - 0.0) / 0.40, 0.0, 1.0)
+	if name_alpha > 0.0:
+		var lbl_col := Color(1, 0.92, 0.5, name_alpha) if not _cur_is_decoy else Color(1, 0.28, 0.22, name_alpha)
+		_draw_node.draw_string(font, Vector2(ix - 70, iy - 36), _cur_name, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, lbl_col)
 
-	# Score text
-	var score_text := ""
-	if _final_score <= 2:
-		score_text = "DEGUISEMENT PITOYABLE"
-	elif _final_score <= 4:
-		score_text = "DEGUISEMENT PASSABLE"
-	else:
-		score_text = "DEGUISEMENT IMPECCABLE"
-	_draw_node.draw_string(font, Vector2(vp.x / 2.0, 290), score_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color(0.7, 0.7, 0.6))
 
-	# Animated stars
-	var stars_to_show := int(floor(_star_anim_t * 6.5))
-	for i in 6:
-		var sx := vp.x / 2.0 - 60.0 + i * 22.0
-		var lit := i < _final_score
-		var shown := i < stars_to_show
-		if lit and shown:
-			var fade_in := clampf(_star_anim_t * 6.5 - i, 0.0, 1.0)
-			_draw_node.draw_string(font, Vector2(sx, 316), "★", HORIZONTAL_ALIGNMENT_CENTER, -1, 22, Color(1, 0.8, 0.2, fade_in))
-		elif lit:
-			_draw_node.draw_string(font, Vector2(sx, 316), "☆", HORIZONTAL_ALIGNMENT_CENTER, -1, 22, Color(0.2, 0.2, 0.2))
-		else:
-			_draw_node.draw_string(font, Vector2(sx, 316), "☆", HORIZONTAL_ALIGNMENT_CENTER, -1, 22, Color(0.3, 0.3, 0.3))
+func _draw_rotating_item(cx: float, cy: float, col: Color, angle: float, is_decoy: bool) -> void:
+	var hw := 34.0
+	var hh := 17.0
+	var pts := [Vector2(-hw, -hh), Vector2(hw, -hh), Vector2(hw, hh), Vector2(-hw, hh)]
+	var outer := PackedVector2Array()
+	for p in pts:
+		outer.append(Vector2(cx + p.x * cos(angle) - p.y * sin(angle), cy + p.x * sin(angle) + p.y * cos(angle)))
+	var ipts := [Vector2(-hw + 7, -hh + 5), Vector2(hw - 7, -hh + 5), Vector2(hw - 7, hh - 5), Vector2(-hw + 7, hh - 5)]
+	var inner := PackedVector2Array()
+	for p in ipts:
+		inner.append(Vector2(cx + p.x * cos(angle) - p.y * sin(angle), cy + p.x * sin(angle) + p.y * cos(angle)))
+	_draw_node.draw_colored_polygon(outer, col.darkened(0.25))
+	_draw_node.draw_colored_polygon(inner, col)
+	# Croix rouge sur décoy
+	if is_decoy:
+		var font := ThemeDB.fallback_font
+		_draw_node.draw_string(font, Vector2(cx - 8, cy + 6), "✗", HORIZONTAL_ALIGNMENT_CENTER, -1, 22, Color(1, 0.9, 0.9, 0.9))
+
+
+func _draw_scoreboard(vp: Vector2) -> void:
+	var font := ThemeDB.fallback_font
+
+	# ── Mini cases en haut à droite (bons items seulement) ──
+	var sx := vp.x - 180.0
+	var sy := 20.0
+	_draw_node.draw_string(font, Vector2(sx, sy), "Vêtements :", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.65, 0.65, 0.55))
+
+	# Dessine d'abord les cases vides pour tous les bons items
+	for gi in GOOD_ROUNDS:
+		_draw_node.draw_rect(Rect2(sx + gi * 28.0, sy + 16, 22, 14), Color(0.15, 0.15, 0.12))
+
+	# Remplit les cases selon résultats (itère uniquement les items non-décoy)
+	var gi := 0
+	for i in _results.size():
+		if _item_sequence[i].decoy:
+			continue
+		var bx := sx + gi * 28.0
+		var r  := _results[i]
+		if r == 1:
+			_draw_node.draw_rect(Rect2(bx, sy + 16, 22, 14), Color(0.25, 0.78, 0.28))
+			_draw_node.draw_string(font, Vector2(bx + 4, sy + 27), "✓", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1))
+		elif r == 0:
+			_draw_node.draw_rect(Rect2(bx, sy + 16, 22, 14), Color(0.55, 0.12, 0.12))
+			_draw_node.draw_string(font, Vector2(bx + 4, sy + 27), "✗", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1))
+		gi += 1
+
+	# Avertissement pièges rattrapés
+	if _decoy_caught > 0:
+		_draw_node.draw_string(font, Vector2(sx, sy + 38),
+			"Pièges : %d/%d" % [_decoy_caught, WIN_MAX_DECOYS + 1],
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 0.35, 0.25))
+
+	# Score total
+	_draw_node.draw_string(font, Vector2(vp.x / 2.0, vp.y - 112.0),
+		"%d / %d vêtements" % [_good_catches, WIN_CATCHES],
+		HORIZONTAL_ALIGNMENT_CENTER, -1, 14, Color(0.80, 0.78, 0.60))
+
+	# Grandes icônes de résultats en haut (positionnées consécutivement)
+	var gi2 := 0
+	for k in _results.size():
+		if _item_sequence[k].decoy:
+			continue
+		var r  := _results[k]
+		var kx := 155.0 + gi2 * 46.0
+		if r == 1:
+			_draw_node.draw_string(font, Vector2(kx, 38), "✓", HORIZONTAL_ALIGNMENT_CENTER, -1, 26, Color(0.3, 1, 0.3))
+		elif r == 0:
+			_draw_node.draw_string(font, Vector2(kx, 38), "✗", HORIZONTAL_ALIGNMENT_CENTER, -1, 26, Color(1, 0.3, 0.3))
+		gi2 += 1
