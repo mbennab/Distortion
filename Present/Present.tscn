@@ -4,13 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://d1p0tjtkyh2ea" path="res://Present/fondPresent.tscn" id="2_fond"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
 
-[node name="Present" type="Node2D" unique_id=1593019004]
-script = ExtResource("1_gd")
-
-[node name="fondPresent" parent="." unique_id=358863711 instance=ExtResource("2_fond")]
-
-[node name="TimeAunote" parent="." unique_id=409968594 instance=ExtResource("3_perso")]
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_present"]
 bg_color = Color(0.08, 0.08, 0.15, 0.85)
 corner_radius_top_left = 8
@@ -22,6 +15,13 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.4, 0.6, 1.0, 0.6)
+
+[node name="Present" type="Node2D" unique_id=1593019004]
+script = ExtResource("1_gd")
+
+[node name="fondPresent" parent="." unique_id=358863711 instance=ExtResource("2_fond")]
+
+[node name="TimeAunote" parent="." unique_id=409968594 instance=ExtResource("3_perso")]
 
 [node name="ObjectiveHUD" type="CanvasLayer" parent="."]
 visible = false
