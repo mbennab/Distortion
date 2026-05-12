@@ -10,7 +10,7 @@
 ## Architecture
 - `Main.tscn` → `Main.gd`: orchestrator — starts HUB, then switches to era on portal exit
 - `Personnage/TimeAunote.tscn` — shared player character (`CharacterBody2D`), used by all scenes
-- `HUB Central/` — hub world with 3 time-travel portals (jaune/bleue/rouge), side-room exits, PNJ Gardien, chien interactif
+- `HUB Central/` — hub world with 3 time-travel portals (jaune/bleue/rouge internally, visualized as green/purple/orange left-to-right), PNJ Gardien, chien interactif
 - `MoyenAge/` — medieval era (portal **jaune**): roi PNJ, knights, prison sub-zone with lockpicking minigame, marchand PNJ in magasin
 - `Present/` — present/nuclear era (portal **bleu**): no PNJ yet
 - `Futur/` — future era (portal **rouge**): 2 PNJs (pnj-futur, pnj-cheffe), SousSol sub-zone reachable via escalier
@@ -32,14 +32,15 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
 - `can_move` flag prevents input during spawn animation; collision is disabled until animation ends
 
 ## HUB Central
-- `TimeAunoteDansHUBCentral.gd` manages the hub: character, PNJ, chien, portals, side doors, particles, and collision limits
-- `start()` shows the hub, places character/PNJ/chien at their markers, enables collisions, loads `dimension_hub.json`
-- `stop()` hides the hub, disables all collisions (limits, side doors, portal monitoring, PNJ dialogue zone), closes dialogue UI
-- Portal bodies: `zonePorteJaune/Bleue/Rouge` — Area2D nodes with `body_entered` signals
-- Side doors (`porteGauche`/`porteDroite`): teleport player to opposite side markers
-- `_set_collisions_enabled(bool)`: toggles `collision_layer` for limits/doors and `monitoring` for portal zones + chien Area2D
+- `TimeAunoteDansHUBCentral.gd` manages the hub: character, PNJ, chien, portals, particles, ambient audio, and collision limits
+- `start()` shows the hub, places character/PNJ/chien at their markers, enables collisions, loads `dimension_hub.json`, starts portal glow tweens and ambient audio
+- `stop()` hides the hub, disables all collisions, stops portal glows + ambient audio, calls `chienHub.stop_idle()` and `pnjHub.stop_idle()` to kill timers/audio, closes dialogue UI
+- **Portals**: `zonePorteJaune/Bleue/Rouge` — Area2D nodes with `body_entered` signals. Visual glow is procedural (radial gradient sprites with breathing tween). Internal names are jaune/bleue/rouge but visual colors are **orange/purple/green** left‑to‑right.
+- **Ambient audio**: `_setup_ambient_audio()` scans `audio/hub/` for `.mp3`/`.ogg`/`.wav`, picks one at random on `start()`, loops it. Volume -8dB. No file → silent skip.
+- `_set_collisions_enabled(bool)`: toggles `collision_layer` for limits and `monitoring` for portal zones + chien Area2D + PNJ ZoneDialogue
 - `timerSortie` (1.5s one-shot): triggers fade-out + particles → transition
-- **Chien**: `chien_hub.gd` — E key shows bark bubble (random "Wouf !" variations), tail wags at 4× speed, auto-loads audio from `audio/chien/` (any `.mp3`/`.ogg`/`.wav` files dropped there are played randomly on bark)
+- **Chien**: `chien_hub.gd` — E key shows bark bubble (random "Wouf !" variations), speed_scale 7.0 during bark / 2.0 normal. Auto-loads audio from `audio/chien/` (any `.mp3`/`.ogg`/`.wav` files played randomly on bark). Spontaneous idle barks every 10-30s when not nearby and no bubble visible.
+- **Gardien** (`pnj_hub.gd`): standard PNJ pattern + idle murmurs every 15-35s (10 enigmatic phrases). Murmur bubble matches chien style (font 28, offset next to sprite). Guarded: skips if player nearby, bubble visible, or dialogue active.
 
 ## MoyenAge specific
 - `MoyenAge.gd` starts with spawn animation, loads `dimension_moyenage.json`
@@ -166,6 +167,7 @@ DialogueUI finds the active PNJ via `get_tree().get_nodes_in_group("npc_dialogue
 ## Key gotchas
 - Migrated from Godot.NET in `e817e44`. **Never add `.cs` or `.csproj` files.**
 - `clamp()` returns `Variant` → parse errors with `:=`. Use `clampf()` for float, `clampi()` for int.
+- Dictionary access (`arr[i]` with `arr` untyped) returns `Variant` → `:=` inference fails. Use explicit type: `var p: Dictionary = arr[i]`.
 - Fake `uid://` strings in `.tscn` cause warnings. Omit or let Godot auto-generate.
 - Scene scripts need explicit `ext_resource type="GDScript"` in `.tscn`.
 - Signal connections in `.tscn` use snake_case (GDScript convention).

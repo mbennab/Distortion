@@ -31,17 +31,17 @@ Les actions `marche_haut/bas/gauche/droite` et `interagir` sont dans `project.go
 
 ```
 Main.tscn (Node2D)
-├── TimeAunoteDansHUBCentral → HUB avec 3 portails temporels, PNJ Gardien, chien prankeur
-├── MoyenAge → château médiéval, roi mourant, prison + crochetage
+├── TimeAunoteDansHUBCentral → HUB avec 3 portails temporels (lueur verte/violette/orange), PNJ Gardien, chien interactif
+├── MoyenAge → château médiéval, roi mourant, prison + crochetage, magasin + marchandage
 ├── Present → ère nucléaire (sans PNJ pour l'instant)
-└── Futur → ère futuriste, SousSol accessible via escalier, PNJ visuel
+└── Futur → ère futuriste, SousSol accessible via escalier, 2 PNJs avec dialogues IA
 ```
 
 **Flux de jeu :**
-1. Le HUB s'affiche. Parlez au **Gardien du Nexus** qui vous guide vers les portails.
-2. **Portail jaune** → Moyen Âge : parlez au roi mourant, découvrez son assassinat, échappez-vous de la prison en crochetant la serrure, puis rendez-vous au magasin pour **marchander des habits et obtenir un déguisement**.
-3. **Portail bleu** → Présent nucléaire (en développement).
-4. **Portail rouge** → Futur : explorez, empruntez l'escalier vers le SousSol.
+1. Le HUB s'affiche (son d'ambiance, lueurs portails). Parlez au **Gardien du Nexus** qui murmure des énigmes et vous guide vers les portails. Le **chien** aboie spontanément.
+2. **Portail orange** (interne jaune) → Moyen Âge : parlez au roi mourant, découvrez son assassinat, échappez-vous de la prison en crochetant la serrure, puis rendez-vous au magasin pour **marchander des habits et obtenir un déguisement**.
+3. **Portail violet** (interne bleue) → Présent nucléaire (en développement).
+4. **Portail vert** (interne rouge) → Futur : dialoguez avec La Mécano et La Cheffe, empruntez l'escalier vers le SousSol.
 
 ---
 
@@ -91,12 +91,14 @@ Mini-jeu de timing : appuyer sur E quand l'indicateur passe dans la zone verte p
 art/
 ├── perso_*.png              — sprites personnage (idle/marche 4 directions)
 ├── pnj-hub.png              — sprite du Gardien du Nexus
-├── chien-hub.png            — sprite sheet du chien prankeur (2 frames)
+├── chien-hub.png            — sprite sheet du chien (2 frames)
 ├── hub final.png            — fond du HUB
-├── porteJaune/Bleue/Rouge.png — sprites portails
 ├── MoyenAge/fond_moyen-age.png
 ├── Present/fond_nucleaire.png
 └── Futur/fond_futur.png
+audio/
+├── hub/                     — son d'ambiance du HUB (.mp3/.ogg/.wav, boucle automatique)
+└── chien/                   — aboiements du chien (bark*.mp3, chargement automatique)
 ```
 
 ---
