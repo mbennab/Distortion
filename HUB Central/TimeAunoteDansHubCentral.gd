@@ -24,6 +24,7 @@ var _ambient_player: AudioStreamPlayer
 var _ambient_streams: Array[AudioStream] = []
 var _portal_glows: Array[Sprite2D] = []
 var _glow_tweens: Array[Tween] = []
+var _objective_label: Label
 
 func _ready():
 	hide()
@@ -198,9 +199,14 @@ func _trigger_portal(porte_name, pos, color):
 func _process(_delta):
 	deplacement(_delta)
 
+func _update_objective(text: String) -> void:
+	_objective_label.text = text
+
 func start(spawn_id: String = "entree"):
 	TimeAunoteScript.disguised = false
 	show()
+	_objective_label = $ObjectiveHUD/Panel/Objective
+	_objective_label.text = "Parler au Gardien du Nexus"
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://HUB Central/dimension_hub.json")
 	timeAunote = $TimeAunote

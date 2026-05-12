@@ -19,6 +19,7 @@ var magasin
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
 var _sortie_triggered := false
+var _objective_label: Label
 
 
 func _ready() -> void:
@@ -121,8 +122,13 @@ func _handle_movement(delta: float) -> void:
 	time_aunote.animation(direction)
 	time_aunote.move_and_collide(direction * speed * delta)
 
+func _update_objective(text: String) -> void:
+	if _objective_label:
+		_objective_label.text = text
+
 func start(spawn_id: String = "entree") -> void:
 	show()
+	_objective_label = $ObjectiveHUD/Panel/Objective
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://MoyenAge/dimension_moyenage.json")
 	time_aunote = $TimeAunote
@@ -141,6 +147,8 @@ func start(spawn_id: String = "entree") -> void:
 	var static_body = magasin.get_node_or_null("StaticBody2D")
 	if static_body:
 		static_body.collision_layer = 0
+
+	_update_objective("Enquêter sur le roi")
 
 	match spawn_id:
 		"prison":
@@ -165,6 +173,7 @@ func start(spawn_id: String = "entree") -> void:
 			collision_node.disabled = false
 			started = true
 			stopped = false
+			_update_objective("S'échapper de la prison")
 			return
 
 		"magasin":
@@ -183,6 +192,7 @@ func start(spawn_id: String = "entree") -> void:
 			col_node.disabled = false
 			started = true
 			stopped = false
+			_update_objective("Marchander avec le marchand")
 			return
 
 		_:
@@ -345,6 +355,7 @@ func _trigger_roi_adieu_sequence() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
 
+	_update_objective("S'échapper de la prison")
 	can_move = true
 
 
@@ -354,6 +365,7 @@ func _on_minigame_started() -> void:
 
 func _on_minigame_success() -> void:
 	time_aunote.global_position = prison.get_node("markers2d/teleportation").global_position
+	_update_objective("Trouver la sortie de la prison")
 	can_move = true
 
 
@@ -362,6 +374,7 @@ func _on_shop_minigame_started() -> void:
 
 
 func _on_shop_minigame_success() -> void:
+	_update_objective("Explorer le Moyen Âge")
 	can_move = true
 
 
@@ -413,6 +426,7 @@ func _on_prison_sortie_entered(body: Node2D) -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
 
+	_update_objective("Marchander avec le marchand")
 	can_move = true
 
 

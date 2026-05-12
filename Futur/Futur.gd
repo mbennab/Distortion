@@ -15,6 +15,7 @@ var spawn_particles: CPUParticles2D
 
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
+var _objective_label: Label
 
 
 func _ready() -> void:
@@ -79,6 +80,7 @@ func _go_to_basement() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
 
+	_update_objective("Parler aux personnes du sous-sol")
 	can_move = true
 
 
@@ -106,6 +108,7 @@ func _return_from_basement() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
 
+	_update_objective("Parler à la cheffe")
 	can_move = true
 
 
@@ -183,8 +186,14 @@ func _handle_movement(delta: float) -> void:
 	time_aunote.move_and_collide(direction * speed * delta)
 
 
+func _update_objective(text: String) -> void:
+	if _objective_label:
+		_objective_label.text = text
+
 func start(spawn_id: String = "entree") -> void:
 	show()
+	_objective_label = $ObjectiveHUD/Panel/Objective
+	_update_objective("Parler à la cheffe")
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://Futur/dimension_futur.json")
 	$fondFutur.show()
@@ -213,14 +222,15 @@ func start(spawn_id: String = "entree") -> void:
 		time_aunote.position = $"SousSol/fondSousSol/Markers2D/entreeEscalier".position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
-		time_aunote.scale = Vector2(0.8, 0.8)
-		time_aunote.rotation = 0.0
-		can_move = true
-		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
-		collision_node.disabled = false
-		started = true
-		stopped = false
-		return
+			time_aunote.scale = Vector2(0.8, 0.8)
+			time_aunote.rotation = 0.0
+			can_move = true
+			var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+			collision_node.disabled = false
+			started = true
+			stopped = false
+			_update_objective("Parler aux personnes du sous-sol")
+			return
 
 	time_aunote.position = position_entree_principale
 	time_aunote.hide()
@@ -259,6 +269,8 @@ func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale)
 func start_from_escalier() -> void:
 	$SousSol.hide()
 	$fondFutur.show()
+	_objective_label = $ObjectiveHUD/Panel/Objective
+	_update_objective("Parler à la cheffe")
 	$ObjectiveHUD.show()
 	$TimeAunote.show()
 	$"pnj-futur".show()
