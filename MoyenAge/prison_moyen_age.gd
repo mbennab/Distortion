@@ -5,12 +5,10 @@ var player_near_sortie := false
 var minigame_running := false
 var _minigame: CanvasLayer = null
 var prompt_label: Label
-var sortie_label: Label
 
 
 func _ready() -> void:
 	_setup_prompt()
-	_setup_sortie_prompt()
 	var zone := $ZonePorte
 	zone.body_entered.connect(_on_body_entered)
 	zone.body_exited.connect(_on_body_exited)
@@ -36,23 +34,6 @@ func _setup_prompt() -> void:
 	add_child(prompt_label)
 
 
-func _setup_sortie_prompt() -> void:
-	sortie_label = Label.new()
-	sortie_label.text = "Sortie…"
-	sortie_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sortie_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	sortie_label.add_theme_font_size_override("font_size", 18)
-	sortie_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
-	sortie_label.modulate = Color(1, 1, 1, 0.85)
-	sortie_label.visible = false
-	sortie_label.z_index = 100
-
-	var sortie_pos: Vector2 = $ZoneSortie/CollisionShape2D.position
-	sortie_label.position = Vector2(sortie_pos.x - 60, sortie_pos.y - 80)
-	sortie_label.size = Vector2(120, 50)
-	add_child(sortie_label)
-
-
 func _on_body_entered(body: Node2D) -> void:
 	if body.name == "TimeAunote":
 		player_near_door = true
@@ -69,13 +50,11 @@ func _on_body_exited(body: Node2D) -> void:
 func _on_body_entered_sortie(body: Node2D) -> void:
 	if body.name == "TimeAunote":
 		player_near_sortie = true
-		sortie_label.visible = true
 
 
 func _on_body_exited_sortie(body: Node2D) -> void:
 	if body.name == "TimeAunote":
 		player_near_sortie = false
-		sortie_label.visible = false
 
 
 func _input(event: InputEvent) -> void:
