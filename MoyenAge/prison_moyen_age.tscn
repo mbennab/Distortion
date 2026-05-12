@@ -51,6 +51,7 @@ build_mode = 1
 polygon = PackedVector2Array(84, 927, 86, 1521, 2043, 1524, 2204, 1622, 2419, 1619, 2419, 1412, 1976, 1123, 1824, 1108, 1891, 938, 1973, 917, 1976, 658, 2346, 643, 2343, 446, 1705, 449, 1703, 940)
 
 [node name="ZoneSortie" type="Area2D" parent="." unique_id=1112422576]
+collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneSortie" unique_id=494994193]
 position = Vector2(2307, 1496)

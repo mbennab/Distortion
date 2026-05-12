@@ -152,6 +152,9 @@ func start(spawn_id: String = "entree") -> void:
 			if limite_prison:
 				limite_prison.collision_layer = 4
 			prison.get_node("ZonePorte").monitoring = true
+			var zone_sortie_prison = prison.get_node_or_null("ZoneSortie")
+			if zone_sortie_prison:
+				zone_sortie_prison.monitoring = true
 			time_aunote.position = prison.get_node("markers2d/apparition").position
 			time_aunote.show()
 			time_aunote.modulate.a = 1.0
@@ -387,6 +390,24 @@ func _on_prison_sortie_entered(body: Node2D) -> void:
 
 	magasin.start()
 	time_aunote.global_position = magasin.get_node("Markers2D/apparition").global_position
+
+	var text_label := Label.new()
+	text_label.text = "Vous cherchez des habits…"
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.add_theme_font_size_override("font_size", 28)
+	text_label.add_theme_color_override("font_color", Color.WHITE)
+	text_label.modulate = Color(1, 1, 1, 0)
+	text_label.size = get_viewport_rect().size
+	fade_layer.add_child(text_label)
+
+	var text_tween := create_tween()
+	text_tween.tween_property(text_label, "modulate", Color(1, 1, 1, 1), 0.4)
+	text_tween.tween_interval(1.8)
+	text_tween.tween_property(text_label, "modulate", Color(1, 1, 1, 0), 0.4)
+	await text_tween.finished
+
+	text_label.queue_free()
 
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
