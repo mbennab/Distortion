@@ -12,8 +12,6 @@ var limites
 var zonePorteJaune
 var zonePorteBleue
 var zonePorteRouge
-var porteGauche
-var porteDroite
 var timerSortie
 var speed = 350
 var particles
@@ -27,8 +25,7 @@ func _ready():
 	zonePorteJaune = $"fondHubCentral/portesVoyageTemps/zonePorteJaune"
 	zonePorteBleue = $"fondHubCentral/portesVoyageTemps/zonePorteBleue"
 	zonePorteRouge = $"fondHubCentral/portesVoyageTemps/zonePorteRouge"
-	porteGauche = $"fondHubCentral/portesVoyageSalles/porteGauche"
-	porteDroite = $"fondHubCentral/portesVoyageSalles/porteDroite"
+
 	timerSortie = $timerSortie
 	timeAunote = $TimeAunote
 	pnjHub = $"pnj-hub"
@@ -135,8 +132,7 @@ func stop():
 
 func _set_collisions_enabled(enable: bool) -> void:
 	limites.collision_layer = 2 if enable else 0
-	porteGauche.collision_layer = 2 if enable else 0
-	porteDroite.collision_layer = 2 if enable else 0
+
 	zonePorteJaune.monitoring = enable
 	zonePorteBleue.monitoring = enable
 	zonePorteRouge.monitoring = enable
@@ -171,14 +167,4 @@ func avance(mouvement):
 		var collisioneur = collision.get_collider()
 		if collisioneur == limites:
 			print("limites")
-			return
-		if collisioneur == porteGauche:
-			print("porteGauche")
-			var retour = $"fondHubCentral/Markers2D/retourDroite"
-			timeAunote.position = retour.global_position
-			return
-		if collisioneur == porteDroite:
-			print("porteDroite")
-			var retour = $"fondHubCentral/Markers2D/retourGauche"
-			timeAunote.position = retour.global_position
 			return
