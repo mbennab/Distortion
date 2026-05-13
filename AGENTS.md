@@ -187,6 +187,7 @@ DialogueUI finds the active PNJ via `get_tree().get_nodes_in_group("npc_dialogue
 - Animation tracks: `find_track(".:property", 0)`.
 - `DialogueSystem` autoload must be alphabetically before `DialogueUI`.
 - Submodule `Distortion` was removed (orphaned .NET relic) — don't recreate it.
+- ContextScout subagent is BANNED — it causes systematic bugs. Never use it.
 
 ## Commands
 - Open: launch Godot standard (non-.NET), import `project.godot`
