@@ -73,6 +73,8 @@ func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
 	if npc_id == "npc_marchand_moyenage":
 		_merchant_talked = true
 		_update_prompt_visibility()
+		if _active and not disguise_obtained:
+			DialogueSystem.complete_step("quete_deguisement", "etape_parler_marchand")
 
 
 func _update_prompt_visibility() -> void:
@@ -126,6 +128,8 @@ func _on_minigame_done(success: bool) -> void:
 		var player = get_parent().get_node("TimeAunote")
 		if player and player.has_method("apply_disguise"):
 			player.apply_disguise()
+		DialogueSystem.complete_step("quete_deguisement", "etape_marchander")
+		DialogueSystem.mark_quest_done("quete_deguisement")
 		var label := Label.new()
 		label.text = "Déguisement obtenu !"
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

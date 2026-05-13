@@ -448,7 +448,7 @@ func _on_shop_minigame_started() -> void:
 
 
 func _on_shop_minigame_success() -> void:
-	_update_objective("Explorer le Moyen Âge")
+	_update_objective("Se rendre à la taverne du village")
 	can_move = true
 
 

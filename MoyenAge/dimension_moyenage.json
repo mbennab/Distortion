@@ -42,45 +42,66 @@
 		  "vendre ses marchandises et survivre à cette période trouble"
 		],
 		"conversation_arc": [
-		  {"phase": 1, "until_message": 2, "focus": "avertir le joueur que sa tenue le désigne comme suspect — l'armoire est le seul moyen d'éviter la potence. Lui dire d'aller voir le rayon habits au fond de la boutique"},
-		  {"phase": 2, "until_message": 4, "focus": "expliquer la situation : le roi est mort, les gardes cherchent un coupable, des avis de recherche couvrent les murs. Le joueur doit changer de look puis enquêter"},
-		  {"phase": 3, "until_message": 99, "focus": "une fois déguisé, guider vers la suite : explorer la ville, chercher des indices sur l'assassin. Mentionner la forêt au nord comme piste possible. Rester prudent"}
+		  {"phase": 1, "until_message": 2, "focus": "avertir le joueur que sa tenue le désigne comme suspect — l'armoire au fond de la boutique est le seul moyen d'éviter la potence"},
+		  {"phase": 2, "until_message": 4, "focus": "expliquer le contexte : le roi est mort, les gardes cherchent un coupable étranger, des avis de recherche couvrent les murs"},
+		  {"phase": 3, "until_message": 99, "focus": "guider le joueur vers la prochaine étape de son enquête : si pas encore déguisé, le presser d'aller à l'armoire ; si déguisé, l'envoyer à la taverne du village pour chercher des pistes"}
 		]
 	  },
 	  "intentions": [
 		{
 		  "id": "marchand_accueil",
-		  "condition": null,
-		  "trigger": "le joueur salue le marchand, s'approche ou engage la conversation",
-		  "example": "Bienvenue dans ma modeste échoppe, l'ami ! Dis donc, t'as une sacrée allure… et pas dans le bon sens du terme. T'es au courant de ce qui se passe dehors ? Le roi est mort, et les gardes cherchent un coupable. Avec ta dégaine, tu vas pas faire long feu.",
+		  "condition": {"quest_id": "quete_deguisement", "quest_status": "not_started"},
+		  "trigger": "le joueur salue le marchand ou engage la conversation",
+		  "example": "Bienvenue l'ami ! Dis donc, t'as une sacrée allure… et pas dans le bon sens. Le roi est mort, les gardes cherchent un étranger. Avec ta dégaine, tu vas pas faire long feu. Va voir l'armoire au fond de la boutique, change-toi.",
 		  "action": null
 		},
 		{
 		  "id": "marchand_marchandise",
-		  "condition": null,
-		  "trigger": "le joueur demande ce que vend le marchand, ou parle d'acheter quelque chose",
-		  "example": "J'ai de tout, l'ami ! Mais ce qu'il te faut tout de suite, c'est des fringues de chez nous. Va voir l'armoire au fond, choisis ce qui te plaît, et je te fais un prix… raisonnable. Considère ça comme un investissement pour pas finir au gibet.",
+		  "condition": {"quest_id": "quete_deguisement", "quest_status": "not_started"},
+		  "trigger": "le joueur demande ce que vend le marchand ou parle d'acheter",
+		  "example": "Ce qu'il te faut tout de suite, c'est des fringues de chez nous. L'armoire est au fond — choisis, et je te fais un prix raisonnable. Considère ça comme un investissement pour pas finir au gibet.",
 		  "action": null
 		},
 		{
 		  "id": "marchand_assassinat",
-		  "condition": null,
-		  "trigger": "le joueur demande des nouvelles de l'assassinat, du roi, ou de ce qui se passe en ville",
-		  "example": "Ah, t'es pas au courant ? (il baisse la voix) Le roi s'est fait poignarder dans sa propre salle du trône. Les gardes ont placardé des avis de recherche partout — ils cherchent un étranger. Et devine qui a l'air d'un étranger… Une fois que t'auras changé de look, tu pourras enquêter tranquille. La forêt au nord, j'y mettrais pas les pieds, mais on raconte que des bandits y complotent contre la couronne. Si tu cherches l'assassin, c'est peut-être par là.",
+		  "condition": {"quest_id": "quete_deguisement", "quest_status": "not_started"},
+		  "trigger": "le joueur demande des nouvelles de l'assassinat ou de ce qui se passe",
+		  "example": "(il baisse la voix) Le roi s'est fait poignarder dans sa salle du trône. Les gardes ont placardé des avis partout — ils cherchent un étranger. Devine qui a l'air d'un étranger… Change-toi d'abord, après tu pourras enquêter tranquille.",
 		  "action": null
 		},
 		{
 		  "id": "marchand_portails",
 		  "condition": null,
 		  "trigger": "le joueur mentionne les portails temporels ou la distorsion",
-		  "example": "Les portails ? J'en ai vu passer des types comme toi, l'ami. Ils apparaissent, l'air paumé, parlent de lumières aveuglantes. Toi aussi tu voyages entre les mondes ? Dans ce cas, t'as doublement intérêt à te fondre dans la masse.",
+		  "example": "Les portails ? J'en ai vu passer des types comme toi. Ils apparaissent, l'air paumé, parlent de lumières aveuglantes. Toi aussi tu viens d'ailleurs ? Double raison de te fondre dans la masse, l'ami.",
 		  "action": null
 		},
 		{
 		  "id": "marchand_adieu",
-		  "condition": null,
+		  "condition": {"quest_id": "quete_deguisement", "quest_status": "not_started"},
 		  "trigger": "le joueur dit au revoir ou s'apprête à partir",
-		  "example": "Bon vent, l'ami. Méfie-toi des gardes, et si tu trouves des infos sur l'assassin, repasse — je te ferai une ristourne. Et souviens-toi : la forêt au nord, mais seulement si t'es armé.",
+		  "example": "Reviens quand tu seras prêt à te changer, l'ami. L'armoire t'attend, et les gardes aussi si tu traînes trop dehors avec cette tenue.",
+		  "action": null
+		},
+		{
+		  "id": "marchand_deg_taverne",
+		  "condition": {"quest_id": "quete_deguisement", "quest_status": "done"},
+		  "trigger": "le joueur, désormais déguisé, parle au marchand après avoir obtenu ses nouveaux habits",
+		  "example": "Ah, te voilà méconnaissable ! Parfait. Maintenant que t'as une tête du coin, file à la taverne du village. C'est là que les gens parlent — tu trouveras sûrement des infos sur l'assassin. Et si on te demande, tu es un marchand itinérant, compris ?",
+		  "action": null
+		},
+		{
+		  "id": "marchand_deg_piste",
+		  "condition": {"quest_id": "quete_deguisement", "quest_status": "done"},
+		  "trigger": "le joueur déguisé demande quoi faire ou où enquêter",
+		  "example": "La taverne, c'est le meilleur endroit pour glaner des rumeurs. Les gardes y boivent après leur service, les voyageurs y racontent ce qu'ils ont vu sur les routes. Quelqu'un a forcément croisé l'assassin. Va, et si t'apprends quelque chose, repasse — je te ferai une ristourne.",
+		  "action": null
+		},
+		{
+		  "id": "marchand_deg_adieu",
+		  "condition": {"quest_id": "quete_deguisement", "quest_status": "done"},
+		  "trigger": "le joueur déguisé dit au revoir",
+		  "example": "Bonne chance, l'ami. La taverne est juste en sortant sur la droite. Et souviens-toi : t'es un marchand itinérant, pas un voyageur du futur. Joue le jeu.",
 		  "action": null
 		}
 	  ],
