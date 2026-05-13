@@ -1,5 +1,7 @@
 extends Node2D
 
+signal finished(success: bool)
+
 var voiture: AnimatedSprite2D
 var current_lane: int = 1
 var lane_positions: Array[Vector2] = []
@@ -7,12 +9,14 @@ var obstacle_textures: Array[Texture2D] = []
 var game_active: bool = false
 var car_area: Area2D
 var collision_label: Label
-var timer_label: Label
+var _timer_panel: Panel
+var _timer_title: Label
+var _timer_value: Label
 
-const OBSTACLE_SPEED: float = 400.0
+const OBSTACLE_SPEED: float = 1200.0
 const LANE_COUNT: int = 3
-const RESTART_DELAY: float = 1.5
-const GAME_DURATION: float = 40.0
+const RESTART_DELAY: float = 1.0
+const GAME_DURATION: float = 30.0
 
 
 func _ready() -> void:
@@ -24,7 +28,9 @@ func _ready() -> void:
 	voiture.position = lane_positions[1]
 
 	collision_label = $CanvasLayer/collision_label
-	timer_label = $CanvasLayer/timer_label
+	collision_label.hide()
+
+	_setup_timer_panel()
 
 	_load_obstacle_textures()
 	_setup_car_collision()
@@ -32,9 +38,66 @@ func _ready() -> void:
 	$obstacle_timer.timeout.connect(_spawn_obstacle)
 	$game_timer.timeout.connect(_on_game_timeout)
 
+	hide()
+	game_active = false
+
+
+func _setup_timer_panel() -> void:
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.08, 0.08, 0.15, 0.85)
+	panel_style.border_width_left = 1
+	panel_style.border_width_top = 1
+	panel_style.border_width_right = 1
+	panel_style.border_width_bottom = 1
+	panel_style.border_color = Color(0.4, 0.6, 1, 0.6)
+	panel_style.corner_radius_top_left = 8
+	panel_style.corner_radius_top_right = 8
+	panel_style.corner_radius_bottom_right = 8
+	panel_style.corner_radius_bottom_left = 8
+
+	_timer_panel = Panel.new()
+	_timer_panel.size = Vector2(160, 56)
+	_timer_panel.position = Vector2(844, 16)
+	_timer_panel.add_theme_stylebox_override("panel", panel_style)
+	_timer_panel.hide()
+	$CanvasLayer.add_child(_timer_panel)
+
+	_timer_title = Label.new()
+	_timer_title.text = "Temps restant"
+	_timer_title.add_theme_font_size_override("font_size", 14)
+	_timer_title.add_theme_color_override("font_color", Color(0.8, 0.9, 1))
+	_timer_title.position = Vector2(10, 4)
+	_timer_title.size = Vector2(140, 20)
+	_timer_panel.add_child(_timer_title)
+
+	_timer_value = Label.new()
+	_timer_value.text = str(GAME_DURATION) + "s"
+	_timer_value.add_theme_font_size_override("font_size", 22)
+	_timer_value.add_theme_color_override("font_color", Color(1, 1, 1))
+	_timer_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_timer_value.position = Vector2(0, 26)
+	_timer_value.size = Vector2(160, 26)
+	_timer_panel.add_child(_timer_value)
+
+
+func start_game() -> void:
 	game_active = true
-	$obstacle_timer.start(randf_range(3.0, 4.0))
+	show()
+	collision_label.hide()
+	_timer_panel.show()
+	voiture.position = lane_positions[1]
+	current_lane = 1
+	$obstacle_timer.start(randf_range(1.0, 2.0))
 	$game_timer.start(GAME_DURATION)
+
+
+func stop_game() -> void:
+	game_active = false
+	$obstacle_timer.stop()
+	$game_timer.stop()
+	_clear_obstacles()
+	_timer_panel.hide()
+	hide()
 
 
 func _process(delta: float) -> void:
@@ -87,11 +150,12 @@ func _spawn_obstacle() -> void:
 
 	var sprite = Sprite2D.new()
 	sprite.texture = obstacle_textures[tex_index]
+	sprite.scale = Vector2(0.28, 0.28)
 	obstacle.add_child(sprite)
 
 	var shape = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()
-	rect.size = Vector2(80, 60)
+	rect.size = Vector2(60, 40)
 	shape.shape = rect
 	obstacle.add_child(shape)
 
@@ -99,7 +163,7 @@ func _spawn_obstacle() -> void:
 
 	add_child(obstacle)
 
-	$obstacle_timer.start(randf_range(3.0, 4.0))
+	$obstacle_timer.start(randf_range(0.8, 1.5))
 
 
 func _move_obstacles(delta: float) -> void:
@@ -131,12 +195,21 @@ func _crash() -> void:
 	current_lane = 1
 	game_active = true
 	collision_label.hide()
-	$obstacle_timer.start(randf_range(3.0, 4.0))
+	$obstacle_timer.start(randf_range(0.8, 1.5))
 
 
 func _clear_obstacles() -> void:
 	for obs in get_tree().get_nodes_in_group("obstacles"):
 		obs.queue_free()
+
+
+func _input(event: InputEvent) -> void:
+	if not game_active or not is_inside_tree():
+		return
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		stop_game()
+		finished.emit(false)
 
 
 func _on_game_timeout() -> void:
@@ -146,7 +219,15 @@ func _on_game_timeout() -> void:
 	collision_label.text = "Fin du mini-jeu !"
 	collision_label.show()
 
+	await get_tree().create_timer(1.5).timeout
+
+	if not is_inside_tree():
+		return
+
+	stop_game()
+	finished.emit(true)
+
 
 func _update_timer_display() -> void:
 	var remaining = int($game_timer.time_left)
-	timer_label.text = str(remaining) + "s"
+	_timer_value.text = str(remaining) + "s"

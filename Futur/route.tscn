@@ -1,8 +1,10 @@
-[gd_scene format=3 uid="uid://cb7s55u5bm44x"]
+[gd_scene format=3 uid="uid://odweyi1k7ff2"]
 
-[ext_resource type="Texture2D" uid="uid://t2hgnrvqmjoi" path="res://art/Futur/route.png" id="1_lckxh"]
+[ext_resource type="Texture2D" uid="uid://cb3ebhs4btt17" path="res://art/Futur/route.png" id="1_lckxh"]
 [ext_resource type="Texture2D" uid="uid://181u13wbnuhy" path="res://art/Futur/voiturefutur.png" id="3_7ve8o"]
-[ext_resource type="Script" path="res://Futur/route.gd" id="4_route"]
+[ext_resource type="Script" uid="uid://xqv0yg0aj5c8" path="res://Futur/route.gd" id="4_route"]
+[ext_resource type="Texture2D" uid="uid://ctjalkmri42j" path="res://art/cda19cb5-2f9d-4b20-8dcf-6f20ef8818b5.jpg" id="4_undh5"]
+[ext_resource type="Texture2D" uid="uid://5u2mr802ejb2" path="res://art/ChatGPT Image 11 mai 2026, 16_19_45.png" id="5_0qmb0"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_dws7p"]
 atlas = ExtResource("1_lckxh")
@@ -66,62 +68,70 @@ animations = [{
 script = ExtResource("4_route")
 
 [node name="Route" type="AnimatedSprite2D" parent="." unique_id=1484512411]
-position = Vector2(90, 121)
-scale = Vector2(0.94434226, 1.6530613)
+position = Vector2(1221.7557, 1390)
+scale = Vector2(2.2561991, 2.3)
 sprite_frames = SubResource("SpriteFrames_ch85p")
 animation = &"route"
 autoplay = "route"
-frame_progress = 0.9057335
 
 [node name="voitureFuture" type="AnimatedSprite2D" parent="." unique_id=1484945625]
-position = Vector2(200, 450)
+position = Vector2(244, 1386)
+scale = Vector2(1.2, 1.2)
 sprite_frames = SubResource("SpriteFrames_218e5")
 animation = &"voiture"
 autoplay = "voiture"
-frame_progress = 0.8024595
+frame = 1
+frame_progress = 0.25565988
 
-[node name="Markers" type="Node2D" parent="."]
+[node name="Markers" type="Node2D" parent="." unique_id=692503994]
 
-[node name="top" type="Marker2D" parent="Markers"]
-position = Vector2(200, 250)
+[node name="top" type="Marker2D" parent="Markers" unique_id=1639818319]
+position = Vector2(196, 1269)
 
-[node name="mid" type="Marker2D" parent="Markers"]
-position = Vector2(200, 450)
+[node name="mid" type="Marker2D" parent="Markers" unique_id=1845739361]
+position = Vector2(166, 1389)
 
-[node name="bot" type="Marker2D" parent="Markers"]
-position = Vector2(200, 650)
+[node name="bot" type="Marker2D" parent="Markers" unique_id=1634654946]
+position = Vector2(164, 1530)
 
-[node name="ObsMarkers" type="Node2D" parent="."]
+[node name="ObsMarkers" type="Node2D" parent="." unique_id=971019787]
 
-[node name="top_obs" type="Marker2D" parent="ObsMarkers"]
-position = Vector2(1100, 250)
+[node name="top_obs" type="Marker2D" parent="ObsMarkers" unique_id=1830064812]
+position = Vector2(2342, 1253)
 
-[node name="mid_obs" type="Marker2D" parent="ObsMarkers"]
-position = Vector2(1100, 450)
+[node name="mid_obs" type="Marker2D" parent="ObsMarkers" unique_id=389780594]
+position = Vector2(2338, 1379)
 
-[node name="bot_obs" type="Marker2D" parent="ObsMarkers"]
-position = Vector2(1100, 650)
+[node name="bot_obs" type="Marker2D" parent="ObsMarkers" unique_id=1948382433]
+position = Vector2(2339, 1508)
 
-[node name="obstacle_timer" type="Timer" parent="."]
+[node name="obstacle_timer" type="Timer" parent="." unique_id=1533678524]
 one_shot = true
 
-[node name="game_timer" type="Timer" parent="."]
-one_shot = true
+[node name="game_timer" type="Timer" parent="." unique_id=1647386785]
 wait_time = 40.0
+one_shot = true
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1474147294]
 
-[node name="collision_label" type="Label" parent="CanvasLayer"]
+[node name="collision_label" type="Label" parent="CanvasLayer" unique_id=1582768607]
 visible = false
-position = Vector2(450, 300)
+offset_left = 450.0
+offset_top = 300.0
+offset_right = 450.0
+offset_bottom = 300.0
 theme_override_colors/font_color = Color(0.988235, 0.0823529, 0.0823529, 1)
 theme_override_font_sizes/font_size = 48
 text = "collision !"
 horizontal_alignment = 1
 
-[node name="timer_label" type="Label" parent="CanvasLayer"]
-position = Vector2(850, 50)
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 36
-text = "40s"
-horizontal_alignment = 1
+[node name="fond route" type="Sprite2D" parent="." unique_id=1599502752]
+z_index = -5
+position = Vector2(1224.5, 921.625)
+scale = Vector2(2.387695, 3.2643113)
+texture = ExtResource("4_undh5")
+
+[node name="barrière" type="Sprite2D" parent="." unique_id=1603077549]
+position = Vector2(1250.5, 1201)
+scale = Vector2(1.6634115, 1)
+texture = ExtResource("5_0qmb0")

@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://dpnve3db7i0rp" path="res://Futur/SousSol.tscn" id="6_soussol"]
 [ext_resource type="Script" path="res://Futur/pnj_cheffe.gd" id="7_2plbm"]
 [ext_resource type="Texture2D" uid="uid://c8cbwosqxjxmg" path="res://art/Futur/pnj-cheffe.png" id="8_anmvl"]
+[ext_resource type="PackedScene" uid="uid://cb7s55u5bm44x" path="res://Futur/route.tscn" id="9_route"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_punk"]
 radius = 120.0
@@ -130,6 +131,10 @@ text = "• Parler à la cheffe"
 [node name="pnj-cheffe" type="Node2D" parent="." unique_id=250108443]
 script = ExtResource("7_2plbm")
 
+[node name="car_minigame" parent="." instance=ExtResource("9_route")]
+visible = false
+
+[node name="ZoneDialogue" type="Area2D" parent="pnj-cheffe"]
 [node name="ZoneDialogue" type="Area2D" parent="pnj-cheffe" unique_id=795656533]
 collision_layer = 0
 
