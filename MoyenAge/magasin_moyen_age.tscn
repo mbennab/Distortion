@@ -8,7 +8,7 @@
 radius = 345.20862
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kr3ao"]
-size = Vector2(237, 82)
+size = Vector2(237, 28)
 
 [node name="magasin_moyen_age" type="Node2D" unique_id=562679252]
 
@@ -51,7 +51,7 @@ position = Vector2(1213, 1386)
 [node name="sortie" type="Area2D" parent="areas2D" unique_id=1844464081]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/sortie" unique_id=164320821]
-position = Vector2(1212.5, 1576)
+position = Vector2(1212.5, 1603)
 shape = SubResource("RectangleShape2D_kr3ao")
 
 [node name="pnj-marchand" parent="." unique_id=1031943339 instance=ExtResource("2_marchand")]
