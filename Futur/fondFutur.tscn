@@ -8,6 +8,9 @@ radius = 74.10803
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_esc"]
 size = Vector2(100, 60)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_car"]
+radius = 205.15604
+
 [node name="fondFutur" type="Node2D" unique_id=358863711]
 
 [node name="limite-futur" type="StaticBody2D" parent="." unique_id=1712014447]
@@ -73,3 +76,9 @@ shape = SubResource("RectangleShape2D_esc")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
+
+[node name="zone-voiture" type="Area2D" parent="." unique_id=2012345678]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="zone-voiture" unique_id=2012345679]
+position = Vector2(1250, 773)
+shape = SubResource("CircleShape2D_car")

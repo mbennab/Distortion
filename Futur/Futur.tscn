@@ -3,12 +3,12 @@
 [ext_resource type="Script" uid="uid://dg5448h3tebym" path="res://Futur/Futur.gd" id="1_gd"]
 [ext_resource type="PackedScene" uid="uid://7ehnjutvjerd" path="res://Futur/fondFutur.tscn" id="2_fond"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
-[ext_resource type="Script" path="res://Futur/pnj_mecano.gd" id="5_punk"]
+[ext_resource type="Script" uid="uid://cdp7mybuyb4kd" path="res://Futur/pnj_mecano.gd" id="5_punk"]
 [ext_resource type="Texture2D" uid="uid://bliy5eebt7ssv" path="res://art/Futur/pnj-punk.png" id="6_mfetk"]
 [ext_resource type="PackedScene" uid="uid://dpnve3db7i0rp" path="res://Futur/SousSol.tscn" id="6_soussol"]
-[ext_resource type="Script" path="res://Futur/pnj_cheffe.gd" id="7_2plbm"]
+[ext_resource type="Script" uid="uid://crt0c7ceuwj0f" path="res://Futur/pnj_cheffe.gd" id="7_2plbm"]
 [ext_resource type="Texture2D" uid="uid://c8cbwosqxjxmg" path="res://art/Futur/pnj-cheffe.png" id="8_anmvl"]
-[ext_resource type="PackedScene" uid="uid://cb7s55u5bm44x" path="res://Futur/route.tscn" id="9_route"]
+[ext_resource type="PackedScene" uid="uid://odweyi1k7ff2" path="res://Futur/route.tscn" id="9_route"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_punk"]
 radius = 120.0
@@ -131,17 +131,21 @@ text = "• Parler à la cheffe"
 [node name="pnj-cheffe" type="Node2D" parent="." unique_id=250108443]
 script = ExtResource("7_2plbm")
 
-[node name="car_minigame" parent="." instance=ExtResource("9_route")]
-visible = false
-
-[node name="ZoneDialogue" type="Area2D" parent="pnj-cheffe"]
-[node name="ZoneDialogue" type="Area2D" parent="pnj-cheffe" unique_id=795656533]
-collision_layer = 0
+[node name="ZoneDialogue" type="Area2D" parent="pnj-cheffe" unique_id=1839075423]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-cheffe/ZoneDialogue" unique_id=1596733922]
+shape = SubResource("CircleShape2D_cheffe")
+
+[node name="ZoneDialogue22" type="Area2D" parent="pnj-cheffe" unique_id=795656533]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-cheffe/ZoneDialogue22" unique_id=1482793702]
 shape = SubResource("CircleShape2D_cheffe")
 
 [node name="pnjcheffeAnimation" type="AnimatedSprite2D" parent="pnj-cheffe" unique_id=1742195157]
 scale = Vector2(0.4, 0.4)
 sprite_frames = SubResource("SpriteFrames_4ktp6")
 animation = &"idle-cheffe"
+
+[node name="car_minigame" parent="." unique_id=1948779547 instance=ExtResource("9_route")]
+visible = false

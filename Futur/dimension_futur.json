@@ -104,7 +104,8 @@
 		"goals": [
 		  "se présente d'abord au voyageur",
 		  "envoyer le voyageur parler aux autres PNJs ",
-		  "Parle de son plan de rejoindre la ville pour renverser le dictateur Alfredo Sinko Nochez"
+		  "Parle de son plan de rejoindre la ville pour renverser le dictateur Alfredo Sinko Nochez",
+		  "Dis au voyageur d'aller dans la voiture pour commencer l'attaque sur Alfredo Sinko Nochez."
 		],
 		"conversation_arc": [
 		  {"phase": 1, "until_message": 99, "focus": "répondre sèchement et renvoyer le voyageur parler aux autres PNJs"}
