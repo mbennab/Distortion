@@ -58,6 +58,34 @@ Le dialogue est généré par l'IA (OpenRouter, modèle `mistralai/ministral-3b-
 
 Les actions (ex: `roi_adieu`) déclenchent des événements narratifs dans le jeu (cinématiques, quêtes).
 
+### Affichage (interface retro)
+
+Tous les dialogues utilisent la même interface inspirée du Futur — un panneau en bas de l'écran, police monospace, effet machine à écrire, avec un **portrait du PNJ** à gauche.
+
+### Portraits des PNJ
+
+Chaque PNJ peut afficher son portrait pendant le dialogue. Le portrait est chargé depuis le champ `portrait_path` défini dans le script du PNJ.
+
+**Ajouter un portrait à un PNJ :**
+
+1. Placer l'image dans `art/<Ere>/` (ex: `art/MoyenAge/pnj-roi-HD.png`). Format recommandé : PNG, portrait vertical centré, résolution ~370x640.
+2. Dans le script `.gd` du PNJ, modifier la valeur par défaut de `portrait_path` :
+   ```gdscript
+   @export var portrait_path: String = "res://art/MoyenAge/pnj-roi-HD.png"
+   ```
+   Ou renseigner le champ `Portrait Path` dans l'inspecteur Godot sur l'instance du PNJ dans la scène.
+3. Si `portrait_path` est vide ou pointe vers un fichier inexistant, un **portrait générique** (silhouette) est affiché automatiquement.
+
+**Portraits existants :**
+
+| PNJ | Chemin |
+|-----|--------|
+| La Mécano (Futur) | `res://art/Futur/pnj-mécano-HD.png` |
+| La Cheffe (Futur) | `res://art/Futur/pnj-cheffe-HD.png` |
+| Gardien du Nexus | *générique* |
+| Le Roi | *générique* |
+| Le Marchand | *générique* |
+
 ---
 
 ## Mini-jeux

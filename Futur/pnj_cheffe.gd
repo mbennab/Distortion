@@ -2,6 +2,7 @@ extends Node2D
 
 @export var npc_id: String = "npc_cheffe_futur"
 @export var npc_name: String = "La Cheffe"
+@export var portrait_path: String = "res://art/Futur/pnj-cheffe-HD.png"
 
 var pnjcheffeAnimation: AnimatedSprite2D
 var zone_dialogue: Area2D

@@ -31,13 +31,13 @@ var typewriter_char_index: int = 0
 var is_animating: bool = false
 var typewriter_callback: Callable = Callable()
 
-const MECANO_PORTRAIT = preload("res://art/Futur/pnj-mécano-HD.png")
-const CHEFFE_PORTRAIT = preload("res://art/Futur/pnj-cheffe-HD.png")
+var _generic_portrait: ImageTexture
 
 
 func _ready() -> void:
 	_setup_ui()
 	_setup_retro_ui()
+	_generic_portrait = _create_generic_portrait()
 	hide_all()
 	DialogueSystem.dialogue_started.connect(_on_dialogue_started)
 	DialogueSystem.dialogue_ended.connect(_on_dialogue_ended)
@@ -215,7 +215,6 @@ func _setup_retro_ui() -> void:
 	inner_panel.add_child(hbox)
 
 	retro_portrait = TextureRect.new()
-	retro_portrait.texture = MECANO_PORTRAIT
 	retro_portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	retro_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	retro_portrait.custom_minimum_size = Vector2(0, 0)
@@ -364,34 +363,31 @@ func _on_dialogue_started(npc_id: String, npc_name: String) -> void:
 	current_npc_name = npc_name
 	prompt_label.visible = false
 
-	retro_mode = (npc_name == "La mecano" or npc_id == "npc_punk_futur" or npc_name == "La Cheffe" or npc_id == "npc_cheffe_futur")
-
-	if retro_mode:
-		normal_panel.visible = false
-		retro_container.visible = true
-		retro_name_label.text = npc_name
-		retro_message_label.text = ""
-		retro_input_line.text = ""
-		retro_input_line.editable = true
-		retro_input_line.grab_focus()
-		if npc_name == "La Cheffe" or npc_id == "npc_cheffe_futur":
-			retro_portrait.texture = CHEFFE_PORTRAIT
-		else:
-			retro_portrait.texture = MECANO_PORTRAIT
-		_set_portrait_size_from_container()
-	else:
-		normal_panel.visible = true
-		retro_container.visible = false
-		status_label.text = npc_name
-		clear_chat()
-		input_line.text = ""
-		input_line.editable = true
-		input_line.grab_focus()
-
 	for node in get_tree().get_nodes_in_group("npc_dialogue"):
 		if node.npc_id == npc_id:
 			current_pnj_node = node
 			break
+
+	retro_mode = true
+
+	normal_panel.visible = false
+	retro_container.visible = true
+	retro_name_label.text = npc_name
+	retro_message_label.text = ""
+	retro_input_line.text = ""
+	retro_input_line.editable = true
+	retro_input_line.grab_focus()
+
+	var portrait_loaded := false
+	if current_pnj_node != null:
+		var pp: String = current_pnj_node.get("portrait_path") if current_pnj_node.get("portrait_path") != null else ""
+		if pp != "" and ResourceLoader.exists(pp):
+			retro_portrait.texture = load(pp)
+			portrait_loaded = true
+	if not portrait_loaded:
+		retro_portrait.texture = _generic_portrait
+
+	_set_portrait_size_from_container()
 
 
 func _set_portrait_size_from_container() -> void:
@@ -572,3 +568,19 @@ func _skip_typewriter() -> void:
 		var cb = typewriter_callback
 		typewriter_callback = Callable()
 		cb.call()
+
+
+func _create_generic_portrait() -> ImageTexture:
+	var img := Image.create(128, 128, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.12, 0.12, 0.18, 1))
+	for y in range(15, 45):
+		for x in range(44, 84):
+			var dx := x - 64.0
+			var dy := y - 30.0
+			if dx * dx + dy * dy <= 14.0 * 14.0:
+				img.set_pixel(x, y, Color(0.35, 0.35, 0.48, 1))
+	for y in range(45, 110):
+		var hw := int(26.0 - (y - 45) * 0.04)
+		for x in range(64 - hw, 64 + hw):
+			img.set_pixel(x, y, Color(0.3, 0.3, 0.42, 1))
+	return ImageTexture.create_from_image(img)
