@@ -10,6 +10,8 @@ var can_move: bool = false
 var speed: float = 350.0
 var spawn_particles: CPUParticles2D
 
+const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
+
 var knight_scene = preload("res://MoyenAge/chevalier.tscn")
 var knights: Array = []
 var _roi_adieu_triggered: bool = false
@@ -563,6 +565,33 @@ func _on_magasin_exit() -> void:
 
 
 func _on_ville_to_auberge() -> void:
+	if not TimeAunoteScript.disguised:
+		can_move = false
+		var label := Label.new()
+		label.text = "Je devrais me déguiser avant"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", 20)
+		label.add_theme_color_override("font_color", Color(1, 1, 1))
+		label.custom_minimum_size = Vector2(500, 0)
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0.75)
+		style.corner_radius_top_left = 8
+		style.corner_radius_top_right = 8
+		style.corner_radius_bottom_left = 8
+		style.corner_radius_bottom_right = 8
+		label.add_theme_stylebox_override("normal", style)
+		label.z_index = 100
+		label.position = time_aunote.global_position + Vector2(-250, -200)
+		add_child(label)
+
+		await get_tree().create_timer(2.5).timeout
+		if is_instance_valid(label):
+			label.queue_free()
+		can_move = true
+		return
+
 	can_move = false
 
 	var tween_fade := create_tween()
