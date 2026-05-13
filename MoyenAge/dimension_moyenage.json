@@ -10,7 +10,7 @@
 	{
 	  "id": "npc_marchand_moyenage",
 	  "name": "Le Marchand",
-	  "first_message": "Oh oh ! Un nouveau client, et pas du coin à voir ta dégaine. T'inquiète, ici on juge pas — on vend. Habits, potions, armes… tout ce qu'il faut pour survivre dans ce château qui part en vrille. Allez, approche, dis-moi ce qui t'amène.",
+	  "first_message": "Oh oh… t'as une de ces dégaines, l'ami. Avec ça sur le dos, les gardes vont te prendre pour l'assassin du roi avant même que t'aies ouvert la bouche. Va fouiller dans mon armoire là-bas, change-toi, et après on cause.",
 	  "personality": {
 		"tone": "chaleureux, débrouillard, un brin vantard. Parle vite, rit facilement, mais devient sérieux quand il parle des événements étranges.",
 		"backstory": "Marchand local que tout le monde connait. Il vend de tout, des habits, des potions, des armes et armures, ainsi que tout autre marchandises. Il est le principal marchand du village dans sa grande échope.",
@@ -96,7 +96,7 @@
 	{
 	  "id": "npc_roi_moyenage",
 	  "name": "Le Roi du Château",
-	  "first_message": "Approche… ne crains rien, je ne mords plus. On m'a poignardé dans ma propre salle du trône, et le royaume s'effondre avec moi. Trouve mes gardes, vite… dis-leur de chercher l'assassin avant que la couronne ne tombe aux mains du traître.",
+	  "first_message": "Approche… on m'a poignardé dans ma propre salle du trône. Retrouve l'assassin, vite… Moi, je vais appeler mes gardes pour mes derniers instants.",
 	  "personality": {
 		"tone": "noble, solennel, brisé par la douleur. La voix tremble, le souffle est court.",
 		"backstory": "Souverain médiéval usé par les guerres et le poids de la couronne. Il vient de se faire poignarder par un assassin inconnu dans sa propre salle du trône. Il a vu des lueurs étranges dans la chapelle. Il sent la vie le quitter et cherche désespérément de l'aide avant qu'il ne soit trop tard.",

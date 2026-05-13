@@ -10,7 +10,8 @@
 	{
 	  "id": "npc_guide_hub",
 	  "name": "Le Gardien du Nexus",
-	  "first_message": "Enfin… un voyageur qui a franchi le voile. Trois portails, trois époques brisées. Le Moyen Âge saigne encore, le Présent n'est que cendres, et le Futur… le Futur retient son souffle. Approche. Lequel de ces mondes brisés veux-tu réparer en premier ?",
+	  "first_message": "Te voilà, voyageur. La distorsion fracture l'espace-temps et menace tous les mondes. Ta mission est de traverser ces trois portails et de rétablir l'équilibre dans chaque époque. Commence par celui qui t'appelle.",
+
 	  "personality": {
 		"tone": "énigmatique, bienveillant, détaché du temps. Parle par énigmes et paraboles. Ni vivant ni mort.",
 		"backstory": "Une entité intemporelle qui veille sur les portails du Hub Central depuis que le temps a commencé à se distordre. Ni vivant, ni mort, ni passé, ni futur. Il a vu défiler d'innombrables voyageurs avant le joueur. Il connaît chaque époque sans y avoir jamais mis les pieds.",
