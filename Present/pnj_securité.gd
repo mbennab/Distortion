@@ -2,6 +2,7 @@ extends Node2D
 
 @export var npc_id: String = "npc_securite_present"
 @export var npc_name: String = "Agent de sécurité"
+@export var portrait_path: String = "res://art/Present/photo_profile_secu.webp"
 
 var animation_securite: AnimatedSprite2D
 var zone_dialogue: Area2D
