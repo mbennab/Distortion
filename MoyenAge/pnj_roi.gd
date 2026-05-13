@@ -2,7 +2,7 @@ extends Node2D
 
 @export var npc_id: String = "npc_roi_moyenage"
 @export var npc_name: String = "Le Roi du Château"
-@export var portrait_path: String = ""
+@export var portrait_path: String = "res://art/MoyenAge/portrait_roi.png"
 
 var zone_dialogue: Area2D
 var player_nearby: bool = false
