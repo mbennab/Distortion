@@ -33,6 +33,7 @@ var _message_count: int = 0
 
 var _spoken_to: Dictionary = {}
 var _current_first_message: String = ""
+var _has_repeat_conversation: bool = false
 
 
 func _ready() -> void:
@@ -61,12 +62,14 @@ func load_dimension(path: String) -> void:
 	if err != OK:
 		push_error("DialogueSystem: JSON parse error at %s" % path)
 		return
+	_spoken_to.clear()
 	dimension = json.data
 	print("[DialogueSystem] Dimension loaded: %d NPCs, %d quests" % [dimension.get("npcs", []).size(), dimension.get("quests", []).size()])
 	init_game_state()
 
 
 func load_dimension_from_dict(data: Dictionary) -> void:
+	_spoken_to.clear()
 	dimension = data
 	init_game_state()
 
@@ -108,17 +111,21 @@ func start_dialogue(npc_id: String) -> void:
 	_message_count = 0
 	is_active = true
 
-	if npc.has("first_message") and npc.first_message is String and npc.first_message != "" and not _spoken_to.has(npc.id):
+	var was_spoken_before: bool = _spoken_to.has(npc_id)
+	_has_repeat_conversation = was_spoken_before
+
+	if npc.has("first_message") and npc.first_message is String and npc.first_message != "" and not was_spoken_before:
 		_current_first_message = npc.first_message
-		_spoken_to[npc.id] = true
 	else:
 		_current_first_message = ""
+
+	_spoken_to[npc_id] = true
 
 	dialogue_started.emit(npc_id, npc.get("name", npc_id))
 
 
 func get_first_message() -> String:
-	var msg = _current_first_message
+	var msg: String = _current_first_message
 	_current_first_message = ""
 	return msg
 
@@ -129,6 +136,7 @@ func stop_dialogue() -> void:
 	current_npc_id = ""
 	conversation_history.clear()
 	_current_first_message = ""
+	_has_repeat_conversation = false
 	dialogue_ended.emit()
 
 
@@ -427,7 +435,7 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 	lines.append("- Reste cohérent avec l'historique de la conversation.")
 
 	# --- RAPPEL CONVERSATION ANTÉRIEURE ---
-	if _spoken_to.has(current_npc_id):
+	if _has_repeat_conversation:
 		lines.append("")
 		lines.append("## RAPPEL CONVERSATION ANTÉRIEURE")
 		lines.append("Le joueur te reparle après une conversation précédente.")
