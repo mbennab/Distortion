@@ -44,6 +44,8 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
 
 ## MoyenAge specific
 - `MoyenAge.gd` starts with spawn animation, loads `dimension_moyenage.json`
+- **Quest HUD**: `DialogueSystem.quest_updated` connected to `_update_objective()` — step descriptions drive the top-right objective display
+- **4 quests**: `quete_enquete_roi` (talk to king) → `quete_evasion` (escape prison) → `quete_deguisement` (get disguise from merchant) → `quete_piste_assassin` (follow assassin's trail). Quest progression gates NPC intentions (e.g. Marchand switches from wardrobe talk to tavern directions post-disguise)
 - Listens to `DialogueSystem.action_triggered` — when `roi_adieu` triggers, plays the king's death cinematic (knights spawn, accusation label, fade to prison)
 - `prison_moyen_age.gd`: lockpicking minigame (press E near door), zone de sortie (locked, "accès futur")
   - **Lockpicking gated**: `ZonePorte.monitoring` disabled in `_ready()`, only enabled after king death cinematic (`_trigger_roi_adieu_sequence`)
@@ -51,6 +53,7 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
   - `MiniJeuCrochetage.gd`: guards `_input()` with `is_inside_tree()` to prevent stray input capture
 - `pnj_marchand.gd`: standard PNJ pattern in `magasin_moyen_age` sub-zone (reachable after escaping prison)
 - `magasin_moyen_age.gd`: shop sub-zone — manages `zoneHabits` Area2D, prompts "E pour marchander", instantiates `MiniJeuMarchandage`
+  - **Quest integration**: `_on_dialogue_started` calls `DialogueSystem.complete_step("etape_parler_marchand")`; on minigame success calls `complete_step("etape_marchander")` + `mark_quest_done("quete_deguisement")` — this transitions quest status from `not_started` to `done`, which makes `filter_intentions()` swap the Marchand's active intentions from wardrobe-focused to tavern-focused
   - **MiniJeuMarchandage** (`Scripts/MiniJeuMarchandage.gd`, ~660 lines): CanvasLayer-based catching minigame (single phase)
     - **8 rounds** total: 5 good items to catch + 3 decoys (red, ⚠) to dodge
     - Win condition: `good_catches >= 4 AND decoy_caught <= 1` → `done(true)`
@@ -87,11 +90,21 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
 ```
 Player walks near PNJ → ZoneDialogue (Area2D) → "Appuyez sur E" prompt
 Press E → DialogueSystem.start_dialogue(npc_id) → dialogue panel opens (retro UI, bottom of screen)
+  → if first_time AND npc has first_message → typewriter accroche → then focus input
+  → else focus input directly
 Player presses Enter → typewriter animates "> message" → send_message() → filter_intentions() → build rich system prompt
   → POST OpenRouter → parse {"text","action"} → validate action against NPC intentions
   → emit dialogue_response + action_triggered
   → UI shows PNJ reply with typewriter effect (monospace, portrait on left, no scrollable history)
 ```
+
+### Phrase d'accroche (`first_message`)
+- Each NPC can have an optional `"first_message"` (string) in the dimension JSON
+- On first-ever dialogue with that NPC, the message is displayed via typewriter immediately after opening
+- Input is disabled during the accroche; player can skip with Enter
+- On subsequent dialogues, `_has_repeat_conversation` flag injects a recall instruction into the AI prompt so the AI generates a contextual greeting based on conversation history
+- Tracking is session-only via `_spoken_to: Dictionary` (cleared on `load_dimension()`)
+- If `first_message` is absent or empty, no accroche is shown (backward-compatible)
 
 ### Dialogue UI (universal retro mode)
 - All zones use the same retro-style interface (previously Futur-only): bottom panel, monospace "Courier New" font, double-border bezel
@@ -107,46 +120,53 @@ Player presses Enter → typewriter animates "> message" → send_message() → 
 
 ### JSON format (`dimension_*.json`)
 ```json
-"npcs": [{
-  "id": "npc_roi_moyenage",
-  "name": "Le Roi du Château",
-  "personality": {
-	"tone": "...",
-	"backstory": "...",
-	"emotional_state": "mourant, affaibli...",
-	"speech": {
-	  "vouvoiement": true,
-	  "vocatif": "voyageur",
-	  "phrases": "très courtes, 1-2 phrases haletantes",
-	  "expressions": ["tousse entre les mots", "sa voix faiblit"],
-	  "interdits": ["ne connais PAS l'assassin"]
-	},
-	"knowledge": ["il est poignardé", "son royaume se meurt"],
-	"goals": ["trouver de l'aide", "appeler ses gardes avant de mourir"],
-	"conversation_arc": [
-	  {"phase": 1, "until_message": 2, "focus": "expliquer ce qui arrive"},
-	  {"phase": 2, "until_message": 4, "focus": "chercher de l'aide"},
-	  {"phase": 3, "until_message": 5, "focus": "agonie, appeler les gardes"}
-	]
-  },
-  "intentions": [
-	{
-	  "id": "roi_adieu",
-	  "condition": null,
-	  "trigger": "le joueur dit au revoir",
-	  "example": "GARDES ! Venez m'aider...",
-	  "action": {"type": "trigger", "id": "roi_adieu", "description": "Le roi meurt, les gardes arrivent."}
-	}
-  ],
-  "fallbacks": {
-	"off_topic": "...",
-	"insult": "...",
-	"timeout": "...",
-	"unknown": "...",
-	"default_template": "..."
-  }
-}]
+{
+  "meta": { "id": "moyenage", "name": "Moyen Âge", "era": "...", "description": "...", "completed": false },
+  "npcs": [{
+    "id": "npc_roi_moyenage",
+    "name": "Le Roi du Château",
+    "first_message": "Approche… on m'a poignardé…",
+    "personality": {
+      "tone": "...",
+      "backstory": "...",
+      "emotional_state": "mourant...",
+      "speech": { "vouvoiement": true, "vocatif": "voyageur", "phrases": "...", "expressions": [...], "interdits": [...] },
+      "knowledge": ["il est poignardé", "son royaume se meurt"],
+      "goals": ["trouver de l'aide", "appeler ses gardes avant de mourir"],
+      "conversation_arc": [
+        {"phase": 1, "until_message": 2, "focus": "expliquer ce qui arrive"},
+        {"phase": 2, "until_message": 4, "focus": "chercher de l'aide"},
+        {"phase": 3, "until_message": 5, "focus": "agonie, appeler les gardes"}
+      ]
+    },
+    "intentions": [{
+      "id": "roi_adieu",
+      "condition": {"quest_id": "quete_x", "quest_status": "active", "quest_step": "etape_y"},
+      "trigger": "le joueur dit au revoir",
+      "example": "GARDES ! Venez m'aider...",
+      "action": {"type": "trigger", "id": "roi_adieu", "description": "Le roi meurt."}
+    }],
+    "fallbacks": { "off_topic": "...", "insult": "...", "timeout": "...", "unknown": "...", "default_template": "..." }
+  }],
+  "quests": [{
+    "id": "quete_enquete_roi",
+    "title": "Enquêter sur l'assassinat du roi",
+    "status": "not_started",
+    "requires_quests": [],
+    "steps": [
+      {"id": "etape_parler_roi", "description": "Parler au roi mourant", "completed": false},
+      {"id": "etape_indices", "description": "Recueillir des indices", "completed": false}
+    ]
+  }],
+  "mini_games": [],
+  "items": [],
+  "global_fallbacks": { "off_topic": "...", "insult": "...", "timeout": "...", "unknown": "...", "default_template": "..." }
+}
 ```
+- `first_message` : optional string — displayed as a typewriter accroche on first-ever dialogue with the NPC
+- `intentions[].condition` : optional gate `{quest_id, quest_status, quest_step}` — all three are optional; null → always active. Used for quest-conditional dialogue (e.g. Marchand talks about wardrobe until quete_deguisement is done, then talks about tavern)
+- `quests[]` : drive the objective HUD via `quest_updated` signal. `DialogueSystem.complete_step(quest_id, step_id)` advances steps; `mark_quest_done()` closes the quest
+- All `condition` fields must match `game_state` for the intention to appear in the AI prompt
 
 ### Key behaviors
 - **Historique**: `conversation_history` stores last 15 messages (player+PNJ), sent in each prompt
@@ -155,6 +175,8 @@ Player presses Enter → typewriter animates "> message" → send_message() → 
 - **Validation**: actions not matching an entry in `intentions[].action` are silently ignored
 - **Conversation arc**: phases drive the AI's focus (accueil → questions → conclusion)
 - **Filters**: `filter_intentions()` gates replies by `condition.{quest_id,quest_status,quest_step}` matching `game_state`
+- **Accroche**: `first_message` shown on first dialogue; subsequent dialogues use AI-generated hook via `_has_repeat_conversation` prompt injection
+- **Quest HUD**: `quest_updated` signal connected to era's `_update_objective()` — step descriptions appear in top-right HUD. Quest states in `game_state` drive intention filtering for context-aware dialogue (e.g. post-disguise Marchand switches from wardrobe to tavern)
 
 ### PNJ pattern
 All PNJs follow the same pattern:

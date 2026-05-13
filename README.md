@@ -38,8 +38,8 @@ Main.tscn (Node2D)
 ```
 
 **Flux de jeu :**
-1. Le HUB s'affiche (son d'ambiance, lueurs portails). Parlez au **Gardien du Nexus** qui murmure des énigmes et vous guide vers les portails. Le **chien** aboie spontanément.
-2. **Portail orange** (interne jaune) → Moyen Âge : parlez au roi mourant, découvrez son assassinat, échappez-vous de la prison en crochetant la serrure, puis rendez-vous au magasin pour **marchander des habits et obtenir un déguisement**.
+1. Le HUB s'affiche (son d'ambiance, lueurs portails). Parlez au **Gardien du Nexus** qui vous accueille avec une phrase d'accroche et vous guide vers les portails. Le **chien** aboie spontanément.
+2. **Portail orange** (interne jaune) → Moyen Âge : le **roi mourant** vous accueille avec une phrase d'accroche qui lance l'enquête sur son assassinat. Échappez-vous de la prison en crochetant la serrure, puis rendez-vous au magasin pour parler au **marchand** et obtenir un déguisement. Une fois déguisé, le marchand vous redirige vers la **taverne** pour continuer l'enquête.
 3. **Portail violet** (interne bleue) → Présent nucléaire (en développement).
 4. **Portail vert** (interne rouge) → Futur : dialoguez avec La Mécano et La Cheffe, empruntez l'escalier vers le SousSol.
 
@@ -55,8 +55,16 @@ Le dialogue est généré par l'IA (OpenRouter, modèle `mistralai/ministral-3b-
 - **Objectifs** : ce que le PNJ cherche à accomplir pendant la conversation
 - **Arc de conversation** : phases qui guident le focus de l'IA (accueil → discussion → conclusion)
 - **Intentions** : sujets de conversation avec exemples de réponse et actions de jeu optionnelles
+- **Phrase d'accroche** (`first_message`) : message automatique affiché en machine à écrire lors du premier dialogue avec le PNJ, pour guider le joueur
 
 Les actions (ex: `roi_adieu`) déclenchent des événements narratifs dans le jeu (cinématiques, quêtes).
+
+### Quêtes et progression
+
+Le système de quêtes (`quests` dans les JSONs de dimension) permet de faire évoluer le comportement des PNJs selon l'avancement du joueur :
+
+- **Marchand du Moyen Âge** : parle de son armoire à habits tant que la quête `quete_deguisement` n'est pas terminée. Une fois le déguisement obtenu, ses intentions changent automatiquement — il oriente le joueur vers la **taverne du village** pour enquêter.
+- L'objectif en haut à droite se met à jour automatiquement via le signal `quest_updated`.
 
 ### Affichage (interface retro)
 
@@ -82,9 +90,9 @@ Chaque PNJ peut afficher son portrait pendant le dialogue. Le portrait est charg
 |-----|--------|
 | La Mécano (Futur) | `res://art/Futur/pnj-mécano-HD.png` |
 | La Cheffe (Futur) | `res://art/Futur/pnj-cheffe-HD.png` |
+| Le Roi du Château (Moyen Âge) | `res://art/MoyenAge/portrait_roi.png` |
+| Le Marchand (Moyen Âge) | `res://art/MoyenAge/portrait_marchand.png` |
 | Gardien du Nexus | *générique* |
-| Le Roi | *générique* |
-| Le Marchand | *générique* |
 
 ---
 
