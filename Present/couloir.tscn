@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bciogksqf67in"]
+
+[ext_resource type="Texture2D" uid="uid://cx3t5oigp6vsw" path="res://art/Present/couloir.png" id="1_3efmm"]
+
+[node name="Couloir" type="Node2D" unique_id=2074864368]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=668019608]
+texture = ExtResource("1_3efmm")

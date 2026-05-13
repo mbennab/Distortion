@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://541im6pqeob3"]
+
+[ext_resource type="Texture2D" uid="uid://dqh76a0jnbbju" path="res://art/Present/vestiaire.png" id="1_bbw7r"]
+
+[node name="Vestiaire" type="Node2D" unique_id=368032887]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=437247911]
+texture = ExtResource("1_bbw7r")
