@@ -376,7 +376,6 @@ func _on_dialogue_started(npc_id: String, npc_name: String) -> void:
 	retro_message_label.text = ""
 	retro_input_line.text = ""
 	retro_input_line.editable = true
-	retro_input_line.grab_focus()
 
 	var portrait_loaded := false
 	if current_pnj_node != null:
@@ -389,6 +388,12 @@ func _on_dialogue_started(npc_id: String, npc_name: String) -> void:
 
 	_set_portrait_size_from_container()
 
+	var accroche: String = DialogueSystem.get_first_message()
+	if accroche != "":
+		_display_accroche(accroche)
+	else:
+		retro_input_line.grab_focus()
+
 
 func _set_portrait_size_from_container() -> void:
 	await get_tree().process_frame
@@ -399,6 +404,17 @@ func _set_portrait_size_from_container() -> void:
 	if portrait_size < 80:
 		portrait_size = 80
 	retro_portrait.custom_minimum_size = Vector2(portrait_size, portrait_size)
+
+
+func _display_accroche(message: String) -> void:
+	retro_input_line.editable = false
+	retro_message_label.text = ""
+	_start_typewriter(message, _on_accroche_finished)
+
+
+func _on_accroche_finished() -> void:
+	retro_input_line.editable = true
+	retro_input_line.grab_focus()
 
 
 func _on_dialogue_ended() -> void:
