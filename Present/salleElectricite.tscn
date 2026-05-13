@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://rv8rd4lpod17"]
+
+[ext_resource type="Texture2D" uid="uid://wwecl47fyrnv" path="res://art/Present/salle_electricite.png" id="1_ykaun"]
+
+[node name="SalleElectricite" type="Node2D" unique_id=64388136]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=503600982]
+texture = ExtResource("1_ykaun")

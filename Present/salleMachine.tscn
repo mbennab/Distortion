@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://b2ww35f38sjae"]
+
+[ext_resource type="Texture2D" uid="uid://cktiykf04ouov" path="res://art/Present/salle_machine.png" id="1_qf2w6"]
+
+[node name="SalleMachine" type="Node2D" unique_id=920027068]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=692671536]
+texture = ExtResource("1_qf2w6")
