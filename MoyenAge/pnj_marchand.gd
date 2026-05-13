@@ -2,6 +2,7 @@ extends Node2D
 
 @export var npc_id: String = "npc_marchand_moyenage"
 @export var npc_name: String = "Le Marchand"
+@export var portrait_path: String = ""
 
 var animation_marchand: AnimatedSprite2D
 var zone_dialogue: Area2D
