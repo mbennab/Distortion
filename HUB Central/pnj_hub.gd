@@ -2,6 +2,7 @@ extends Node2D
 
 @export var npc_id: String = "npc_guide_hub"
 @export var npc_name: String = "Le Gardien du Nexus"
+@export var portrait_path: String = ""
 
 var pnj_hub_animation: AnimatedSprite2D
 var zone_dialogue: Area2D

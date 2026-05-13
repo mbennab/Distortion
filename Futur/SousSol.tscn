@@ -2,30 +2,60 @@
 
 [ext_resource type="Script" uid="uid://p8yuanu5uus7" path="res://Futur/SousSol.gd" id="1_gd"]
 [ext_resource type="PackedScene" uid="uid://c22w2yp4lg1vk" path="res://Futur/fondSousSol.tscn" id="2_fond"]
-[ext_resource type="Script" uid="uid://ba0ytj6fhkxsq" path="res://Futur/pnj_futur.gd" id="4_pnj"]
-[ext_resource type="Texture2D" uid="uid://cepstrsda43py" path="res://art/Futur/pnj-futur-idle.png" id="5_png"]
+[ext_resource type="Texture2D" uid="uid://c6srf4t10wwht" path="res://art/Futur/pnj-vukovi3.png" id="4_bvvqr"]
+[ext_resource type="Script" path="res://Futur/pnj_futur.gd" id="4_pnj"]
+[ext_resource type="Texture2D" uid="uid://ccmtq7klubp0g" path="res://art/Futur/pnj-koiai2.png" id="5_lv302"]
+[ext_resource type="Script" uid="uid://d0321mdga4ggl" path="res://Futur/pnj_koiai2.gd" id="6_koiai2"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_at1"]
-atlas = ExtResource("5_png")
-region = Rect2(0, 0, 257, 433)
+[sub_resource type="AtlasTexture" id="AtlasTexture_0jf3b"]
+atlas = ExtResource("4_bvvqr")
+region = Rect2(0, 0, 362, 641)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_at2"]
-atlas = ExtResource("5_png")
-region = Rect2(257, 0, 257, 433)
+[sub_resource type="AtlasTexture" id="AtlasTexture_5is71"]
+atlas = ExtResource("4_bvvqr")
+region = Rect2(362, 0, 362, 641)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_pnj"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_at1")
+"texture": SubResource("AtlasTexture_0jf3b")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_at2")
+"texture": SubResource("AtlasTexture_5is71")
 }],
 "loop": true,
 "name": &"idle-futur1",
 "speed": 2.0
 }]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bvvqr"]
+atlas = ExtResource("5_lv302")
+region = Rect2(0, 0, 375, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0uvs4"]
+atlas = ExtResource("5_lv302")
+region = Rect2(375, 0, 375, 640)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_0jf3b"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bvvqr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0uvs4")
+}],
+"loop": true,
+"name": &"pnj-koiai",
+"speed": 3.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_koiai2"]
+radius = 120.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vukovi"]
+radius = 120.0
 
 [node name="SousSol" type="Node2D" unique_id=1050132521]
 script = ExtResource("1_gd")
@@ -35,8 +65,32 @@ script = ExtResource("1_gd")
 [node name="pnj-futur" type="Node2D" parent="." unique_id=1326797147]
 script = ExtResource("4_pnj")
 
+[node name="ZoneDialogue" type="Area2D" parent="pnj-futur" unique_id=1050132522]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-futur/ZoneDialogue" unique_id=1050132523]
+shape = SubResource("CircleShape2D_vukovi")
+
 [node name="pnjfuturAnimation" type="AnimatedSprite2D" parent="pnj-futur" unique_id=814833227]
-scale = Vector2(0.25, 0.25)
+position = Vector2(-12, -12.000003)
+scale = Vector2(0.16938642, 0.17960219)
 sprite_frames = SubResource("SpriteFrames_pnj")
 animation = &"idle-futur1"
-frame_progress = 0.96380734
+frame_progress = 0.37181473
+
+[node name="pnj-koiai-2" type="Node2D" parent="." unique_id=1173760963]
+script = ExtResource("6_koiai2")
+
+[node name="pnjkoiai2Animation" type="AnimatedSprite2D" parent="pnj-koiai-2" unique_id=703366801]
+position = Vector2(0, -9)
+scale = Vector2(0.19641668, 0.18027343)
+sprite_frames = SubResource("SpriteFrames_0jf3b")
+animation = &"pnj-koiai"
+frame_progress = 0.14429761
+
+[node name="ZoneDialogue" type="Area2D" parent="pnj-koiai-2" unique_id=748301613]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-koiai-2/ZoneDialogue" unique_id=160911535]
+position = Vector2(-1, 0)
+shape = SubResource("CircleShape2D_koiai2")

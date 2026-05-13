@@ -86,12 +86,24 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
 ### Flow
 ```
 Player walks near PNJ → ZoneDialogue (Area2D) → "Appuyez sur E" prompt
-Press E → DialogueSystem.start_dialogue(npc_id) → dialogue panel opens
-Player types message → send_message() → filter_intentions() → build rich system prompt
+Press E → DialogueSystem.start_dialogue(npc_id) → dialogue panel opens (retro UI, bottom of screen)
+Player presses Enter → typewriter animates "> message" → send_message() → filter_intentions() → build rich system prompt
   → POST OpenRouter → parse {"text","action"} → validate action against NPC intentions
   → emit dialogue_response + action_triggered
-  → UI shows bubble + chat history
+  → UI shows PNJ reply with typewriter effect (monospace, portrait on left, no scrollable history)
 ```
+
+### Dialogue UI (universal retro mode)
+- All zones use the same retro-style interface (previously Futur-only): bottom panel, monospace "Courier New" font, double-border bezel
+- NPC portrait displayed on the left side of the panel
+- Single message at a time with typewriter animation (0.025s/char), skippable via Enter
+- Player input: transparent LineEdit, Enter to submit (no "Envoyer" button)
+
+### Portraits
+- Each PNJ has `@export var portrait_path: String = ""` — set in the `.gd` script or via Godot inspector on the `.tscn` instance
+- If `portrait_path` is a valid `res://` path to a PNG, that image loads as the portrait
+- If empty or file missing, a programmatic generic silhouette is generated
+- Convention: place portraits in `art/<Era>/pnj-<name>-HD.png`, ~370x640 PNG
 
 ### JSON format (`dimension_*.json`)
 ```json
@@ -150,6 +162,7 @@ All PNJs follow the same pattern:
 extends Node2D
 @export var npc_id: String
 @export var npc_name: String
+@export var portrait_path: String = ""
 var zone_dialogue: Area2D    # $ZoneDialogue — CircleShape2D, radius 120px
 # body_entered → DialogueUI.show_prompt(npc_id, npc_name)
 # body_exited → DialogueUI.hide_prompt()

@@ -1,23 +1,27 @@
 extends Node2D
 
-@export var npc_id: String = "npc_roi_moyenage"
-@export var npc_name: String = "Le Roi du Château"
-@export var portrait_path: String = ""
+@export var npc_id: String = "npc_koiai2_futur"
+@export var npc_name: String = "Koiai"
 
+var pnjkoiai2Animation: AnimatedSprite2D
 var zone_dialogue: Area2D
 var player_nearby: bool = false
 var bubble: Label
 var bubble_timer: Timer
 
+
 func _ready() -> void:
 	hide()
 	add_to_group("npc_dialogue")
+	pnjkoiai2Animation = $pnjkoiai2Animation
+	pnjkoiai2Animation.play()
 
 	zone_dialogue = $ZoneDialogue
 	zone_dialogue.body_entered.connect(_on_body_entered)
 	zone_dialogue.body_exited.connect(_on_body_exited)
 
 	_setup_bubble()
+
 
 func _setup_bubble() -> void:
 	bubble = Label.new()
@@ -43,6 +47,7 @@ func _setup_bubble() -> void:
 	bubble_timer.timeout.connect(_on_bubble_timeout)
 	add_child(bubble_timer)
 
+
 func show_bubble(text: String) -> void:
 	bubble.text = text
 	bubble.visible = true
@@ -50,34 +55,43 @@ func show_bubble(text: String) -> void:
 	await get_tree().process_frame
 	_update_bubble_position()
 
+
 func hide_bubble() -> void:
 	bubble.visible = false
 	bubble_timer.stop()
+
 
 func _update_bubble_position() -> void:
 	if not bubble.visible:
 		return
 	bubble.position = Vector2(-bubble.size.x / 2.0, -320)
 
+
 func _on_bubble_timeout() -> void:
 	hide_bubble()
+
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.name == "TimeAunote":
 		player_nearby = true
 		DialogueUI.show_prompt(npc_id, npc_name)
 
+
 func _on_body_exited(body: Node2D) -> void:
 	if body.name == "TimeAunote":
 		player_nearby = false
 		DialogueUI.hide_prompt()
 
+
 func apparition(position: Vector2) -> void:
+	pnjkoiai2Animation.animation = "pnj-koiai"
 	self.position = position
 	show()
 
+
 func get_npc_id() -> String:
 	return npc_id
+
 
 func get_npc_name() -> String:
 	return npc_name

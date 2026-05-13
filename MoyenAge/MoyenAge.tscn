@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://cphdrnp2uds1l" path="res://MoyenAge/prison_moyen_age.tscn" id="5_prison"]
 [ext_resource type="PackedScene" uid="uid://c8atx8cgttqh3" path="res://MoyenAge/magasin_moyen_age.tscn" id="6_magasin"]
 [ext_resource type="Script" path="res://MoyenAge/magasin_moyen_age.gd" id="7_magasin_gd"]
+[ext_resource type="PackedScene" uid="uid://ci2cdfvig2hb7" path="res://MoyenAge/ville_moyen_age.tscn" id="8_ville"]
+[ext_resource type="Script" path="res://MoyenAge/ville_moyen_age.gd" id="9_ville_gd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ma"]
 bg_color = Color(0.08, 0.08, 0.15, 0.85)
@@ -64,4 +66,8 @@ theme_override_font_sizes/font_size = 14
 horizontal_alignment = 0
 [node name="magasin_moyen_age" parent="." instance=ExtResource("6_magasin")]
 script = ExtResource("7_magasin_gd")
+visible = false
+
+[node name="ville_moyen_age" parent="." instance=ExtResource("8_ville")]
+script = ExtResource("9_ville_gd")
 visible = false

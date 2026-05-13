@@ -5,6 +5,8 @@ var pnjfutur
 var pnjfuturPos
 var pnjcheffe
 var pnjcheffePos
+var pnjkoiai2
+var pnjkoiai2Pos
 var position_entree_principale: Vector2
 var position_entree_escalier: Vector2
 var started: bool = false
@@ -31,6 +33,8 @@ func _ready() -> void:
 	pnjfuturPos = $"fondFutur/Markers2D/pnjfuturPos".position
 	pnjcheffe = $"pnj-cheffe"
 	pnjcheffePos = $"fondFutur/Markers2D/pnjcheffePos".position
+	pnjkoiai2Pos = $"SousSol/fondSousSol/Markers2D/pnjPos2".position
+	pnjkoiai2 = $"SousSol/pnj-koiai-2"
 	_connect_escalier_signals()
 
 
@@ -76,6 +80,10 @@ func _go_to_basement() -> void:
 	$SousSol.show()
 	_set_basement_collisions(true)
 	$"SousSol/pnj-futur".apparition($"SousSol/fondSousSol/Markers2D/pnjPos".position)
+	$"SousSol/pnj-futur/ZoneDialogue".monitoring = true
+	$"SousSol/pnj-koiai-2".apparition(pnjkoiai2Pos)
+	if pnjkoiai2:
+		pnjkoiai2.get_node("ZoneDialogue").monitoring = true
 
 	time_aunote.global_position = $"SousSol/fondSousSol/Markers2D/entreeEscalier".global_position
 
@@ -94,6 +102,9 @@ func _return_from_basement() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
 	await tween_fade.finished
 
+	if pnjkoiai2:
+		pnjkoiai2.get_node("ZoneDialogue").monitoring = false
+	$"SousSol/pnj-futur/ZoneDialogue".monitoring = false
 	$SousSol.hide()
 	_set_basement_collisions(false)
 
@@ -222,6 +233,9 @@ func start(spawn_id: String = "entree") -> void:
 		$SousSol.show()
 		_set_basement_collisions(true)
 		$"SousSol/pnj-futur".apparition($"SousSol/fondSousSol/Markers2D/pnjPos".position)
+		$"SousSol/pnj-futur/ZoneDialogue".monitoring = true
+		$"SousSol/pnj-koiai-2".apparition(pnjkoiai2Pos)
+		$"SousSol/pnj-koiai-2/ZoneDialogue".monitoring = true
 		time_aunote.position = $"SousSol/fondSousSol/Markers2D/entreeEscalier".position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
@@ -380,3 +394,10 @@ func _on_car_minigame_done(success: bool) -> void:
 		pnjcheffe.get_node("ZoneDialogue").monitoring = true
 
 	_update_objective(_objective_label.text if _objective_label else "Parler à la cheffe")
+	if pnjkoiai2:
+		var zone = pnjkoiai2.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+	var zone_vukovi = $"SousSol/pnj-futur/ZoneDialogue"
+	if zone_vukovi:
+		zone_vukovi.monitoring = false
