@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://odweyi1k7ff2"]
+[gd_scene format=3 uid="uid://bcndk2esdoblk"]
 
-[ext_resource type="Texture2D" uid="uid://cb3ebhs4btt17" path="res://art/Futur/route.png" id="1_lckxh"]
+[ext_resource type="Texture2D" uid="uid://t2hgnrvqmjoi" path="res://art/Futur/route.png" id="1_lckxh"]
 [ext_resource type="Texture2D" uid="uid://181u13wbnuhy" path="res://art/Futur/voiturefutur.png" id="3_7ve8o"]
 [ext_resource type="Script" uid="uid://xqv0yg0aj5c8" path="res://Futur/route.gd" id="4_route"]
 [ext_resource type="Texture2D" uid="uid://ctjalkmri42j" path="res://art/cda19cb5-2f9d-4b20-8dcf-6f20ef8818b5.jpg" id="4_undh5"]
@@ -68,8 +68,8 @@ animations = [{
 script = ExtResource("4_route")
 
 [node name="Route" type="AnimatedSprite2D" parent="." unique_id=1484512411]
-position = Vector2(1221.7557, 1390)
-scale = Vector2(2.2561991, 2.3)
+position = Vector2(1226.0001, 1230)
+scale = Vector2(2.2561991, 3.920408)
 sprite_frames = SubResource("SpriteFrames_ch85p")
 animation = &"route"
 autoplay = "route"
@@ -86,24 +86,24 @@ frame_progress = 0.25565988
 [node name="Markers" type="Node2D" parent="." unique_id=692503994]
 
 [node name="top" type="Marker2D" parent="Markers" unique_id=1639818319]
-position = Vector2(196, 1269)
+position = Vector2(195, 1005)
 
 [node name="mid" type="Marker2D" parent="Markers" unique_id=1845739361]
-position = Vector2(166, 1389)
+position = Vector2(166, 1252)
 
 [node name="bot" type="Marker2D" parent="Markers" unique_id=1634654946]
-position = Vector2(164, 1530)
+position = Vector2(164, 1493)
 
 [node name="ObsMarkers" type="Node2D" parent="." unique_id=971019787]
 
 [node name="top_obs" type="Marker2D" parent="ObsMarkers" unique_id=1830064812]
-position = Vector2(2342, 1253)
+position = Vector2(2342, 996)
 
 [node name="mid_obs" type="Marker2D" parent="ObsMarkers" unique_id=389780594]
-position = Vector2(2338, 1379)
+position = Vector2(2338, 1244)
 
 [node name="bot_obs" type="Marker2D" parent="ObsMarkers" unique_id=1948382433]
-position = Vector2(2339, 1508)
+position = Vector2(2351, 1478)
 
 [node name="obstacle_timer" type="Timer" parent="." unique_id=1533678524]
 one_shot = true
@@ -127,11 +127,11 @@ horizontal_alignment = 1
 
 [node name="fond route" type="Sprite2D" parent="." unique_id=1599502752]
 z_index = -5
-position = Vector2(1224.5, 921.625)
-scale = Vector2(2.387695, 3.2643113)
+position = Vector2(1233, 808)
+scale = Vector2(2.387695, 2.8852866)
 texture = ExtResource("4_undh5")
 
 [node name="barrière" type="Sprite2D" parent="." unique_id=1603077549]
-position = Vector2(1250.5, 1201)
+position = Vector2(1256, 884)
 scale = Vector2(1.6634115, 1)
 texture = ExtResource("5_0qmb0")

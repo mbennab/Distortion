@@ -16,7 +16,7 @@ var _timer_value: Label
 const OBSTACLE_SPEED: float = 1200.0
 const LANE_COUNT: int = 3
 const RESTART_DELAY: float = 1.0
-const GAME_DURATION: float = 30.0
+const GAME_DURATION: float = 40.0
 
 
 func _ready() -> void:
@@ -183,6 +183,8 @@ func _on_car_hit(area: Area2D) -> void:
 func _crash() -> void:
 	game_active = false
 	$obstacle_timer.stop()
+	$game_timer.stop()
+	$game_timer.start(GAME_DURATION)
 	collision_label.show()
 
 	await get_tree().create_timer(RESTART_DELAY).timeout
