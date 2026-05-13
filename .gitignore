@@ -17,3 +17,6 @@ build/
 
 # Environment
 .env
+
+# Local agent skill files
+.agents/
