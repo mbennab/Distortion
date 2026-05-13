@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://ci2cdfvig2hb7"]
+
+[ext_resource type="Texture2D" uid="uid://bua03cjtdmffo" path="res://art/MoyenAge/ville.png" id="1_a8t86"]
+[ext_resource type="Texture2D" uid="uid://b1rly0mbths1d" path="res://art/MoyenAge/charette.png" id="2_t0ao7"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8r2hw"]
+size = Vector2(108, 97)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_imwoe"]
+size = Vector2(82, 61)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vl2ks"]
+size = Vector2(71, 79)
+
+[node name="ville_moyen_age" type="Node2D" unique_id=40525661]
+
+[node name="ville" type="Sprite2D" parent="." unique_id=94942509]
+position = Vector2(1215, 808.00006)
+scale = Vector2(0.86282873, 1.0520833)
+texture = ExtResource("1_a8t86")
+
+[node name="charette" type="Sprite2D" parent="." unique_id=1781838702]
+position = Vector2(1188, 885)
+scale = Vector2(0.45312515, 0.42134842)
+texture = ExtResource("2_t0ao7")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=283545174]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=423275596]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=905785278]
+build_mode = 1
+polygon = PackedVector2Array(447, 1204, 446, 1410, 304, 1407, 378, 1615, 1013, 1616, 1013, 1558, 1035, 1558, 1035, 1616, 1335, 1616, 1328, 1513, 1339, 1504, 1368, 1505, 1378, 1563, 1519, 1399, 1540, 1398, 1543, 1416, 1653, 1555, 1699, 1552, 1698, 1440, 1758, 1438, 1754, 1553, 1862, 1552, 1864, 1616, 1924, 1616, 1924, 1546, 2045, 1396, 2068, 1395, 2187, 1543, 2188, 1616, 2249, 1616, 2249, 1535, 2372, 1382, 2392, 1381, 2425, 1432, 2426, 1212, 2342, 1208, 2340, 1235, 2370, 1235, 2372, 1299, 2361, 1308, 2339, 1307, 2281, 1303, 2279, 1254, 2160, 1251, 2155, 1125, 2082, 1123, 2083.1963, 1253.9999, 2009, 1254, 2008, 1298, 1887, 1295, 1881, 1254, 1626, 1256, 1623, 1208, 1596, 1207, 1598, 1095, 1524, 1095, 1525, 1208, 1494.8768, 1207.7832, 1494, 1258, 1340, 1257, 1339, 1211, 1318.4106, 1210.7382, 1317, 1158, 1264.0143, 1160.9823, 1262, 934, 1182, 956, 1116, 934, 1112, 960, 1035, 961, 1034, 1416, 968, 1404, 921, 1456, 844, 1453, 795, 1408, 552, 1412, 553, 1201, 556, 1133, 451, 1131)
+
+[node name="areas2D" type="Node2D" parent="." unique_id=615566627]
+
+[node name="chateau" type="Area2D" parent="areas2D" unique_id=1669649938]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/chateau" unique_id=1996783234]
+position = Vector2(502, 1172)
+shape = SubResource("RectangleShape2D_8r2hw")
+
+[node name="magasin" type="Area2D" parent="areas2D" unique_id=2136524326]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/magasin" unique_id=1978081732]
+position = Vector2(1560, 1126.5)
+shape = SubResource("RectangleShape2D_imwoe")
+
+[node name="auberge" type="Area2D" parent="areas2D" unique_id=1003274055]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/auberge" unique_id=1167408965]
+position = Vector2(2119.5, 1163.5)
+shape = SubResource("RectangleShape2D_vl2ks")
+
+[node name="markers2D" type="Node2D" parent="." unique_id=1001668199]
+
+[node name="chateau" type="Marker2D" parent="markers2D" unique_id=1428382374]
+position = Vector2(498, 1283)
+
+[node name="magasin" type="Marker2D" parent="markers2D" unique_id=53424355]
+position = Vector2(1561, 1193)
+
+[node name="auberge" type="Marker2D" parent="markers2D" unique_id=1641896861]
+position = Vector2(2120, 1233)
