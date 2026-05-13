@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://r7tyc432jnge"]
+
+[ext_resource type="Texture2D" uid="uid://b0yxotl6r5tu2" path="res://art/MoyenAge/auberge1.png" id="1_drbhu"]
+[ext_resource type="Texture2D" uid="uid://cu0thbeytd4lf" path="res://art/MoyenAge/auberge2.png" id="2_fywk1"]
+[ext_resource type="Script" uid="uid://bwqip2noa6k83" path="res://MoyenAge/auberge_moyen_age.gd" id="3_auberge_gd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j0ps2"]
+atlas = ExtResource("1_drbhu")
+region = Rect2(0, 0, 2528, 1696)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xwuuy"]
+atlas = ExtResource("2_fywk1")
+region = Rect2(0, 0, 2528, 1696)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wqj3d"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j0ps2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xwuuy")
+}],
+"loop": true,
+"name": &"default",
+"speed": 2.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_e4s7c"]
+size = Vector2(236, 37)
+
+[node name="auberge" type="Node2D" unique_id=1594367061]
+script = ExtResource("3_auberge_gd")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1171426364]
+position = Vector2(1213, 807.49994)
+scale = Vector2(0.96123415, 0.954599)
+sprite_frames = SubResource("SpriteFrames_wqj3d")
+frame_progress = 0.3920877
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1520340645]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=2091037094]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1778293796]
+build_mode = 1
+polygon = PackedVector2Array(787, 690, 768, 673, 773, 594, 935, 594, 1016, 589, 1017, 521, 1072, 521, 1131, 475, 1192, 463, 1187, 542, 1246, 606, 1320, 589, 1356, 555, 1360, 521, 1426, 516, 1429, 591, 1505, 595, 1504, 680, 1438, 685, 1452, 754, 1516, 781, 1516, 818, 1589, 879, 1571, 951, 1505, 960, 1466, 943, 1443, 954, 1418, 987, 1384, 1019, 1398, 1158, 1401, 1331, 1575, 1337, 1602, 1409, 1554, 1445, 1518, 1415, 1468, 1450, 1466, 1537, 1332, 1534, 1333, 1617, 1096, 1617, 1097, 1539, 960, 1536, 960, 1337, 989, 1301, 1037, 1322, 1107, 1322, 1111, 1249, 1207, 1263, 1214, 982, 1268.3896, 985.1306, 1283, 919, 1355.0663, 872.0687, 1371, 830, 1248, 673, 1140, 833, 1100, 924, 1067, 1044, 928, 1052, 927.3451, 1271.5112, 517, 1284, 516, 1535, 335, 1540, 282, 1214, 349, 1186, 616, 1184, 749, 1161, 752, 960, 709, 941, 551, 940, 553, 770, 510.04163, 760.55426, 512, 622, 681, 644, 681, 739, 796, 890, 874, 919, 932, 908, 991, 885, 1023, 791, 1031, 718, 992, 697, 946, 717, 868, 683)
+
+[node name="Sortie" type="Area2D" parent="." unique_id=1223625952]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sortie" unique_id=918067347]
+position = Vector2(1214, 1597.5)
+shape = SubResource("RectangleShape2D_e4s7c")
+
+[node name="markers2D" type="Node2D" parent="." unique_id=1805660486]
+
+[node name="apparition" type="Marker2D" parent="markers2D" unique_id=274736592]
+position = Vector2(1212, 1460)

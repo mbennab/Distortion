@@ -10,6 +10,8 @@ var can_move: bool = false
 var speed: float = 350.0
 var spawn_particles: CPUParticles2D
 
+const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
+
 var knight_scene = preload("res://MoyenAge/chevalier.tscn")
 var knights: Array = []
 var _roi_adieu_triggered: bool = false
@@ -17,6 +19,7 @@ var _roi_adieu_triggered: bool = false
 var prison
 var magasin
 var ville
+var auberge
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
 var _sortie_triggered := false
@@ -54,6 +57,12 @@ func _ready() -> void:
 		var static_ville = ville.get_node_or_null("StaticBody2D")
 		if static_ville:
 			static_ville.collision_layer = 0
+	auberge = $auberge_moyen_age
+	if auberge:
+		auberge.hide()
+		var static_auberge = auberge.get_node_or_null("StaticBody2D")
+		if static_auberge:
+			static_auberge.collision_layer = 0
 	_setup_fade_overlay()
 
 func _setup_spawn_particles() -> void:
@@ -202,6 +211,25 @@ func start(spawn_id: String = "entree") -> void:
 			_update_objective("Marchander avec le marchand")
 			return
 
+		"auberge":
+			$fondMoyenAge.hide()
+			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
+			pnj_roi.hide()
+			pnj_roi.get_node("ZoneDialogue").monitoring = false
+			auberge.start()
+			time_aunote.position = auberge.get_node("markers2D/apparition").position
+			time_aunote.show()
+			time_aunote.modulate.a = 1.0
+			time_aunote.scale = Vector2(0.8, 0.8)
+			time_aunote.rotation = 0.0
+			can_move = true
+			var col_auberge := time_aunote.get_node("collision") as CollisionShape2D
+			col_auberge.disabled = false
+			started = true
+			stopped = false
+			_update_objective("Explorer l'auberge")
+			return
+
 		"ville":
 			$fondMoyenAge.hide()
 			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
@@ -285,6 +313,8 @@ func stop() -> void:
 		magasin.stop()
 	if ville:
 		ville.stop()
+	if auberge:
+		auberge.stop()
 	_cleanup_knights()
 
 
@@ -524,6 +554,77 @@ func _on_magasin_exit() -> void:
 	magasin.stop()
 	ville.start()
 	time_aunote.global_position = ville.get_node("markers2D/magasin").global_position
+	time_aunote.scale = Vector2(0.4, 0.4)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	_update_objective("Explorer la ville")
+	can_move = true
+
+
+func _on_ville_to_auberge() -> void:
+	if not TimeAunoteScript.disguised:
+		can_move = false
+		var label := Label.new()
+		label.text = "Je devrais me déguiser avant"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", 20)
+		label.add_theme_color_override("font_color", Color(1, 1, 1))
+		label.custom_minimum_size = Vector2(500, 0)
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0.75)
+		style.corner_radius_top_left = 8
+		style.corner_radius_top_right = 8
+		style.corner_radius_bottom_left = 8
+		style.corner_radius_bottom_right = 8
+		label.add_theme_stylebox_override("normal", style)
+		label.z_index = 100
+		label.position = time_aunote.global_position + Vector2(-250, -200)
+		add_child(label)
+
+		await get_tree().create_timer(2.5).timeout
+		if is_instance_valid(label):
+			label.queue_free()
+		can_move = true
+		return
+
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	ville.stop()
+	auberge.start()
+	time_aunote.global_position = auberge.get_node("markers2D/apparition").global_position
+	time_aunote.scale = Vector2(0.8, 0.8)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	_update_objective("Explorer la ville")
+	can_move = true
+
+
+func _on_auberge_exit() -> void:
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	auberge.stop()
+	ville.start()
+	time_aunote.global_position = ville.get_node("markers2D/auberge").global_position
 	time_aunote.scale = Vector2(0.4, 0.4)
 
 	tween_fade = create_tween()
