@@ -5,6 +5,8 @@ var pnjfutur
 var pnjfuturPos
 var pnjcheffe
 var pnjcheffePos
+var pnjkoiai2
+var pnjkoiai2Pos
 var position_entree_principale: Vector2
 var position_entree_escalier: Vector2
 var started: bool = false
@@ -28,6 +30,8 @@ func _ready() -> void:
 	pnjfuturPos = $"fondFutur/Markers2D/pnjfuturPos".position
 	pnjcheffe = $"pnj-cheffe"
 	pnjcheffePos = $"fondFutur/Markers2D/pnjcheffePos".position
+	pnjkoiai2Pos = $"SousSol/fondSousSol/Markers2D/pnjPos2".position
+	pnjkoiai2 = $"SousSol/pnj-koiai-2"
 	_connect_escalier_signals()
 
 
@@ -73,6 +77,9 @@ func _go_to_basement() -> void:
 	$SousSol.show()
 	_set_basement_collisions(true)
 	$"SousSol/pnj-futur".apparition($"SousSol/fondSousSol/Markers2D/pnjPos".position)
+	$"SousSol/pnj-koiai-2".apparition(pnjkoiai2Pos)
+	if pnjkoiai2:
+		pnjkoiai2.get_node("ZoneDialogue").monitoring = true
 
 	time_aunote.global_position = $"SousSol/fondSousSol/Markers2D/entreeEscalier".global_position
 
@@ -91,6 +98,8 @@ func _return_from_basement() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
 	await tween_fade.finished
 
+	if pnjkoiai2:
+		pnjkoiai2.get_node("ZoneDialogue").monitoring = false
 	$SousSol.hide()
 	_set_basement_collisions(false)
 
@@ -219,6 +228,8 @@ func start(spawn_id: String = "entree") -> void:
 		$SousSol.show()
 		_set_basement_collisions(true)
 		$"SousSol/pnj-futur".apparition($"SousSol/fondSousSol/Markers2D/pnjPos".position)
+		$"SousSol/pnj-koiai-2".apparition(pnjkoiai2Pos)
+		$"SousSol/pnj-koiai-2/ZoneDialogue".monitoring = true
 		time_aunote.position = $"SousSol/fondSousSol/Markers2D/entreeEscalier".position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
@@ -308,5 +319,9 @@ func stop() -> void:
 			zone.monitoring = false
 	if pnjcheffe:
 		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+	if pnjkoiai2:
+		var zone = pnjkoiai2.get_node_or_null("ZoneDialogue")
 		if zone:
 			zone.monitoring = false
