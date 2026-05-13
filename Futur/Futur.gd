@@ -17,6 +17,8 @@ var spawn_particles: CPUParticles2D
 var _car_minigame_active := false
 var _car_minigame: Node2D
 var _was_in_basement := false
+var _player_near_car := false
+var _car_prompt: Label
 
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
@@ -116,6 +118,9 @@ func _return_from_basement() -> void:
 	$"pnj-cheffe".show()
 	if pnjcheffe:
 		pnjcheffe.get_node("ZoneDialogue").monitoring = true
+	var car_zone = $"fondFutur/zone-voiture"
+	if car_zone:
+		car_zone.monitoring = true
 	time_aunote.global_position = $"fondFutur/Markers2D/entreeEscalier".global_position
 
 	tween_fade = create_tween()
@@ -283,6 +288,9 @@ func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale)
 	started = true
 	stopped = false
 	_setup_car_minigame()
+	var car_zone = $"fondFutur/zone-voiture"
+	if car_zone:
+		car_zone.monitoring = true
 
 
 func start_from_escalier() -> void:
@@ -319,8 +327,14 @@ func stop() -> void:
 	started = false
 	stopped = true
 	_car_minigame_active = false
+	_player_near_car = false
+	if _car_prompt:
+		_car_prompt.visible = false
 	if _car_minigame:
 		_car_minigame.stop_game()
+	var car_zone = $"fondFutur/zone-voiture"
+	if car_zone:
+		car_zone.monitoring = false
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
@@ -341,11 +355,48 @@ func _setup_car_minigame() -> void:
 	if _car_minigame:
 		_car_minigame.finished.connect(_on_car_minigame_done)
 
+	var zone = $"fondFutur/zone-voiture"
+	if zone:
+		zone.body_entered.connect(_on_car_zone_entered)
+		zone.body_exited.connect(_on_car_zone_exited)
+
+	_setup_car_prompt()
+
+
+func _setup_car_prompt() -> void:
+	var prompt_layer := CanvasLayer.new()
+	prompt_layer.layer = 100
+	add_child(prompt_layer)
+	_car_prompt = Label.new()
+	_car_prompt.text = "Appuyez sur E pour conduire la voiture"
+	_car_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_car_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_car_prompt.add_theme_font_size_override("font_size", 18)
+	_car_prompt.add_theme_color_override("font_color", Color.WHITE)
+	_car_prompt.modulate = Color(1, 1, 1, 0.85)
+	_car_prompt.visible = false
+	var vp := get_viewport().get_visible_rect().size
+	_car_prompt.position = Vector2(vp.x / 2.0 - 200, vp.y - 100)
+	_car_prompt.size = Vector2(400, 50)
+	prompt_layer.add_child(_car_prompt)
+
+
+func _on_car_zone_entered(body: Node2D) -> void:
+	if body == time_aunote:
+		_player_near_car = true
+		_car_prompt.visible = true
+
+
+func _on_car_zone_exited(body: Node2D) -> void:
+	if body == time_aunote:
+		_player_near_car = false
+		_car_prompt.visible = false
+
 
 func _input(event: InputEvent) -> void:
 	if not can_move or not started or _car_minigame_active:
 		return
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_G:
+	if event.is_action_pressed("interagir") and _player_near_car:
 		get_viewport().set_input_as_handled()
 		_start_car_minigame()
 
@@ -354,6 +405,8 @@ func _start_car_minigame() -> void:
 	_car_minigame_active = true
 	can_move = false
 	_was_in_basement = $SousSol.visible
+	_car_prompt.visible = false
+	_player_near_car = false
 
 	$fondFutur.hide()
 	$SousSol.hide()
@@ -371,6 +424,8 @@ func _start_car_minigame() -> void:
 
 func _on_car_minigame_done(success: bool) -> void:
 	_car_minigame_active = false
+	_car_prompt.visible = false
+	_player_near_car = false
 
 	if _was_in_basement:
 		$SousSol.show()
