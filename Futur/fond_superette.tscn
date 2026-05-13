@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://cy3gcng03ftj5"]
+
+[ext_resource type="Texture2D" uid="uid://dxlh8k3inlyjg" path="res://art/Futur/fond-superette.png" id="1_rc2ie"]
+[ext_resource type="Texture2D" uid="uid://df33hldk0g1bl" path="res://art/Futur/tourelles.png" id="2_hwowg"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cpr5e"]
+atlas = ExtResource("2_hwowg")
+region = Rect2(0, 0, 516, 286)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p3rvk"]
+atlas = ExtResource("2_hwowg")
+region = Rect2(516, 0, 516, 286)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_xpd1e"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cpr5e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p3rvk")
+}],
+"loop": true,
+"name": &"tourelles",
+"speed": 5.0
+}]
+
+[node name="FondSuperette" type="Node2D" unique_id=1493308350]
+
+[node name="Superette" type="Sprite2D" parent="." unique_id=1416498861]
+position = Vector2(512, 341)
+scale = Vector2(1.3617022, 0.90571046)
+texture = ExtResource("1_rc2ie")
+
+[node name="Tourelles" type="AnimatedSprite2D" parent="." unique_id=239896226]
+position = Vector2(78.00001, 99)
+scale = Vector2(0.5678295, 0.58916086)
+sprite_frames = SubResource("SpriteFrames_xpd1e")
+animation = &"tourelles"
+frame = 1
+frame_progress = 0.7494031
+
+[node name="Tourelles2" type="AnimatedSprite2D" parent="." unique_id=1186716862]
+position = Vector2(945.00006, 94)
+scale = Vector2(0.57848847, 0.58916086)
+sprite_frames = SubResource("SpriteFrames_xpd1e")
+animation = &"tourelles"
+frame = 1
+frame_progress = 0.7494031
+flip_h = true

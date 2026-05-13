@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://crt0c7ceuwj0f" path="res://Futur/pnj_cheffe.gd" id="7_2plbm"]
 [ext_resource type="Texture2D" uid="uid://c8cbwosqxjxmg" path="res://art/Futur/pnj-cheffe.png" id="8_anmvl"]
 [ext_resource type="PackedScene" uid="uid://odweyi1k7ff2" path="res://Futur/route.tscn" id="9_route"]
+[ext_resource type="PackedScene" uid="uid://cy3gcng03ftj5" path="res://Futur/fond_superette.tscn" id="10_superette"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_punk"]
 radius = 120.0
@@ -148,4 +149,7 @@ sprite_frames = SubResource("SpriteFrames_4ktp6")
 animation = &"idle-cheffe"
 
 [node name="car_minigame" parent="." unique_id=1948779547 instance=ExtResource("9_route")]
+visible = false
+
+[node name="FondSuperette" parent="." instance=ExtResource("10_superette")]
 visible = false

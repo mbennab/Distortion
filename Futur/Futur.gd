@@ -427,32 +427,80 @@ func _on_car_minigame_done(success: bool) -> void:
 	_car_prompt.visible = false
 	_player_near_car = false
 
-	if _was_in_basement:
-		$SousSol.show()
-		_set_basement_collisions(true)
-		$"SousSol/pnj-futur".show()
-		$"pnj-futur".hide()
-		$"pnj-cheffe".hide()
-	else:
-		$fondFutur.show()
-		_set_upper_collisions(true)
-		$"pnj-futur".show()
-		$"pnj-cheffe".show()
+	if not success:
+		if _was_in_basement:
+			$SousSol.show()
+			_set_basement_collisions(true)
+			$"SousSol/pnj-futur".show()
+			$"pnj-futur".hide()
+			$"pnj-cheffe".hide()
+		else:
+			$fondFutur.show()
+			_set_upper_collisions(true)
+			$"pnj-futur".show()
+			$"pnj-cheffe".show()
 
-	time_aunote.show()
-	$ObjectiveHUD.show()
-	can_move = true
+		time_aunote.show()
+		$ObjectiveHUD.show()
+		can_move = true
 
-	if pnjfutur and not _was_in_basement:
-		pnjfutur.get_node("ZoneDialogue").monitoring = true
-	if pnjcheffe and not _was_in_basement:
-		pnjcheffe.get_node("ZoneDialogue").monitoring = true
+		if pnjfutur and not _was_in_basement:
+			pnjfutur.get_node("ZoneDialogue").monitoring = true
+		if pnjcheffe and not _was_in_basement:
+			pnjcheffe.get_node("ZoneDialogue").monitoring = true
 
-	_update_objective(_objective_label.text if _objective_label else "Parler à la cheffe")
-	if pnjkoiai2:
-		var zone = pnjkoiai2.get_node_or_null("ZoneDialogue")
+		_update_objective(_objective_label.text if _objective_label else "Parler à la cheffe")
+		if pnjkoiai2:
+			var zone = pnjkoiai2.get_node_or_null("ZoneDialogue")
+			if zone:
+				zone.monitoring = false
+		var zone_vukovi = $"SousSol/pnj-futur/ZoneDialogue"
+		if zone_vukovi:
+			zone_vukovi.monitoring = false
+		return
+
+	can_move = false
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+
+	var vp := get_viewport().get_visible_rect().size
+	var text_label := Label.new()
+	text_label.text = "L'inébranlable groupe se refugie dans une supérette abandonnée"
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.add_theme_font_size_override("font_size", 24)
+	text_label.add_theme_color_override("font_color", Color.WHITE)
+	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_label.custom_minimum_size = Vector2(600, 0)
+	text_label.position = Vector2(vp.x / 2.0 - 300, vp.y / 2.0 - 60)
+	text_label.size = Vector2(600, 120)
+	fade_layer.add_child(text_label)
+
+	await get_tree().create_timer(3.0).timeout
+
+	$fondFutur.hide()
+	$SousSol.hide()
+	$"pnj-futur".hide()
+	$"pnj-cheffe".hide()
+	$"SousSol/pnj-futur".hide()
+	time_aunote.hide()
+	$ObjectiveHUD.hide()
+	_set_upper_collisions(false)
+	_set_basement_collisions(false)
+	if pnjfutur:
+		var zone = pnjfutur.get_node_or_null("ZoneDialogue")
 		if zone:
 			zone.monitoring = false
-	var zone_vukovi = $"SousSol/pnj-futur/ZoneDialogue"
-	if zone_vukovi:
-		zone_vukovi.monitoring = false
+	if pnjcheffe:
+		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+
+	$FondSuperette.show()
+
+	text_label.queue_free()
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
