@@ -3,6 +3,8 @@
 [ext_resource type="GDScript" path="res://Present/Present.gd" id="1_gd"]
 [ext_resource type="PackedScene" uid="uid://d1p0tjtkyh2ea" path="res://Present/fondPresent.tscn" id="2_fond"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_perso"]
+[ext_resource type="PackedScene" path="res://Present/parking.tscn" id="4_parking"]
+[ext_resource type="PackedScene" path="res://Present/pnj_securité.tscn" id="5_pnj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_present"]
 bg_color = Color(0.08, 0.08, 0.15, 0.85)
@@ -22,6 +24,11 @@ script = ExtResource("1_gd")
 [node name="fondPresent" parent="." unique_id=358863711 instance=ExtResource("2_fond")]
 
 [node name="TimeAunote" parent="." unique_id=409968594 instance=ExtResource("3_perso")]
+
+[node name="Parking" type="Node2D" parent="." instance=ExtResource("4_parking")]
+visible = false
+
+[node name="PnjSecurité" type="Node2D" parent="." instance=ExtResource("5_pnj")]
 
 [node name="ObjectiveHUD" type="CanvasLayer" parent="."]
 visible = false

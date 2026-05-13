@@ -3,19 +3,25 @@
 [ext_resource type="Texture2D" uid="uid://b8878nnhuj6kn" path="res://art/Present/exterieur_centrale.png" id="1_0kkmx"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0kkmx"]
-size = Vector2(53.5, 94)
+size = Vector2(53.5, 132)
 
 [node name="fondPresent" type="Node2D" unique_id=358863711]
 
 [node name="image" type="Sprite2D" parent="." unique_id=1394868288]
-scale = Vector2(1.185, 1.185)
+scale = Vector2(1.4557416, 1.7098831)
 texture = ExtResource("1_0kkmx")
 centered = false
 
 [node name="Markers2D" type="Node2D" parent="." unique_id=468515979]
 
 [node name="entreePrincipale" type="Marker2D" parent="Markers2D" unique_id=845621181]
-position = Vector2(989, 1025)
+position = Vector2(1222, 1503)
+
+[node name="secuPos" type="Marker2D" parent="Markers2D" unique_id=2037805305]
+position = Vector2(1009, 1213)
+
+[node name="retourParking" type="Marker2D" parent="Markers2D" unique_id=296541833]
+position = Vector2(165, 1510)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
 anchor_mode = 0
@@ -24,11 +30,12 @@ zoom = Vector2(0.422, 0.422)
 [node name="zone escape parking" type="Area2D" parent="." unique_id=1915577950]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="zone escape parking" unique_id=1161494803]
-position = Vector2(25.25, 1059)
+position = Vector2(38, 1528)
 shape = SubResource("RectangleShape2D_0kkmx")
 
-[node name="colision2" type="StaticBody2D" parent="." unique_id=201282611]
+[node name="limitesDeplacements" type="StaticBody2D" parent="." unique_id=201282611]
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="colision2" unique_id=1050761392]
+[node name="colision-map" type="CollisionPolygon2D" parent="limitesDeplacements" unique_id=1739308056]
+visible = false
 build_mode = 1
-polygon = PackedVector2Array(0, 1103, 848, 1103, 870, 1117, 1105, 1117, 1102, 846, 876, 849, 876, 1004, 0, 1012)
+polygon = PackedVector2Array(2, 1593, 1048, 1593, 1068, 1608, 1372, 1611, 1364, 1191, 1063, 1191, 1063, 1444, -1, 1452)

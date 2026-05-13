@@ -1,8 +1,38 @@
-[gd_scene format=3 uid="uid://catb05okpnibl"]
+[gd_scene format=3 uid="uid://c35f3o8f466wf"]
 
 [ext_resource type="Texture2D" uid="uid://c50qav0bjsb2g" path="res://art/Present/parking.png" id="1_itqnm"]
+[ext_resource type="Script" uid="uid://72vtufuu2l1n" path="res://Present/parking.gd" id="2_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_retour"]
+size = Vector2(89, 217)
 
 [node name="Parking" type="Node2D" unique_id=11570222]
+script = ExtResource("2_script")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=517160727]
+scale = Vector2(1.6719612, 1.4861878)
 texture = ExtResource("1_itqnm")
+centered = false
+
+[node name="limiteParking" type="StaticBody2D" parent="." unique_id=292855210]
+collision_layer = 0
+
+[node name="colision mobs" type="CollisionPolygon2D" parent="limiteParking" unique_id=1845536762]
+build_mode = 1
+polygon = PackedVector2Array(2408, 966, 2413, 858, 2221, 858, 2180, 813, 1885, 824, 1852, 574, 1560, 588, 1554, 418, 1368, 421, 1365, 632, 1234, 635, 1229, 429, 1029, 429, 1023, 632, 829, 630, 834, 427, 628, 429, 628, 638, 387, 632, 373, 896, 609, 902, 601, 1183, 831, 1186, 820, 902, 1504, 899, 1507, 1166, 1518, 1199, 2413, 1202)
+
+[node name="Node2D" type="Node2D" parent="." unique_id=660242797]
+
+[node name="zone pop" type="Marker2D" parent="Node2D" unique_id=1644447377]
+position = Vector2(2170, 1064)
+
+[node name="zone retour parking" type="Area2D" parent="." unique_id=1037844511]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="zone retour parking" unique_id=-2017162261]
+position = Vector2(2377, 1096)
+shape = SubResource("RectangleShape2D_retour")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=6322449]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
