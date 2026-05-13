@@ -36,6 +36,7 @@ script = ExtResource("3_auberge_gd")
 position = Vector2(1213, 807.49994)
 scale = Vector2(0.96123415, 0.954599)
 sprite_frames = SubResource("SpriteFrames_wqj3d")
+autoplay = "default"
 frame_progress = 0.3920877
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1520340645]
