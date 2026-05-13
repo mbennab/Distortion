@@ -29,7 +29,7 @@ position = Vector2(699, 235)
 position = Vector2(555, 413)
 
 [node name="pnjPos2" type="Marker2D" parent="Markers2D" unique_id=357599086]
-position = Vector2(194, 457)
+position = Vector2(222, 465)
 
 [node name="escalier" type="Node2D" parent="." unique_id=473445642]
 
