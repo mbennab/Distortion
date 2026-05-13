@@ -10,6 +10,7 @@
 	{
 	  "id": "npc_guide_hub",
 	  "name": "Le Gardien du Nexus",
+	  "first_message": "Bienvenue, voyageur. Trois portails s'offrent à toi : le passé ruisselle encore de sang et de foi, le présent n'est que cendres, et le futur… le futur est un pari. Choisis avec le cœur, mais sache que chaque voie a son prix.",
 	  "personality": {
 		"tone": "énigmatique, bienveillant, détaché du temps. Parle par énigmes et paraboles. Ni vivant ni mort.",
 		"backstory": "Une entité intemporelle qui veille sur les portails du Hub Central depuis que le temps a commencé à se distordre. Ni vivant, ni mort, ni passé, ni futur. Il a vu défiler d'innombrables voyageurs avant le joueur. Il connaît chaque époque sans y avoir jamais mis les pieds.",
