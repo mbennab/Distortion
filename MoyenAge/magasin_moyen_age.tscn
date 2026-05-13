@@ -2,10 +2,13 @@
 
 [ext_resource type="Texture2D" uid="uid://bse66rfwusfao" path="res://art/MoyenAge/magasin_moyen-age.png" id="1_e470e"]
 [ext_resource type="PackedScene" uid="uid://c7o3vpx5sl57s" path="res://MoyenAge/pnj_marchand.tscn" id="2_marchand"]
-[ext_resource type="Script" path="res://MoyenAge/pnj_marchand.gd" id="3_marchand_gd"]
+[ext_resource type="Script" uid="uid://8olk22vrtlxf" path="res://MoyenAge/pnj_marchand.gd" id="3_marchand_gd"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_e470e"]
 radius = 345.20862
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kr3ao"]
+size = Vector2(237, 82)
 
 [node name="magasin_moyen_age" type="Node2D" unique_id=562679252]
 
@@ -41,7 +44,15 @@ shape = SubResource("CircleShape2D_e470e")
 position = Vector2(842, 574)
 
 [node name="apparition" type="Marker2D" parent="Markers2D" unique_id=1650090964]
-position = Vector2(1215, 1512)
+position = Vector2(1213, 1386)
 
-[node name="pnj-marchand" parent="." instance=ExtResource("2_marchand")]
+[node name="areas2D" type="Node2D" parent="." unique_id=1082903381]
+
+[node name="sortie" type="Area2D" parent="areas2D" unique_id=1844464081]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/sortie" unique_id=164320821]
+position = Vector2(1212.5, 1576)
+shape = SubResource("RectangleShape2D_kr3ao")
+
+[node name="pnj-marchand" parent="." unique_id=1031943339 instance=ExtResource("2_marchand")]
 script = ExtResource("3_marchand_gd")

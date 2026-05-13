@@ -16,6 +16,7 @@ var _roi_adieu_triggered: bool = false
 
 var prison
 var magasin
+var ville
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
 var _sortie_triggered := false
@@ -47,6 +48,12 @@ func _ready() -> void:
 	var mg_zone_sortie = prison.get_node_or_null("ZoneSortie")
 	if mg_zone_sortie:
 		mg_zone_sortie.body_entered.connect(_on_prison_sortie_entered)
+	ville = $ville_moyen_age
+	if ville:
+		ville.hide()
+		var static_ville = ville.get_node_or_null("StaticBody2D")
+		if static_ville:
+			static_ville.collision_layer = 0
 	_setup_fade_overlay()
 
 func _setup_spawn_particles() -> void:
@@ -195,6 +202,25 @@ func start(spawn_id: String = "entree") -> void:
 			_update_objective("Marchander avec le marchand")
 			return
 
+		"ville":
+			$fondMoyenAge.hide()
+			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
+			pnj_roi.hide()
+			pnj_roi.get_node("ZoneDialogue").monitoring = false
+			ville.start()
+			time_aunote.position = ville.get_node("markers2D/chateau").position
+			time_aunote.show()
+			time_aunote.modulate.a = 1.0
+			time_aunote.scale = Vector2(0.4, 0.4)
+			time_aunote.rotation = 0.0
+			can_move = true
+			var col_ville := time_aunote.get_node("collision") as CollisionShape2D
+			col_ville.disabled = false
+			started = true
+			stopped = false
+			_update_objective("Explorer la ville")
+			return
+
 		_:
 			time_aunote.position = position_entree_principale
 			if prison:
@@ -257,6 +283,8 @@ func stop() -> void:
 			prison.stop_minigame()
 	if magasin:
 		magasin.stop()
+	if ville:
+		ville.stop()
 	_cleanup_knights()
 
 
@@ -401,11 +429,12 @@ func _on_prison_sortie_entered(body: Node2D) -> void:
 	if zone_sortie:
 		zone_sortie.monitoring = false
 
-	magasin.start()
-	time_aunote.global_position = magasin.get_node("Markers2D/apparition").global_position
+	ville.start()
+	time_aunote.global_position = ville.get_node("markers2D/chateau").global_position
+	time_aunote.scale = Vector2(0.4, 0.4)
 
 	var text_label := Label.new()
-	text_label.text = "Vous cherchez des habits…"
+	text_label.text = "Vous émergez dans les rues de la ville…"
 	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	text_label.add_theme_font_size_override("font_size", 28)
@@ -426,7 +455,82 @@ func _on_prison_sortie_entered(body: Node2D) -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
 
+	_update_objective("Explorer la ville")
+	can_move = true
+
+
+func _on_ville_to_prison() -> void:
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	ville.stop()
+
+	prison.show()
+	var limite_prison = prison.get_node_or_null("limiteDeplacement")
+	if limite_prison:
+		limite_prison.collision_layer = 4
+	var zone_sortie = prison.get_node_or_null("ZoneSortie")
+	if zone_sortie:
+		zone_sortie.monitoring = true
+
+	_sortie_triggered = false
+	time_aunote.global_position = prison.get_node("markers2d/sortie").global_position
+	time_aunote.scale = Vector2(0.8, 0.8)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	_update_objective("S'échapper de la prison")
+	can_move = true
+
+
+func _on_ville_to_magasin() -> void:
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	ville.stop()
+	magasin.start()
+	time_aunote.global_position = magasin.get_node("Markers2D/apparition").global_position
+	time_aunote.scale = Vector2(0.8, 0.8)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
 	_update_objective("Marchander avec le marchand")
+	can_move = true
+
+
+func _on_magasin_exit() -> void:
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	magasin.stop()
+	ville.start()
+	time_aunote.global_position = ville.get_node("markers2D/magasin").global_position
+	time_aunote.scale = Vector2(0.4, 0.4)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	_update_objective("Explorer la ville")
 	can_move = true
 
 
