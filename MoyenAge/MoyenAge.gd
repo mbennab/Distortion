@@ -32,6 +32,7 @@ func _ready() -> void:
 	hide()
 	_setup_spawn_particles()
 	DialogueSystem.action_triggered.connect(_on_action_triggered)
+	DialogueSystem.quest_updated.connect(_on_quest_updated)
 	prison = $prison_moyen_age
 	var limites_prison = prison.get_node_or_null("limiteDeplacement")
 	if limites_prison:
@@ -323,6 +324,21 @@ func _on_action_triggered(action: Dictionary) -> void:
 		return
 	if action.get("type") == "trigger" and action.get("id") == "roi_adieu":
 		_trigger_roi_adieu_sequence()
+
+
+func _on_quest_updated(quest_id: String, status: String, current_step: String) -> void:
+	if not started:
+		return
+	if status == "done":
+		return
+	if current_step != "":
+		var quest = DialogueSystem._find_quest(quest_id)
+		if not quest.is_empty():
+			for step in quest.get("steps", []):
+				if step.get("id") == current_step:
+					_update_objective(step.get("description", ""))
+					return
+	_update_objective(DialogueSystem._find_quest(quest_id).get("title", ""))
 
 
 func _trigger_roi_adieu_sequence() -> void:
