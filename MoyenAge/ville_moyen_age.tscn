@@ -2,6 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://bua03cjtdmffo" path="res://art/MoyenAge/ville.png" id="1_a8t86"]
 [ext_resource type="Texture2D" uid="uid://b1rly0mbths1d" path="res://art/MoyenAge/charette.png" id="2_t0ao7"]
+[ext_resource type="Script" path="res://MoyenAge/ville_moyen_age.gd" id="3_ville_gd"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8r2hw"]
 size = Vector2(108, 97)
@@ -13,6 +14,7 @@ size = Vector2(82, 61)
 size = Vector2(71, 79)
 
 [node name="ville_moyen_age" type="Node2D" unique_id=40525661]
+script = ExtResource("3_ville_gd")
 
 [node name="ville" type="Sprite2D" parent="." unique_id=94942509]
 position = Vector2(1215, 808.00006)
@@ -37,18 +39,21 @@ polygon = PackedVector2Array(447, 1204, 446, 1410, 304, 1407, 378, 1615, 1013, 1
 [node name="areas2D" type="Node2D" parent="." unique_id=615566627]
 
 [node name="chateau" type="Area2D" parent="areas2D" unique_id=1669649938]
+collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/chateau" unique_id=1996783234]
 position = Vector2(502, 1172)
 shape = SubResource("RectangleShape2D_8r2hw")
 
 [node name="magasin" type="Area2D" parent="areas2D" unique_id=2136524326]
+collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/magasin" unique_id=1978081732]
 position = Vector2(1560, 1126.5)
 shape = SubResource("RectangleShape2D_imwoe")
 
 [node name="auberge" type="Area2D" parent="areas2D" unique_id=1003274055]
+collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/auberge" unique_id=1167408965]
 position = Vector2(2119.5, 1163.5)

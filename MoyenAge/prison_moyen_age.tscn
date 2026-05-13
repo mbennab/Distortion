@@ -28,6 +28,9 @@ position = Vector2(490, 1002)
 [node name="porte" type="Marker2D" parent="markers2d" unique_id=737319500]
 position = Vector2(561, 568)
 
+[node name="sortie" type="Marker2D" parent="markers2d"]
+position = Vector2(2100, 1480)
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=413258976]
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)

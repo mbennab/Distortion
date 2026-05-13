@@ -22,6 +22,7 @@ func _ready() -> void:
 	DialogueSystem.dialogue_started.connect(_on_dialogue_started)
 	_setup_habits_zone()
 	_setup_prompt()
+	_setup_sortie_zone()
 	$zoneHabits.monitoring = false
 
 
@@ -50,6 +51,22 @@ func _setup_prompt() -> void:
 	prompt_label.position = Vector2(vp.x / 2.0 - 200, vp.y - 160)
 	prompt_label.size = Vector2(400, 50)
 	prompt_layer.add_child(prompt_label)
+
+
+func _setup_sortie_zone() -> void:
+	var sortie := $areas2D/sortie
+	if sortie:
+		sortie.collision_mask = 1
+		sortie.monitoring = false
+		sortie.body_entered.connect(_on_sortie_entered)
+
+
+func _on_sortie_entered(body: Node2D) -> void:
+	if not _active or body.name != "TimeAunote":
+		return
+	var parent = get_parent()
+	if parent and parent.has_method("_on_magasin_exit"):
+		parent._on_magasin_exit()
 
 
 func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
@@ -104,6 +121,7 @@ func _on_minigame_done(success: bool) -> void:
 	if success:
 		disguise_obtained = true
 		$zoneHabits.monitoring = false
+		$areas2D/sortie.monitoring = true
 		TimeAunoteScript.disguised = true
 		var player = get_parent().get_node("TimeAunote")
 		if player and player.has_method("apply_disguise"):
@@ -141,7 +159,8 @@ func start() -> void:
 	process_mode = PROCESS_MODE_INHERIT
 	var zone := $zoneHabits
 	if zone:
-		zone.monitoring = true
+		if not disguise_obtained:
+			zone.monitoring = true
 	var static_body = $StaticBody2D
 	if static_body:
 		static_body.collision_layer = 4
@@ -149,6 +168,8 @@ func start() -> void:
 	if pnj_marchand and pnj_marchand.has_method("apparition"):
 		pnj_marchand.apparition(marchand_pos)
 		pnj_marchand.get_node("ZoneDialogue").monitoring = true
+	if disguise_obtained:
+		$areas2D/sortie.monitoring = true
 	show()
 
 
@@ -168,4 +189,5 @@ func stop() -> void:
 	if pnj_marchand:
 		pnj_marchand.get_node("ZoneDialogue").monitoring = false
 		pnj_marchand.hide()
+	$areas2D/sortie.monitoring = false
 	hide()
