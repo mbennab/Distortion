@@ -54,6 +54,9 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_koiai2"]
 radius = 120.0
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_vukovi"]
+radius = 120.0
+
 [node name="SousSol" type="Node2D" unique_id=1050132521]
 script = ExtResource("1_gd")
 
@@ -61,6 +64,12 @@ script = ExtResource("1_gd")
 
 [node name="pnj-futur" type="Node2D" parent="." unique_id=1326797147]
 script = ExtResource("4_pnj")
+
+[node name="ZoneDialogue" type="Area2D" parent="pnj-futur" unique_id=1050132522]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-futur/ZoneDialogue" unique_id=1050132523]
+shape = SubResource("CircleShape2D_vukovi")
 
 [node name="pnjfuturAnimation" type="AnimatedSprite2D" parent="pnj-futur" unique_id=814833227]
 position = Vector2(-12, -12.000003)
@@ -73,7 +82,7 @@ frame_progress = 0.37181473
 script = ExtResource("6_koiai2")
 
 [node name="pnjkoiai2Animation" type="AnimatedSprite2D" parent="pnj-koiai-2" unique_id=703366801]
-position = Vector2(-64.828125, -15.000002)
+position = Vector2(0, -9)
 scale = Vector2(0.19641668, 0.18027343)
 sprite_frames = SubResource("SpriteFrames_0jf3b")
 animation = &"pnj-koiai"
@@ -83,5 +92,5 @@ frame_progress = 0.14429761
 collision_layer = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-koiai-2/ZoneDialogue" unique_id=160911535]
-position = Vector2(264, -33)
+position = Vector2(-1, 0)
 shape = SubResource("CircleShape2D_koiai2")

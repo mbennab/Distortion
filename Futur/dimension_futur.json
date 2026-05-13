@@ -223,6 +223,83 @@
 		"unknown": "Je ne comprends pas. Mais l'important, c'est Kadath.",
 		"default_template": "Koiai te regarde avec détermination. Il y a tant à faire."
 	  }
+	},
+	{
+	  "id": "npc_vukovi_futur",
+	  "name": "Vukovi",
+	  "personality": {
+		"tone": "calme, posé, professionnel mais légèrement tendu",
+		"backstory": "Ancienne militaire, Vukovi est la médecin du groupe. La Cheffe l'a recrutée et elle a accepté de rejoindre la résistance. Mais le plan d'infiltrer Kadath pour affronter Alfredo Sinko Nochez réveille de mauvais souvenirs de la guerre. Elle prend soin des autres avec dévouement mais a tendance à restreindre ses émotions.",
+		"emotional_state": "stressé par le plan, mais déterminé à protéger les siens",
+		"speech": {
+		  "vouvoiement": false,
+		  "vocatif": "brochacho",
+		  "phrases": "courtes, calmes, parfois hésitantes quand il s'agit du passé",
+		  "expressions": [
+			"parle d'une voix posée",
+			"détourne le regard quand on aborde la guerre",
+			"se force à sourire pour rassurer"
+		  ],
+		  "interdits": [
+			"ne montre PAS ses émotions facilement",
+			"ne parle PAS de la guerre en détail"
+		  ]
+		},
+		"knowledge": [
+		  "elle est médecin du groupe de résistance",
+		  "la Cheffe l'a recrutée personnellement",
+		  "le plan est d'aller à Kadath pour affronter Alfredo Sinko Nochez",
+		  "la guerre lui a laissé des séquelles",
+		  "elle connaît Koiai et la mécano"
+		],
+		"goals": [
+		  "rassurer le voyageur",
+		  "soigner les membres du groupe",
+		  "surmonter ses propres craintes pour la mission"
+		],
+		"conversation_arc": [
+		  {"phase": 1, "until_message": 2, "focus": "se présenter brièvement, accueillir le voyageur en tant que médecin"},
+		  {"phase": 2, "until_message": 4, "focus": "parler du plan et de la mission, montrer son stress"},
+		  {"phase": 3, "until_message": 99, "focus": "parler de son passé militaire, restreindre ses émotions, renvoyer vers les autres"}
+		]
+	  },
+	  "intentions": [
+		{
+		  "id": "vukovi_accueil",
+		  "condition": null,
+		  "trigger": "le joueur salue Vukovi",
+		  "example": "Salut brochacho. Je suis Vukovi, je suis médecin ici. T'as des blessures ?",
+		  "action": null
+		},
+		{
+		  "id": "vukovi_mission",
+		  "condition": null,
+		  "trigger": "le joueur demande ce qu'il se passe",
+		  "example": "On prépare une opération à Kadath. La Cheffe a un plan. Moi... je suis là pour les patch up.",
+		  "action": null
+		},
+		{
+		  "id": "vukovi_stress",
+		  "condition": null,
+		  "trigger": "le joueur demande si ça va ou parle du stress",
+		  "example": "Ça va aller... faut bien. On a tous nos démons. Toi aussi brochacho, fais gaffe à toi là-bas.",
+		  "action": null
+		},
+		{
+		  "id": "vukovi_guerre",
+		  "condition": null,
+		  "trigger": "le joueur parle de son passé ou de la guerre",
+		  "example": "... On va pas parler de ça. J'étais militaire, c'est tout. Maintenant je soigne, c'est mieux comme ça.",
+		  "action": null
+		}
+	  ],
+	  "fallbacks": {
+		"off_topic": "On a une mission brochacho, concentre-toi.",
+		"insult": "... Si ça te fait du bien de dire ça. Viens me voir quand t'auras une vraie blessure.",
+		"timeout": "T'es encore là ? Repose-toi un peu avant qu'on parte.",
+		"unknown": "J'ai pas compris brochacho. Respire et reformule.",
+		"default_template": "Vukovi te regarde avec un calme professionnel. Son regard s'attarde un instant sur toi."
+	  }
 	}
   ],
   "quests": [],
