@@ -211,7 +211,7 @@ func start(spawn_id: String = "entree") -> void:
 			time_aunote.position = ville.get_node("markers2D/chateau").position
 			time_aunote.show()
 			time_aunote.modulate.a = 1.0
-			time_aunote.scale = Vector2(0.8, 0.8)
+			time_aunote.scale = Vector2(0.4, 0.4)
 			time_aunote.rotation = 0.0
 			can_move = true
 			var col_ville := time_aunote.get_node("collision") as CollisionShape2D
@@ -431,6 +431,7 @@ func _on_prison_sortie_entered(body: Node2D) -> void:
 
 	ville.start()
 	time_aunote.global_position = ville.get_node("markers2D/chateau").global_position
+	time_aunote.scale = Vector2(0.4, 0.4)
 
 	var text_label := Label.new()
 	text_label.text = "Vous émergez dans les rues de la ville…"
@@ -479,6 +480,7 @@ func _on_ville_to_prison() -> void:
 
 	_sortie_triggered = false
 	time_aunote.global_position = prison.get_node("markers2d/sortie").global_position
+	time_aunote.scale = Vector2(0.8, 0.8)
 
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
@@ -500,6 +502,7 @@ func _on_ville_to_magasin() -> void:
 	ville.stop()
 	magasin.start()
 	time_aunote.global_position = magasin.get_node("Markers2D/apparition").global_position
+	time_aunote.scale = Vector2(0.8, 0.8)
 
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
@@ -521,6 +524,7 @@ func _on_magasin_exit() -> void:
 	magasin.stop()
 	ville.start()
 	time_aunote.global_position = ville.get_node("markers2D/magasin").global_position
+	time_aunote.scale = Vector2(0.4, 0.4)
 
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
