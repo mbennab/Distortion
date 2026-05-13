@@ -17,6 +17,7 @@ var _roi_adieu_triggered: bool = false
 var prison
 var magasin
 var ville
+var auberge
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
 var _sortie_triggered := false
@@ -54,6 +55,12 @@ func _ready() -> void:
 		var static_ville = ville.get_node_or_null("StaticBody2D")
 		if static_ville:
 			static_ville.collision_layer = 0
+	auberge = $auberge_moyen_age
+	if auberge:
+		auberge.hide()
+		var static_auberge = auberge.get_node_or_null("StaticBody2D")
+		if static_auberge:
+			static_auberge.collision_layer = 0
 	_setup_fade_overlay()
 
 func _setup_spawn_particles() -> void:
@@ -285,6 +292,8 @@ func stop() -> void:
 		magasin.stop()
 	if ville:
 		ville.stop()
+	if auberge:
+		auberge.stop()
 	_cleanup_knights()
 
 
@@ -524,6 +533,50 @@ func _on_magasin_exit() -> void:
 	magasin.stop()
 	ville.start()
 	time_aunote.global_position = ville.get_node("markers2D/magasin").global_position
+	time_aunote.scale = Vector2(0.4, 0.4)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	_update_objective("Explorer la ville")
+	can_move = true
+
+
+func _on_ville_to_auberge() -> void:
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	ville.stop()
+	auberge.start()
+	time_aunote.global_position = auberge.get_node("markers2D/apparition").global_position
+	time_aunote.scale = Vector2(0.8, 0.8)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	_update_objective("Explorer la ville")
+	can_move = true
+
+
+func _on_auberge_exit() -> void:
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	auberge.stop()
+	ville.start()
+	time_aunote.global_position = ville.get_node("markers2D/auberge").global_position
 	time_aunote.scale = Vector2(0.4, 0.4)
 
 	tween_fade = create_tween()
