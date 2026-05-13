@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://ccuumsuxiobuh"]
+
+[ext_resource type="Texture2D" uid="uid://bqe4th1apt8k0" path="res://art/Present/pnj_securité.png" id="1_xcbpl"]
+[ext_resource type="Script" uid="uid://catae465ue382" path="res://Present/pnj_securité.gd" id="2_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pdsno"]
+atlas = ExtResource("1_xcbpl")
+region = Rect2(48, 0, 226, 490)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tayjk"]
+atlas = ExtResource("1_xcbpl")
+region = Rect2(274, 0, 226, 490)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ckkk8"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pdsno")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tayjk")
+}],
+"loop": true,
+"name": &"default",
+"speed": 2.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5pfdj"]
+radius = 120.0
+
+[node name="PnjSecurité" type="Node2D" unique_id=1277812798]
+script = ExtResource("2_script")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1844665995]
+scale = Vector2(0.3, 0.3)
+sprite_frames = SubResource("SpriteFrames_ckkk8")
+frame_progress = 0.45860934
+
+[node name="ZoneDialogue" type="Area2D" parent="." unique_id=489710258]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue" unique_id=248057185]
+shape = SubResource("CircleShape2D_5pfdj")

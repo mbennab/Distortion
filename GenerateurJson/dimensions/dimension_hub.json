@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "id": "hub",
+    "name": "hub",
+    "era": "RAS",
+    "description": "On est dans le hub des Time aunote : un espace sans temporalité, qui permet de rejoindre les autre dimension."
+  },
+  "npcs": [
+    {
+      "id": "bob",
+      "name": "bob",
+      "personality": {
+        "tone": "un ton professionnel c notre superieur qui nous donne des mission",
+        "prompt_context": "Tu es Nouveau PNJ. Tu ne génères JAMAIS de texte libre. Tu retournes UNIQUEMENT l'ID de la réplique la plus adaptée parmi celles listées ci-dessous. Réponds avec un JSON : {\"id\": \"<id_replique>\"}."
+      },
+      "dialogue_bank": [
+        {
+          "id": "bob_not_started_01",
+          "condition": {
+            "quest_id": "basique_quete",
+            "quest_status": "not_started",
+            "quest_step": null
+          },
+          "intention": "comment tu vas ? ",
+          "text": "Je ves plutot bien, mais je pense que vous avez autre chose a faire que de me demander cela."
+        },
+        {
+          "id": "bob_not_started_02",
+          "condition": {
+            "quest_id": "basique_quete",
+            "quest_status": "not_started",
+            "quest_step": null
+          },
+          "intention": "que dois-je faire ? ",
+          "text": "il faut que tu repare des probleme majeurs qui c'est passer dans l'histoire de l'humaniter, entre dans un portail pour te rendre dans une dimension."
+        },
+        {
+          "id": "bob_not_started_03",
+          "condition": {
+            "quest_id": "basique_quete",
+            "quest_status": "not_started",
+            "quest_step": null
+          },
+          "intention": "ou suis-je ? ",
+          "text": "tu est dans le Hub des Time-Aunote, c'est notre sieges principal."
+        },
+        {
+          "id": "bob_not_started_04",
+          "condition": {
+            "quest_id": "basique_quete",
+            "quest_status": "not_started",
+            "quest_step": null
+          },
+          "intention": "qui est tu ? ",
+          "text": "je suis bob, ton superieure, je preserverer les portail pour que tu ne te retrouve pas bloquée dans ta dimension."
+        }
+      ],
+      "fallbacks": {
+        "off_topic": "je n'est pas compris ce que tu me raconte",
+        "insult": "attention a ce que tu dis sinon ta prochaine mission ce passera a une époque d'air glaciaire.",
+        "default_template": "(A+B)^2"
+      }
+    }
+  ],
+  "quests": [
+    {
+      "id": "basique_quete",
+      "title": "base",
+      "status": "not_started",
+      "requires_quests": [],
+      "steps": []
+    }
+  ],
+  "mini_games": [],
+  "items": [],
+  "global_fallbacks": {
+    "off_topic": "",
+    "insult": "",
+    "timeout": "",
+    "unknown": "",
+    "default_template": ""
+  }
+}
