@@ -209,6 +209,25 @@ func start(spawn_id: String = "entree") -> void:
 			_update_objective("Marchander avec le marchand")
 			return
 
+		"auberge":
+			$fondMoyenAge.hide()
+			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
+			pnj_roi.hide()
+			pnj_roi.get_node("ZoneDialogue").monitoring = false
+			auberge.start()
+			time_aunote.position = auberge.get_node("markers2D/apparition").position
+			time_aunote.show()
+			time_aunote.modulate.a = 1.0
+			time_aunote.scale = Vector2(0.8, 0.8)
+			time_aunote.rotation = 0.0
+			can_move = true
+			var col_auberge := time_aunote.get_node("collision") as CollisionShape2D
+			col_auberge.disabled = false
+			started = true
+			stopped = false
+			_update_objective("Explorer l'auberge")
+			return
+
 		"ville":
 			$fondMoyenAge.hide()
 			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
