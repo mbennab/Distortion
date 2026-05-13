@@ -16,6 +16,7 @@ func start() -> void:
 	var static_body = $StaticBody2D
 	if static_body:
 		static_body.collision_layer = 4
+	$Sortie.monitoring = true
 	show()
 
 func stop() -> void:
