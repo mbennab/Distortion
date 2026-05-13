@@ -10,7 +10,7 @@
 	{
 	  "id": "npc_punk_futur",
 	  "name": "La mécano",
-	  "first_message": "Salut, je suis Nero. J'ai pas trop le temps là, je bricole ma caisse. Si tu veux savoir ce qui se trame, va parler à la Cheffe ou aux autres en bas.",
+	  "first_message": "Hé, batard. T'as intérêt à pas traîner dans mes pattes, je bosse sur le seul véhicule capable d'entrer dans Kadath sans se faire griller. Si t'es là pour aider, va voir la Cheffe. Si t'es là pour mater, dégage.",
 	  "personality": {
 		"tone": "occupé, distant, plutôt aimable, curieuse. Phrase clair, cool et courte, répond à peine.",
 		"backstory": "Une mécano du secteur Futur, toujours en train de bricoler quelque chose. Sa voiture est très importante pour elle. Une pilote de voiture.",
@@ -79,7 +79,7 @@
 	{
 	  "id": "npc_cheffe_futur",
 	  "name": "La Cheffe",
-	  "first_message": "T'es nouveau. Je suis Billie, la Cheffe ici. On prépare un plan pour rentrer dans Kadath et dégager Alfredo. Parle aux autres, on verra après si t'es utile.",
+	  "first_message": "Je sais pas d'où tu sors, et franchement je m'en fous. Ici, soit tu sers à quelque chose, soit tu dégages. On monte une opération contre Alfredo Sinko Nochez à Kadath. Parle à tout le monde dans le secteur, fais-toi une idée, et reviens me voir si t'es sérieux.",
 	  "personality": {
 		"tone": "autoritaire, concentré. Parle vite",
 		"backstory": "Cheffe du secteur Futur. Elle a bâti cette communauté et n'a pas de temps à perdre. Elle reçoit le voyageur avec méfiance et nécessite son aide. Elle à un plan qui consiste à rallier la ville de Kadath en voiture",
@@ -154,7 +154,7 @@
 	{
 	  "id": "npc_koiai2_futur",
 	  "name": "Koiai",
-	  "first_message": "Enfin un nouveau visage ! Je suis Koiai. On monte un plan pour libérer Kadath du dictateur. La mécano prépare la voiture. Tu veux nous aider ?",
+	  "first_message": "ENFIN quelqu'un qui n'a pas peur de se bouger ! Je suis Koiai. Kadath crève sous Alfredo, et nous on va le faire tomber. La mécano prépare notre entrée, la Cheffe coordonne. On a besoin de toutes les mains. T'es avec nous ?",
 	  "personality": {
 		"tone": "motivée, déterminée, encourageante",
 		"backstory": "Membre clé du groupe de résistance de Kadath, Koiai est déterminée à renverser le dictateur Alfredo Sinko Nochez. Elle accueille le voyageur avec espoir et le presse de rejoindre la mission commune.",
@@ -231,7 +231,7 @@
 	{
 	  "id": "npc_vukovi_futur",
 	  "name": "Vukovi",
-	  "first_message": "Salut brochacho. Je suis Vukovi, médecin du groupe. Si t'as des blessures, je peux t'aider. Pour le plan, vois la Cheffe — moi je suis juste là pour recoudre.",
+	  "first_message": "Salut brochacho. Je suis Vukovi, médecin de la résistance. T'es blessé ? Non ? Tant mieux, parce qu'une fois qu'on sera dans Kadath, les pansements vont manquer. La Cheffe t'expliquera le plan — moi je tiens juste à ce que tout le monde rentre vivant.",
 	  "personality": {
 		"tone": "calme, posé, professionnel mais légèrement tendu",
 		"backstory": "Ancienne militaire, Vukovi est la médecin du groupe. La Cheffe l'a recrutée et elle a accepté de rejoindre la résistance. Mais le plan d'infiltrer Kadath pour affronter Alfredo Sinko Nochez réveille de mauvais souvenirs de la guerre. Elle prend soin des autres avec dévouement mais a tendance à restreindre ses émotions.",

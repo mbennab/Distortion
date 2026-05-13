@@ -409,6 +409,7 @@ func _set_portrait_size_from_container() -> void:
 func _display_accroche(message: String) -> void:
 	retro_input_line.editable = false
 	retro_message_label.text = ""
+	retro_input_line.grab_focus()
 	_start_typewriter(message, _on_accroche_finished)
 
 
@@ -471,13 +472,14 @@ func _on_close_pressed() -> void:
 
 func _on_retro_input_submitted(text: String) -> void:
 	var trimmed = text.strip_edges()
-	if trimmed == "":
-		return
 
 	if is_animating:
 		_skip_typewriter()
 		if is_animating:
 			return
+
+	if trimmed == "":
+		return
 
 	if current_state != State.ACTIVE:
 		return
