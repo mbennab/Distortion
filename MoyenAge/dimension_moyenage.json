@@ -10,6 +10,7 @@
 	{
 	  "id": "npc_marchand_moyenage",
 	  "name": "Le Marchand",
+	  "first_message": "Ah, un nouveau client ! J'ai des vêtements de première qualité, mais faudra les mériter. Si t'es prêt à marchander, tu sais où me trouver.",
 	  "personality": {
 		"tone": "chaleureux, débrouillard, un brin vantard. Parle vite, rit facilement, mais devient sérieux quand il parle des événements étranges.",
 		"backstory": "Marchand local que tout le monde connait. Il vend de tout, des habits, des potions, des armes et armures, ainsi que tout autre marchandises. Il est le principal marchand du village dans sa grande échope.",
@@ -95,6 +96,7 @@
 	{
 	  "id": "npc_roi_moyenage",
 	  "name": "Le Roi du Château",
+	  "first_message": "Approche, étranger… Je suis poignardé, le royaume se meurt. Trouve mes gardes avant qu'il ne soit trop tard… Je t'en supplie…",
 	  "personality": {
 		"tone": "noble, solennel, brisé par la douleur. La voix tremble, le souffle est court.",
 		"backstory": "Souverain médiéval usé par les guerres et le poids de la couronne. Il vient de se faire poignarder par un assassin inconnu dans sa propre salle du trône. Il a vu des lueurs étranges dans la chapelle. Il sent la vie le quitter et cherche désespérément de l'aide avant qu'il ne soit trop tard.",
