@@ -31,6 +31,9 @@ var pending: bool = false
 var conversation_history: Array[Dictionary] = []
 var _message_count: int = 0
 
+var _spoken_to: Dictionary = {}
+var _current_first_message: String = ""
+
 
 func _ready() -> void:
 	http_request = HTTPRequest.new()
@@ -104,7 +107,20 @@ func start_dialogue(npc_id: String) -> void:
 	current_npc_id = npc_id
 	_message_count = 0
 	is_active = true
+
+	if npc.has("first_message") and npc.first_message is String and npc.first_message != "" and not _spoken_to.has(npc.id):
+		_current_first_message = npc.first_message
+		_spoken_to[npc.id] = true
+	else:
+		_current_first_message = ""
+
 	dialogue_started.emit(npc_id, npc.get("name", npc_id))
+
+
+func get_first_message() -> String:
+	var msg = _current_first_message
+	_current_first_message = ""
+	return msg
 
 
 func stop_dialogue() -> void:
@@ -112,6 +128,7 @@ func stop_dialogue() -> void:
 	current_npc = {}
 	current_npc_id = ""
 	conversation_history.clear()
+	_current_first_message = ""
 	dialogue_ended.emit()
 
 
@@ -408,6 +425,14 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 	lines.append("- Si le joueur est hors-sujet ou insultant, réponds EN RESTANT DANS LE PERSONNAGE.")
 	lines.append("- Pas d'astérisques, pas de narration, pas de description d'action. Que du dialogue.")
 	lines.append("- Reste cohérent avec l'historique de la conversation.")
+
+	# --- RAPPEL CONVERSATION ANTÉRIEURE ---
+	if _spoken_to.has(current_npc_id):
+		lines.append("")
+		lines.append("## RAPPEL CONVERSATION ANTÉRIEURE")
+		lines.append("Le joueur te reparle après une conversation précédente.")
+		lines.append("Commence par une phrase d'accroche naturelle et courte, en rapport avec vos échanges précédents et ce que tu attends de lui.")
+		lines.append("Ne répète PAS les sujets déjà abordés.")
 
 	# --- FORÇAGE TERMINAISON ---
 	if _message_count >= 4:
