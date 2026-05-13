@@ -12,6 +12,9 @@ var stopped: bool = true
 var can_move: bool = false
 var speed: float = 350.0
 var spawn_particles: CPUParticles2D
+var _car_minigame_active := false
+var _car_minigame: Node2D
+var _was_in_basement := false
 
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
@@ -230,6 +233,7 @@ func start(spawn_id: String = "entree") -> void:
 		started = true
 		stopped = false
 		_update_objective("Parler aux personnes du sous-sol")
+		_setup_car_minigame()
 		return
 
 	time_aunote.position = position_entree_principale
@@ -264,6 +268,7 @@ func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale)
 	collision_node.disabled = false
 	started = true
 	stopped = false
+	_setup_car_minigame()
 
 
 func start_from_escalier() -> void:
@@ -299,6 +304,9 @@ func stop() -> void:
 	can_move = false
 	started = false
 	stopped = true
+	_car_minigame_active = false
+	if _car_minigame:
+		_car_minigame.stop_game()
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
@@ -310,3 +318,65 @@ func stop() -> void:
 		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
 		if zone:
 			zone.monitoring = false
+
+
+func _setup_car_minigame() -> void:
+	if _car_minigame:
+		return
+	_car_minigame = $car_minigame
+	if _car_minigame:
+		_car_minigame.finished.connect(_on_car_minigame_done)
+
+
+func _input(event: InputEvent) -> void:
+	if not can_move or not started or _car_minigame_active:
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_G:
+		get_viewport().set_input_as_handled()
+		_start_car_minigame()
+
+
+func _start_car_minigame() -> void:
+	_car_minigame_active = true
+	can_move = false
+	_was_in_basement = $SousSol.visible
+
+	$fondFutur.hide()
+	$SousSol.hide()
+	_set_upper_collisions(false)
+	_set_basement_collisions(false)
+	$"pnj-futur".hide()
+	$"pnj-cheffe".hide()
+	$"SousSol/pnj-futur".hide()
+	time_aunote.hide()
+	$ObjectiveHUD.hide()
+
+	if _car_minigame:
+		_car_minigame.start_game()
+
+
+func _on_car_minigame_done(success: bool) -> void:
+	_car_minigame_active = false
+
+	if _was_in_basement:
+		$SousSol.show()
+		_set_basement_collisions(true)
+		$"SousSol/pnj-futur".show()
+		$"pnj-futur".hide()
+		$"pnj-cheffe".hide()
+	else:
+		$fondFutur.show()
+		_set_upper_collisions(true)
+		$"pnj-futur".show()
+		$"pnj-cheffe".show()
+
+	time_aunote.show()
+	$ObjectiveHUD.show()
+	can_move = true
+
+	if pnjfutur and not _was_in_basement:
+		pnjfutur.get_node("ZoneDialogue").monitoring = true
+	if pnjcheffe and not _was_in_basement:
+		pnjcheffe.get_node("ZoneDialogue").monitoring = true
+
+	_update_objective(_objective_label.text if _objective_label else "Parler à la cheffe")
