@@ -1,9 +1,9 @@
-[gd_scene format=3 uid="uid://dkluhjp5toqnl"]
+[gd_scene format=3 uid="uid://cy3gcng03ftj5"]
 
-[ext_resource type="Texture2D" uid="uid://c5jetj6e6odid" path="res://art/Futur/fond-superette.png" id="1_rc2ie"]
+[ext_resource type="Texture2D" uid="uid://dxlh8k3inlyjg" path="res://art/Futur/fond-superette.png" id="1_rc2ie"]
 [ext_resource type="Texture2D" uid="uid://df33hldk0g1bl" path="res://art/Futur/tourelles.png" id="2_hwowg"]
 [ext_resource type="Texture2D" uid="uid://dtmilshcrhayj" path="res://art/Futur/orbe.png" id="3_hwowg"]
-[ext_resource type="Script" uid="uid://c7e0jv0b51l3h" path="res://Scripts/MiniJeuTourelles.gd" id="4_minijeu"]
+[ext_resource type="Script" path="res://Scripts/MiniJeuTourelles.gd" id="4_minijeu"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cpr5e"]
 atlas = ExtResource("2_hwowg")
@@ -67,7 +67,7 @@ collision_layer = 16
 
 [node name="Collision2" type="CollisionPolygon2D" parent="limite-superette" unique_id=1133650795]
 build_mode = 1
-polygon = PackedVector2Array(886, 1361, 672, 1370, 558, 1373, 563, 1224, 346, 1224, 344, 1373, 135, 1376, 141, 1179, 301, 1176, 289, 936, 284, 691, 287, 537, 212, 443, 107, 341, 96, 85, 330, 87, 723, 283, 1023, 286, 1111, 286, 1117, 360, 1348, 360, 1576, 351, 1730, 360, 1796, 306, 2036, 113, 2224, 116, 2361, 136, 2353, 490, 2343, 697, 2320, 1057, 2307, 1156, 2286, 1361, 2113, 1370, 1890, 1378, 1739, 1384, 1650, 1413, 1556, 1376, 1422, 1361, 1219, 1350, 948, 1338)
+polygon = PackedVector2Array(886, 1361, 672, 1370, 558, 1373, 563, 1224, 376, 1224, 362, 1382, 172, 1383, 160, 1197, 295, 1189, 289, 936, 284, 691, 287, 537, 271, 481, 164, 436, 107, 341, 96, 85, 330, 87, 577.4793, 210.4248, 723, 283, 1023, 286, 1111, 286, 1117, 360, 1348, 360, 1576, 351, 1730, 360, 1741, 305, 2036, 113, 2224, 116, 2361, 136, 2276, 485, 2276, 728, 2336, 762, 2333, 905, 2274, 952, 2278, 1064, 2274, 1159, 2286, 1361, 2113, 1370, 1890, 1378, 1739, 1384, 1744, 1415, 1650, 1413, 1516, 1345, 1497, 1296, 1431, 1296, 1232, 1306, 938, 1303)
 
 [node name="Orbe" type="Sprite2D" parent="." unique_id=1959495906]
 position = Vector2(-150, -15)
