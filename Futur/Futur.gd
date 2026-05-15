@@ -250,6 +250,21 @@ func _auto_start_cheffe_dialogue() -> void:
 	DialogueSystem.start_dialogue("npc_cheffe_futur")
 
 
+func _start_cheffe_post_tourelle_dialogue() -> void:
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	if DialogueSystem.is_active:
+		return
+	var npcs = DialogueSystem.dimension.get("npcs", [])
+	for npc in npcs:
+		if npc.get("id") == "npc_cheffe_futur":
+			npc["first_message"] = "On a eu chaud, heureusement que les autres sont resté dans la voiture, maintenant trouvons un moyen de rejoindre la tour d'Alfredo Sinko Nochez"
+			break
+	DialogueSystem._spoken_to.erase("npc_cheffe_futur")
+	DialogueSystem.start_dialogue("npc_cheffe_futur")
+
+
 func _on_superette_dialogue_ended() -> void:
 	if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
 		DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
@@ -291,6 +306,8 @@ func _on_tourelle_minigame_done(success: bool) -> void:
 		label.position = Vector2(vp.x / 2.0 - 200, vp.y / 2.0 - 40)
 		label.size = Vector2(400, 80)
 		fade_layer.add_child(label)
+		_show_superette_npcs()
+		_start_cheffe_post_tourelle_dialogue()
 		await get_tree().create_timer(3.0).timeout
 		if is_instance_valid(label):
 			label.queue_free()
@@ -316,6 +333,18 @@ func _set_superette_collisions(enabled: bool) -> void:
 	var limite = $FondSuperette.get_node_or_null("limite-superette")
 	if limite:
 		limite.collision_layer = 16 if enabled else 0
+
+
+func _show_superette_npcs() -> void:
+	if not is_inside_tree():
+		return
+	var koiai = $"FondSuperette/pnj-koiai-2"
+	if koiai:
+		koiai.apparition($"FondSuperette/Markers2D/koiai".position)
+	var vukovi = $"FondSuperette/pnj-vukovi"
+	if vukovi:
+		vukovi.apparition($"FondSuperette/Markers2D/vukovi".position)
+		vukovi.show_bubble("Nero est resté faire le guet dans la voiture")
 
 
 func _update_objective(text: String) -> void:
