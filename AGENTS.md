@@ -125,37 +125,37 @@ Player presses Enter → typewriter animates "> message" → send_message() → 
   "npcs": [{
     "id": "npc_roi_moyenage",
     "name": "Le Roi du Château",
-    "first_message": "Approche… on m'a poignardé…",
-    "personality": {
-      "tone": "...",
-      "backstory": "...",
-      "emotional_state": "mourant...",
-      "speech": { "vouvoiement": true, "vocatif": "voyageur", "phrases": "...", "expressions": [...], "interdits": [...] },
-      "knowledge": ["il est poignardé", "son royaume se meurt"],
-      "goals": ["trouver de l'aide", "appeler ses gardes avant de mourir"],
+	"first_message": "Approche… on m'a poignardé…",
+	"personality": {
+	  "tone": "...",
+	  "backstory": "...",
+	  "emotional_state": "mourant...",
+	  "speech": { "vouvoiement": true, "vocatif": "voyageur", "phrases": "...", "expressions": [...], "interdits": [...] },
+	  "knowledge": ["il est poignardé", "son royaume se meurt"],
+	  "goals": ["trouver de l'aide", "appeler ses gardes avant de mourir"],
       "conversation_arc": [
         {"phase": 1, "until_message": 2, "focus": "expliquer ce qui arrive"},
-        {"phase": 2, "until_message": 4, "focus": "chercher de l'aide"},
-        {"phase": 3, "until_message": 5, "focus": "agonie, appeler les gardes"}
+		{"phase": 2, "until_message": 4, "focus": "chercher de l'aide"},
+		{"phase": 3, "until_message": 5, "focus": "agonie, appeler les gardes"}
       ]
     },
-    "intentions": [{
-      "id": "roi_adieu",
-      "condition": {"quest_id": "quete_x", "quest_status": "active", "quest_step": "etape_y"},
-      "trigger": "le joueur dit au revoir",
-      "example": "GARDES ! Venez m'aider...",
+	"intentions": [{
+	  "id": "roi_adieu",
+	  "condition": {"quest_id": "quete_x", "quest_status": "active", "quest_step": "etape_y"},
+	  "trigger": "le joueur dit au revoir",
+	  "example": "GARDES ! Venez m'aider...",
       "action": {"type": "trigger", "id": "roi_adieu", "description": "Le roi meurt."}
     }],
     "fallbacks": { "off_topic": "...", "insult": "...", "timeout": "...", "unknown": "...", "default_template": "..." }
   }],
   "quests": [{
     "id": "quete_enquete_roi",
-    "title": "Enquêter sur l'assassinat du roi",
-    "status": "not_started",
-    "requires_quests": [],
-    "steps": [
-      {"id": "etape_parler_roi", "description": "Parler au roi mourant", "completed": false},
-      {"id": "etape_indices", "description": "Recueillir des indices", "completed": false}
+	"title": "Enquêter sur l'assassinat du roi",
+	"status": "not_started",
+	"requires_quests": [],
+	"steps": [
+	  {"id": "etape_parler_roi", "description": "Parler au roi mourant", "completed": false},
+	  {"id": "etape_indices", "description": "Recueillir des indices", "completed": false}
     ]
   }],
   "mini_games": [],
