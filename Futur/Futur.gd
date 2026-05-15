@@ -259,6 +259,11 @@ func _on_superette_dialogue_ended() -> void:
 			minijeu.finished.connect(_on_tourelle_minigame_done)
 		_update_objective("Survivez 30 secondes!")
 		minijeu.start_game()
+		if pnjcheffe:
+			pnjcheffe.hide()
+			var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+			if zone:
+				zone.monitoring = false
 
 
 func _on_tourelle_minigame_done(success: bool) -> void:
@@ -270,6 +275,11 @@ func _on_tourelle_minigame_done(success: bool) -> void:
 
 	if success:
 		_update_objective("Vous avez survécu !")
+		if pnjcheffe:
+			pnjcheffe.apparition($"FondSuperette/Markers2D/cheffe".position)
+			var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+			if zone:
+				zone.monitoring = true
 		var label := Label.new()
 		label.text = "Vous avez esquivé les tourelles !"
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -286,7 +296,19 @@ func _on_tourelle_minigame_done(success: bool) -> void:
 			label.queue_free()
 	else:
 		_update_objective("Touché ! Réessayez...")
-		await get_tree().create_timer(1.0).timeout
+		var label := Label.new()
+		label.text = "TOUCHÉ"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.add_theme_font_size_override("font_size", 32)
+		label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+		var vp := get_viewport().get_visible_rect().size
+		label.position = Vector2(vp.x / 2.0 - 100, vp.y / 2.0 - 40)
+		label.size = Vector2(200, 80)
+		fade_layer.add_child(label)
+		await get_tree().create_timer(3.0).timeout
+		if is_instance_valid(label):
+			label.queue_free()
 		_auto_start_cheffe_dialogue()
 
 
