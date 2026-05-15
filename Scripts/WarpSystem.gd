@@ -14,6 +14,7 @@ var destinations := {
 	"present_entree":	{"zone": "present", "name": "Present — Entrée", "id": "entree"},
 	"futur_entree":		{"zone": "futur", "name": "Futur — Entrée", "id": "entree"},
 	"futur_soussol":	{"zone": "futur", "name": "Futur — Sous-sol", "id": "soussol"},
+	"futur_superette":	{"zone": "futur", "name": "Futur — Supérette", "id": "superette"},
 }
 
 var zone_order := ["hub", "moyenage", "present", "futur"]

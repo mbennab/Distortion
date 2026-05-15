@@ -153,3 +153,4 @@ visible = false
 
 [node name="FondSuperette" parent="." instance=ExtResource("10_superette")]
 visible = false
+z_index = -1

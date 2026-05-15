@@ -205,6 +205,97 @@ func _handle_movement(delta: float) -> void:
 	time_aunote.move_and_collide(direction * speed * delta)
 
 
+func _show_superette_scene() -> void:
+	var entree_pos = $FondSuperette/Markers2D/entree.position
+	var cheffe_pos = $FondSuperette/Markers2D/cheffe.position
+
+	time_aunote.global_position = entree_pos
+	time_aunote.show()
+	time_aunote.modulate.a = 1.0
+	time_aunote.scale = Vector2(0.8, 0.8)
+	time_aunote.rotation = 0.0
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	collision_node.disabled = false
+
+	if pnjcheffe:
+		pnjcheffe.apparition(cheffe_pos)
+		pnjcheffe.show()
+		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = true
+
+	_set_superette_collisions(true)
+
+	$ObjectiveHUD.show()
+	_update_objective("Explorer la supérette")
+	can_move = true
+
+	_auto_start_cheffe_dialogue()
+
+
+func _auto_start_cheffe_dialogue() -> void:
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	if DialogueSystem.is_active:
+		return
+	var npcs = DialogueSystem.dimension.get("npcs", [])
+	for npc in npcs:
+		if npc.get("id") == "npc_cheffe_futur":
+			npc["first_message"] = "Nous sommes enfin en sécurité, essayons de fouiller l'endroit à la recherche de... Attention aux tourelles va te cacher !!!"
+			break
+	DialogueSystem._spoken_to.erase("npc_cheffe_futur")
+	if not DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
+		DialogueSystem.dialogue_ended.connect(_on_superette_dialogue_ended)
+	DialogueSystem.start_dialogue("npc_cheffe_futur")
+
+
+func _on_superette_dialogue_ended() -> void:
+	if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
+		DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
+	var minijeu = $FondSuperette/MiniJeuTourelles
+	if minijeu and not minijeu.game_active:
+		if not minijeu.finished.is_connected(_on_tourelle_minigame_done):
+			minijeu.finished.connect(_on_tourelle_minigame_done)
+		_update_objective("Survivez 30 secondes!")
+		minijeu.start_game()
+
+
+func _on_tourelle_minigame_done(success: bool) -> void:
+	var minijeu = $FondSuperette/MiniJeuTourelles
+	if minijeu:
+		if minijeu.finished.is_connected(_on_tourelle_minigame_done):
+			minijeu.finished.disconnect(_on_tourelle_minigame_done)
+		minijeu.stop_game()
+
+	if success:
+		_update_objective("Vous avez survécu !")
+		var label := Label.new()
+		label.text = "Vous avez esquivé les tourelles !"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.add_theme_font_size_override("font_size", 24)
+		label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var vp := get_viewport().get_visible_rect().size
+		label.position = Vector2(vp.x / 2.0 - 200, vp.y / 2.0 - 40)
+		label.size = Vector2(400, 80)
+		fade_layer.add_child(label)
+		await get_tree().create_timer(3.0).timeout
+		if is_instance_valid(label):
+			label.queue_free()
+	else:
+		_update_objective("Touché ! Réessayez...")
+		await get_tree().create_timer(1.0).timeout
+		_auto_start_cheffe_dialogue()
+
+
+func _set_superette_collisions(enabled: bool) -> void:
+	var limite = $FondSuperette.get_node_or_null("limite-superette")
+	if limite:
+		limite.collision_layer = 16 if enabled else 0
+
+
 func _update_objective(text: String) -> void:
 	if _objective_label:
 		_objective_label.text = text
@@ -229,6 +320,36 @@ func start(spawn_id: String = "entree") -> void:
 	pnjcheffe = $"pnj-cheffe"
 	pnjcheffe.apparition(pnjcheffePos)
 	pnjcheffe.get_node("ZoneDialogue").monitoring = true
+
+	if spawn_id == "superette":
+		$fondFutur.hide()
+		$SousSol.hide()
+		_set_upper_collisions(false)
+		_set_basement_collisions(false)
+		$"pnj-futur".hide()
+		$"pnj-cheffe".hide()
+		$FondSuperette.show()
+		time_aunote.global_position = $FondSuperette/Markers2D/entree.position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(0.8, 0.8)
+		time_aunote.rotation = 0.0
+		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+		collision_node.disabled = false
+		if pnjcheffe:
+			pnjcheffe.apparition($FondSuperette/Markers2D/cheffe.position)
+			pnjcheffe.show()
+			var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+			if zone:
+				zone.monitoring = true
+		_set_superette_collisions(true)
+		$ObjectiveHUD.show()
+		_update_objective("Explorer la supérette")
+		can_move = true
+		started = true
+		stopped = false
+		_auto_start_cheffe_dialogue()
+		return
 
 	if spawn_id == "soussol":
 		$fondFutur.hide()
@@ -346,6 +467,14 @@ func stop() -> void:
 		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
 		if zone:
 			zone.monitoring = false
+	_set_superette_collisions(false)
+	if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
+		DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
+	var minijeu = $FondSuperette/MiniJeuTourelles
+	if minijeu:
+		if minijeu.finished.is_connected(_on_tourelle_minigame_done):
+			minijeu.finished.disconnect(_on_tourelle_minigame_done)
+		minijeu.stop_game()
 
 
 func _setup_car_minigame() -> void:
@@ -504,3 +633,5 @@ func _on_car_minigame_done(success: bool) -> void:
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
+
+	_show_superette_scene()
