@@ -115,7 +115,16 @@ func start_dialogue(npc_id: String) -> void:
 	_has_repeat_conversation = was_spoken_before
 
 	if npc.has("first_message") and npc.first_message is String and npc.first_message != "" and not was_spoken_before:
-		_current_first_message = npc.first_message
+		var first_msg = npc.first_message
+		if npc.has("first_message_after") and npc.first_message_after is Dictionary and not was_spoken_before:
+			var fma: Dictionary = npc.first_message_after
+			var fma_qid = fma.get("quest_id", "")
+			var fma_qs = fma.get("quest_status", "")
+			if fma_qid != "" and fma_qs != "":
+				var gs = game_state.get(fma_qid, {})
+				if gs.get("status", "") == fma_qs:
+					first_msg = fma.get("message", first_msg)
+		_current_first_message = first_msg
 	else:
 		_current_first_message = ""
 
@@ -496,8 +505,17 @@ func _build_user_prompt(player_message: String) -> String:
 
 func get_fallback(npc_id: String, key: String) -> String:
 	var npc = _find_npc(npc_id)
-	var npc_fb = npc.get("fallbacks", {})
 	var global_fb = dimension.get("global_fallbacks", {})
+
+	var npc_fb = npc.get("fallbacks", {})
+	if npc.has("fallbacks_after") and npc.fallbacks_after is Dictionary:
+		var fa: Dictionary = npc.fallbacks_after
+		var fa_qid = fa.get("quest_id", "")
+		var fa_qs = fa.get("quest_status", "")
+		if fa_qid != "" and fa_qs != "":
+			var gs = game_state.get(fa_qid, {})
+			if gs.get("status", "") == fa_qs:
+				npc_fb = fa.get("fallbacks", npc_fb)
 
 	var text = npc_fb.get(key, "")
 	if text == "":
