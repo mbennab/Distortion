@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="GDScript" path="res://Scripts/MiniJeuEcouteTables.gd" id="1"]
+
+[node name="MiniJeuEcouteTables" type="CanvasLayer"]
+layer = 129
+script = ExtResource("1")
