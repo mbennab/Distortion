@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://cwslxj2dvam3i"]
+
+[ext_resource type="Texture2D" uid="uid://dfqlh2pjdika0" path="res://art/MoyenAge/parc.png" id="1_hm5t4"]
+
+[node name="parc_moyen-age" type="Node2D" unique_id=1396648869]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1067175253]
+position = Vector2(1213.5, 808.5)
+scale = Vector2(1.0589005, 1.0527344)
+texture = ExtResource("1_hm5t4")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1740336989]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="markers2D" type="Node2D" parent="." unique_id=445182230]
+
+[node name="femme" type="Marker2D" parent="markers2D" unique_id=1633186013]
+position = Vector2(1081, 529)
+
+[node name="collisions" type="StaticBody2D" parent="." unique_id=1059753478]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="collisions" unique_id=701695660]
+build_mode = 1
+polygon = PackedVector2Array(1, 1007, 95, 1037, 128, 1080, 189, 996, 199, 998, 263, 1092, 335, 1284, 302, 1356, 417, 1366, 421, 1301, 486, 1266, 559, 1352, 673, 1356, 679, 1612, 1224, 1615, 1226, 1492, 1266, 1445, 1307, 1498, 1306, 1615, 1695, 1615, 1688, 1485, 1726, 1452, 1762, 1495, 1765, 1619, 2169, 1613, 2174, 1488, 2248, 1375, 2335, 1342, 2326, 1071, 2419, 946, 2424, 854, 2337, 842, 2314, 663, 2419, 597, 2424, 424, 2373, 394, 2426, 261, 2428, 0, 2141, 10, 1267, 1173, 2, 817)
