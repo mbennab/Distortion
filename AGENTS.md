@@ -57,7 +57,7 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
   - **MiniJeuMarchandage** (`Scripts/MiniJeuMarchandage.gd`, ~660 lines): CanvasLayer-based catching minigame (single phase)
     - **8 rounds** total: 5 good items to catch + 3 decoys (red, ⚠) to dodge
     - Win condition: `good_catches >= 4 AND decoy_caught <= 1` → `done(true)`
-    - **Difficulty curve**: fall duration 2.0s → 0.62s, catch radius 55px → 13px across rounds
+    - **Difficulty curve**: fall duration 2.0s → 0.62s, catch radius constant 55px across rounds
     - **Parabolic trajectory** with random arc height (clamped to viewport) and lateral wobble that grows with round index
     - **Merchant moves** between 4 horizontal positions each round; throw originates from merchant position
     - **Player sprites**: `perso_idle_face.png` / `perso_marche_face1/2.png` (hframes=2, frame=0), animated on move
@@ -100,6 +100,7 @@ Player presses Enter → typewriter animates "> message" → send_message() → 
 
 ### Phrase d'accroche (`first_message`)
 - Each NPC can have an optional `"first_message"` (string) in the dimension JSON
+- `first_message_after` (object `{quest_id, quest_status, message}`) overrides it when the quest condition is met
 - On first-ever dialogue with that NPC, the message is displayed via typewriter immediately after opening
 - Input is disabled during the accroche; player can skip with Enter
 - On subsequent dialogues, `_has_repeat_conversation` flag injects a recall instruction into the AI prompt so the AI generates a contextual greeting based on conversation history
@@ -146,7 +147,11 @@ Player presses Enter → typewriter animates "> message" → send_message() → 
 	  "example": "GARDES ! Venez m'aider...",
       "action": {"type": "trigger", "id": "roi_adieu", "description": "Le roi meurt."}
     }],
-    "fallbacks": { "off_topic": "...", "insult": "...", "timeout": "...", "unknown": "...", "default_template": "..." }
+    "fallbacks": { "off_topic": "...", "insult": "...", "timeout": "...", "unknown": "...", "default_template": "..." },
+	"first_message_after": { "quest_id": "quete_x", "quest_status": "done", "message": "..." },
+	"fallbacks_after": { "quest_id": "quete_x", "quest_status": "done", "fallbacks": { "off_topic": "..." } },
+	"knowledge_after_quest": { "quest_id": "quete_x", "quest_status": "done", "knowledge": ["..."] },
+	"goals_after_quest": { "quest_id": "quete_x", "quest_status": "done", "goals": ["..."] }
   }],
   "quests": [{
     "id": "quete_enquete_roi",
@@ -164,6 +169,10 @@ Player presses Enter → typewriter animates "> message" → send_message() → 
 }
 ```
 - `first_message` : optional string — displayed as a typewriter accroche on first-ever dialogue with the NPC
+- `first_message_after` : optional object `{quest_id, quest_status, message}` — overrides `first_message` when the specified quest has the given status
+- `fallbacks_after` : optional object `{quest_id, quest_status, fallbacks: {...}}` — overrides `fallbacks` when the specified quest has the given status
+- `knowledge_after_quest` : optional object `{quest_id, quest_status, knowledge: [...]}` — replaces `knowledge` in the AI prompt when the quest has the given status
+- `goals_after_quest` : optional object `{quest_id, quest_status, goals: [...]}` — replaces `goals` in the AI prompt when the quest has the given status
 - `intentions[].condition` : optional gate `{quest_id, quest_status, quest_step}` — all three are optional; null → always active. Used for quest-conditional dialogue (e.g. Marchand talks about wardrobe until quete_deguisement is done, then talks about tavern)
 - `quests[]` : drive the objective HUD via `quest_updated` signal. `DialogueSystem.complete_step(quest_id, step_id)` advances steps; `mark_quest_done()` closes the quest
 - All `condition` fields must match `game_state` for the intention to appear in the AI prompt
@@ -176,6 +185,8 @@ Player presses Enter → typewriter animates "> message" → send_message() → 
 - **Conversation arc**: phases drive the AI's focus (accueil → questions → conclusion)
 - **Filters**: `filter_intentions()` gates replies by `condition.{quest_id,quest_status,quest_step}` matching `game_state`
 - **Accroche**: `first_message` shown on first dialogue; subsequent dialogues use AI-generated hook via `_has_repeat_conversation` prompt injection
+- **Conditional fields**: `fallbacks_after`, `knowledge_after_quest`, `goals_after_quest` override NPC defaults when a quest condition is met
+- **Quest state injection**: `_build_system_prompt()` injects `## ÉTAT ACTUEL DU JEU (RÉALITÉ)` section so the AI can verify player claims against actual quest status
 - **Quest HUD**: `quest_updated` signal connected to era's `_update_objective()` — step descriptions appear in top-right HUD. Quest states in `game_state` drive intention filtering for context-aware dialogue (e.g. post-disguise Marchand switches from wardrobe to tavern)
 
 ### PNJ pattern

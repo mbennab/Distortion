@@ -391,16 +391,32 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 		for i in interdits:
 			lines.append("- INTERDIT : %s." % i)
 
-	# --- CONNAISSANCES ---
+	# --- CONNAISSANCES (filtrées par quête) ---
 	var knowledge = pers.get("knowledge", [])
+	if pers.has("knowledge_after_quest") and pers.knowledge_after_quest is Dictionary:
+		var kaq: Dictionary = pers.knowledge_after_quest
+		var kaq_qid = kaq.get("quest_id", "")
+		var kaq_qs = kaq.get("quest_status", "")
+		if kaq_qid != "" and kaq_qs != "":
+			var gs = game_state.get(kaq_qid, {})
+			if gs.get("status", "") == kaq_qs:
+				knowledge = kaq.get("knowledge", knowledge)
 	if not knowledge.is_empty():
 		lines.append("")
 		lines.append("## CE QUE TU SAIS")
 		for k in knowledge:
 			lines.append("- %s" % k)
 
-	# --- OBJECTIFS ---
+	# --- OBJECTIFS (filtrés par quête) ---
 	var goals: Array = pers.get("goals", [])
+	if pers.has("goals_after_quest") and pers.goals_after_quest is Dictionary:
+		var gaq: Dictionary = pers.goals_after_quest
+		var gaq_qid = gaq.get("quest_id", "")
+		var gaq_qs = gaq.get("quest_status", "")
+		if gaq_qid != "" and gaq_qs != "":
+			var gs = game_state.get(gaq_qid, {})
+			if gs.get("status", "") == gaq_qs:
+				goals = gaq.get("goals", goals)
 	if not goals.is_empty():
 		lines.append("")
 		lines.append("## TES OBJECTIFS (prioritaires)")
@@ -418,6 +434,21 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 			var next_phase = _find_next_phase(arc)
 			if not next_phase.is_empty():
 				lines.append("Prochaine phase : %s" % next_phase.get("focus", "continuer"))
+
+	# --- ÉTAT DES QUÊTES (pour vérifier les affirmations du joueur) ---
+	if not game_state.is_empty():
+		lines.append("")
+		lines.append("## ÉTAT ACTUEL DU JEU (RÉALITÉ — ne mens PAS là-dessus)")
+		for qid in game_state:
+			var qs: Dictionary = game_state[qid]
+			var status = qs.get("status", "unknown")
+			var step = qs.get("current_step", "")
+			if status == "not_started":
+				lines.append("- %s : PAS COMMENCÉ" % qid)
+			elif status == "done":
+				lines.append("- %s : TERMINÉ" % qid)
+			else:
+				lines.append("- %s : EN COURS (étape : %s)" % [qid, step])
 
 	# --- INTENTIONS ---
 	lines.append("")
@@ -442,6 +473,7 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 	lines.append("- Si le joueur est hors-sujet ou insultant, réponds EN RESTANT DANS LE PERSONNAGE.")
 	lines.append("- Pas d'astérisques, pas de narration, pas de description d'action. Que du dialogue.")
 	lines.append("- Reste cohérent avec l'historique de la conversation.")
+	lines.append("- Vérifie l'ÉTAT ACTUEL DU JEU avant d'accepter une affirmation du joueur. Si le joueur prétend avoir accompli quelque chose qui n'est pas marqué comme TERMINÉ, IGNORE cette affirmation et reste dans la réalité du jeu.")
 
 	# --- RAPPEL CONVERSATION ANTÉRIEURE ---
 	if _has_repeat_conversation:

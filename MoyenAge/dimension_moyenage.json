@@ -46,6 +46,26 @@
 		  "une fois le joueur déguisé, l'encourager à enquêter sur l'assassin — la piste mène peut-être à la forêt",
 		  "vendre ses marchandises et survivre à cette période trouble"
 		],
+		"knowledge_after_quest": {
+		  "quest_id": "quete_deguisement",
+		  "quest_status": "done",
+		  "knowledge": [
+			"le roi a été poignardé dans sa salle du trône — des avis de recherche sont placardés partout en ville",
+			"la garde royale soupçonne un étranger venu d'ailleurs, ils arrêtent tous ceux qui ont une allure suspecte",
+			"la forêt au nord de la ville contient un repère de bandits connus pour comploter contre la couronne",
+			"le joueur est maintenant déguisé et peut se déplacer librement sans être suspecté",
+			"la taverne du village est le meilleur endroit pour glaner des rumeurs sur l'assassin"
+		  ]
+		},
+		"goals_after_quest": {
+		  "quest_id": "quete_deguisement",
+		  "quest_status": "done",
+		  "goals": [
+			"encourager le joueur à enquêter sur l'assassin — la piste mène peut-être à la forêt",
+			"guider le joueur vers la taverne du village pour chercher des infos",
+			"vendre ses marchandises et survivre à cette période trouble"
+		  ]
+		},
 		"conversation_arc": [
 		  {"phase": 1, "until_message": 2, "focus": "avertir le joueur que sa tenue le désigne comme suspect — l'armoire au fond de la boutique est le seul moyen d'éviter la potence"},
 		  {"phase": 2, "until_message": 4, "focus": "expliquer le contexte : le roi est mort, les gardes cherchent un coupable étranger, des avis de recherche couvrent les murs"},
