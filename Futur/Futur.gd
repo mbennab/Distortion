@@ -307,10 +307,13 @@ func _on_tourelle_minigame_done(success: bool) -> void:
 		label.size = Vector2(400, 80)
 		fade_layer.add_child(label)
 		_show_superette_npcs()
-		_start_cheffe_post_tourelle_dialogue()
-		await get_tree().create_timer(3.0).timeout
+		await get_tree().create_timer(10.0).timeout
 		if is_instance_valid(label):
 			label.queue_free()
+		DialogueUI.close_dialogue()
+		if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
+			DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
+		_transition_to_metro()
 	else:
 		_update_objective("Touché ! Réessayez...")
 		var label := Label.new()
@@ -333,6 +336,58 @@ func _set_superette_collisions(enabled: bool) -> void:
 	var limite = $FondSuperette.get_node_or_null("limite-superette")
 	if limite:
 		limite.collision_layer = 16 if enabled else 0
+
+
+func _transition_to_metro() -> void:
+	can_move = false
+
+	var vp := get_viewport().get_visible_rect().size
+	var text_label := Label.new()
+	text_label.text = "vous vous dirigez vers le QG d'Alfredo"
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.add_theme_font_size_override("font_size", 24)
+	text_label.add_theme_color_override("font_color", Color.WHITE)
+	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_label.custom_minimum_size = Vector2(600, 0)
+	text_label.position = Vector2(vp.x / 2.0 - 300, vp.y / 2.0 - 60)
+	text_label.size = Vector2(600, 120)
+	fade_layer.add_child(text_label)
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 4.0)
+	await tween_fade.finished
+
+	if is_instance_valid(text_label):
+		text_label.queue_free()
+
+	$FondSuperette.hide()
+	_set_superette_collisions(false)
+
+	if pnjcheffe:
+		pnjcheffe.hide()
+		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+
+	$FondMetro.show()
+	var metro_collision = $FondMetro/StaticBody2D/CollisionPolygon2D
+	if metro_collision:
+		metro_collision.disabled = false
+	time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
+	time_aunote.show()
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = false
+
+	$ObjectiveHUD.show()
+	_update_objective("Trouver le QG d'Alfredo")
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	can_move = true
 
 
 func _show_superette_npcs() -> void:
