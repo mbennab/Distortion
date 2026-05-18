@@ -11,6 +11,11 @@
 	  "id": "npc_marchand_moyenage",
 	  "name": "Le Marchand",
 	  "first_message": "Oh oh… t'as une de ces dégaines, l'ami. Avec ça sur le dos, les gardes vont te prendre pour l'assassin du roi avant même que t'aies ouvert la bouche. Va fouiller dans mon armoire là-bas, change-toi, et après on cause.",
+	  "first_message_after": {
+		"quest_id": "quete_deguisement",
+		"quest_status": "done",
+		"message": "Ah, te voilà méconnaissable ! Parfait. Maintenant que t'as une tête du coin, file à la taverne du village. C'est là que les gens parlent — tu trouveras sûrement des infos sur l'assassin."
+	  },
 	  "personality": {
 		"tone": "chaleureux, débrouillard, un brin vantard. Parle vite, rit facilement, mais devient sérieux et inquiet quand il parle de l'assassinat du roi.",
 		"backstory": "Marchand local que tout le monde connait. Il vend de tout, des habits, des potions, des armes et armures, ainsi que tout autre marchandises. Il est le principal marchand du village dans sa grande échope.",
@@ -41,6 +46,26 @@
 		  "une fois le joueur déguisé, l'encourager à enquêter sur l'assassin — la piste mène peut-être à la forêt",
 		  "vendre ses marchandises et survivre à cette période trouble"
 		],
+		"knowledge_after_quest": {
+		  "quest_id": "quete_deguisement",
+		  "quest_status": "done",
+		  "knowledge": [
+			"le roi a été poignardé dans sa salle du trône — des avis de recherche sont placardés partout en ville",
+			"la garde royale soupçonne un étranger venu d'ailleurs, ils arrêtent tous ceux qui ont une allure suspecte",
+			"la forêt au nord de la ville contient un repère de bandits connus pour comploter contre la couronne",
+			"le joueur est maintenant déguisé et peut se déplacer librement sans être suspecté",
+			"la taverne du village est le meilleur endroit pour glaner des rumeurs sur l'assassin"
+		  ]
+		},
+		"goals_after_quest": {
+		  "quest_id": "quete_deguisement",
+		  "quest_status": "done",
+		  "goals": [
+			"encourager le joueur à enquêter sur l'assassin — la piste mène peut-être à la forêt",
+			"guider le joueur vers la taverne du village pour chercher des infos",
+			"vendre ses marchandises et survivre à cette période trouble"
+		  ]
+		},
 		"conversation_arc": [
 		  {"phase": 1, "until_message": 2, "focus": "avertir le joueur que sa tenue le désigne comme suspect — l'armoire au fond de la boutique est le seul moyen d'éviter la potence"},
 		  {"phase": 2, "until_message": 4, "focus": "expliquer le contexte : le roi est mort, les gardes cherchent un coupable étranger, des avis de recherche couvrent les murs"},
@@ -111,6 +136,17 @@
 		"timeout": "Eh bah alors, t'es parti ? Bon, les affaires m'attendent. Reviens quand t'auras besoin de te fondre dans la foule.",
 		"unknown": "Hein ? De quoi tu causes ? J'ai pas tout saisi. Mais l'armoire, elle, elle te tend les bras — va voir au fond de la boutique.",
 		"default_template": "Le roi est mort, les gardes traquent un étranger, et toi t'as une tête d'étranger. L'armoire est au fond de la boutique. Change-toi, et après on parle de la suite."
+	  },
+	  "fallbacks_after": {
+		"quest_id": "quete_deguisement",
+		"quest_status": "done",
+		"fallbacks": {
+		  "off_topic": "Hé oh, moi je suis marchand, pas oracle ! T'as besoin de quelque chose ou tu vas à la taverne ?",
+		  "insult": "Oh ho ! Merci pour l'insulte, mais avec le déguisement que je t'ai refilé, tu devrais être plus discret que ça. File à la taverne avant de faire des vagues.",
+		  "timeout": "Eh bah alors, t'es parti ? La taverne t'attend, l'ami. Reviens si tu cherches des infos.",
+		  "unknown": "Hein ? J'ai pas tout saisi. Mais la taverne, c'est par là — va donc écouter les rumeurs.",
+		  "default_template": "T'es bien déguisé maintenant. La taverne du village, c'est le meilleur endroit pour glaner des infos sur l'assassin. Va, et si t'apprends quelque chose, repasse."
+		}
 	  }
 	},
 	{
