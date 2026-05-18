@@ -130,25 +130,41 @@ func _on_minigame_done(success: bool) -> void:
 			player.apply_disguise()
 		DialogueSystem.complete_step("quete_deguisement", "etape_marchander")
 		DialogueSystem.mark_quest_done("quete_deguisement")
-		var label := Label.new()
-		label.text = "Déguisement obtenu !"
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.add_theme_font_size_override("font_size", 22)
-		label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
-		label.modulate = Color(1, 1, 1, 0)
-		var vp := get_viewport().get_visible_rect().size
-		label.position = Vector2(vp.x / 2.0 - 150, vp.y / 2.0 - 120)
-		label.size = Vector2(300, 40)
-		prompt_layer.add_child(label)
-		var tween := create_tween()
-		tween.tween_property(label, "modulate", Color(1, 1, 1, 1), 0.5)
-		tween.tween_interval(1.5)
-		tween.tween_property(label, "modulate", Color(1, 1, 1, 0), 0.8)
-		tween.tween_callback(label.queue_free)
+		_show_disguise_message()
 
 	var parent = get_parent()
 	if parent and parent.has_method("_on_shop_minigame_success"):
 		parent._on_shop_minigame_success()
+
+
+func _show_disguise_message() -> void:
+	var label := Label.new()
+	label.text = "Déguisement obtenu !"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+	label.modulate = Color(1, 1, 1, 0)
+	var vp := get_viewport().get_visible_rect().size
+	label.position = Vector2(vp.x / 2.0 - 150, vp.y / 2.0 - 120)
+	label.size = Vector2(300, 40)
+	prompt_layer.add_child(label)
+
+	# Fade in
+	var fade_in := create_tween()
+	fade_in.tween_property(label, "modulate", Color(1, 1, 1, 1), 0.3)
+
+	# Utilise un SceneTreeTimer (indépendant du process_mode du nœud)
+	var timer := get_tree().create_timer(4.5)
+	timer.timeout.connect(func():
+		if not is_instance_valid(label):
+			return
+		var fade_out := create_tween()
+		fade_out.tween_property(label, "modulate", Color(1, 1, 1, 0), 0.5)
+		fade_out.tween_callback(func():
+			if is_instance_valid(label):
+				label.queue_free()
+		)
+	)
 
 
 func _cleanup_minigame() -> void:
