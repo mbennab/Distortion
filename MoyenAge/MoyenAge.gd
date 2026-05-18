@@ -452,6 +452,19 @@ func _on_shop_minigame_success() -> void:
 	can_move = true
 
 
+func _on_auberge_table_minigame_started() -> void:
+	can_move = false
+
+
+func _on_auberge_table_minigame_success() -> void:
+	can_move = true
+
+
+func _on_auberge_all_tables_done() -> void:
+	_update_objective("Enquêter dans la forêt au nord")
+	can_move = true
+
+
 func _on_prison_sortie_entered(body: Node2D) -> void:
 	if body != time_aunote or _sortie_triggered:
 		return

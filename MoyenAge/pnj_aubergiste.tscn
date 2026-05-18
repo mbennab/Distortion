@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://2kidsvni536t"]
+
+[ext_resource type="Script" uid="uid://dclx2e1x3b3ku" path="res://MoyenAge/pnj_aubergiste.gd" id="1_gd"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hvebx"]
+radius = 457.43744
+
+[node name="pnj_aubergiste" type="Node2D" unique_id=1120940313]
+script = ExtResource("1_gd")
+
+[node name="ZoneDialogue" type="Area2D" parent="." unique_id=430209248]
+collision_layer = 0
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue" unique_id=1668008808]
+shape = SubResource("CircleShape2D_hvebx")
