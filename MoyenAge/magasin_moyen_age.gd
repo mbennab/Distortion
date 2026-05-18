@@ -9,6 +9,7 @@ var disguise_obtained := false
 var prompt_layer: CanvasLayer
 var prompt_label: Label
 var _mg_instance: CanvasLayer
+var _disguise_label: Label
 var _active := false
 var _merchant_talked := false
 
@@ -148,6 +149,7 @@ func _show_disguise_message() -> void:
 	label.position = Vector2(vp.x / 2.0 - 150, vp.y / 2.0 - 120)
 	label.size = Vector2(300, 40)
 	prompt_layer.add_child(label)
+	_disguise_label = label
 
 	# Fade in
 	var fade_in := create_tween()
@@ -210,4 +212,7 @@ func stop() -> void:
 		pnj_marchand.get_node("ZoneDialogue").monitoring = false
 		pnj_marchand.hide()
 	$areas2D/sortie.monitoring = false
+	if _disguise_label and is_instance_valid(_disguise_label):
+		_disguise_label.queue_free()
+		_disguise_label = null
 	hide()
