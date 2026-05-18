@@ -81,11 +81,11 @@ shape = SubResource("CircleShape2D_j0ps2")
 [node name="table2" type="Area2D" parent="areas_minijeu" unique_id=780929754]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas_minijeu/table2" unique_id=1665882702]
-position = Vector2(356, 694)
+position = Vector2(555, 690)
 shape = SubResource("CircleShape2D_j0ps2")
 
 [node name="table3" type="Area2D" parent="areas_minijeu" unique_id=1188869028]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas_minijeu/table3" unique_id=837138651]
-position = Vector2(611, 1082)
+position = Vector2(586, 1180)
 shape = SubResource("CircleShape2D_j0ps2")
