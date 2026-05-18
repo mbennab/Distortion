@@ -15,13 +15,13 @@ const PLAYER_SPEED   := 720.0
 # en moins de (durée_chute) secondes à 720px/s
 const ROUND_PARAMS := [
 	[2.00, 55.0, 0.50],
-	[1.75, 47.0, 0.44],
-	[1.50, 39.0, 0.38],
-	[1.28, 32.0, 0.33],
-	[1.08, 26.0, 0.28],
-	[0.90, 21.0, 0.24],
-	[0.75, 17.0, 0.20],
-	[0.62, 13.0, 0.16],
+	[1.75, 55.0, 0.44],
+	[1.50, 55.0, 0.38],
+	[1.28, 55.0, 0.33],
+	[1.08, 55.0, 0.28],
+	[0.90, 55.0, 0.24],
+	[0.75, 55.0, 0.20],
+	[0.62, 55.0, 0.16],
 ]
 
 # ── State ─────────────────────────────────────────────────────────────────────
@@ -143,6 +143,7 @@ func _load_textures() -> void:
 
 func _build_ui() -> void:
 	var vp := get_viewport().get_visible_rect().size
+	_player_x = vp.x / 2.0
 
 	_bg = ColorRect.new()
 	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -171,6 +172,7 @@ func _build_ui() -> void:
 		_player_spr.hframes = 2
 		_player_spr.frame = 0
 		_player_spr.scale = Vector2(0.22, 0.22)
+		_player_spr.position = Vector2(_player_x, vp.y - 180)
 		add_child(_player_spr)
 
 	# Labels
@@ -204,8 +206,6 @@ func _build_ui() -> void:
 	_obj_lbl.position = Vector2(vp.x / 2.0 - 280, 82)
 	_obj_lbl.size = Vector2(560, 28)
 	add_child(_obj_lbl)
-
-	_player_x = vp.x / 2.0
 
 
 func _lbl(text: String, size: int, color: Color) -> Label:
