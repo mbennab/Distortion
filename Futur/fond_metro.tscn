@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://gjr7xmd45fbr"]
+
+[ext_resource type="Texture2D" uid="uid://b3jrp28tb4fy8" path="res://art/Futur/fondMetro.png" id="1_vmnwc"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vmnwc"]
+size = Vector2(20, 362)
+
+[node name="fondMetro" type="Node2D" unique_id=413393767]
+
+[node name="fondCouloir" type="Sprite2D" parent="." unique_id=999292348]
+position = Vector2(1213.5, 808)
+scale = Vector2(1.6761051, 1.4880295)
+texture = ExtResource("1_vmnwc")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1432813557]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1639392960]
+build_mode = 1
+polygon = PackedVector2Array(2, 1021, 40, 1019, 85, 1059, 153, 1064, 161, 1096, 316, 1101, 311, 1058, 375, 1058, 409, 1038, 733, 1046, 876, 1046, 883, 1001, 897, 1001, 971, 971, 982, 1032, 1095, 1040, 1127, 1064, 1221, 1056, 1240, 1075, 1388, 1079, 1400, 1064, 1486, 1064, 1525, 1038, 1632, 1038, 2006, 1037, 2036, 1060, 2101, 1061, 2117, 1101, 2261, 1100, 2266, 1066, 2330, 1049, 2383, 1019, 2423, 1024, 2424, 660, 2369, 657, 2328, 618, 2044, 621, 2012, 639, 1929, 637, 1913, 698, 1885, 711, 1761, 661, 1763, 625, 1456, 632, 1140, 623, 1107, 635, 854, 631, 835, 615, 701, 612, 685, 632, 551, 630, 410, 631, 392, 619, 326, 619, 317, 625, 144, 622, 104, 617, 57, 659, 22, 659)
+disabled = true
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=77281464]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="Marker" type="Node2D" parent="." unique_id=1352480016]
+
+[node name="Entrée" type="Marker2D" parent="Marker" unique_id=1676084448]
+position = Vector2(126, 844)
+
+[node name="Sortie" type="Area2D" parent="." unique_id=961121481]
+position = Vector2(2359, 864)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sortie" unique_id=2123376047]
+position = Vector2(58, -24)
+shape = SubResource("RectangleShape2D_vmnwc")

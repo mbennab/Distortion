@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://c8cbwosqxjxmg" path="res://art/Futur/pnj-cheffe.png" id="8_anmvl"]
 [ext_resource type="PackedScene" uid="uid://odweyi1k7ff2" path="res://Futur/route.tscn" id="9_route"]
 [ext_resource type="PackedScene" uid="uid://cy3gcng03ftj5" path="res://Futur/fond_superette.tscn" id="10_superette"]
+[ext_resource type="PackedScene" uid="uid://gjr7xmd45fbr" path="res://Futur/fond_metro.tscn" id="11_metro"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_punk"]
 radius = 120.0
@@ -152,5 +153,9 @@ animation = &"idle-cheffe"
 visible = false
 
 [node name="FondSuperette" parent="." instance=ExtResource("10_superette")]
+visible = false
+z_index = -1
+
+[node name="FondMetro" parent="." instance=ExtResource("11_metro")]
 visible = false
 z_index = -1
