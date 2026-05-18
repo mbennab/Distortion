@@ -66,6 +66,7 @@ func _go_to_parking() -> void:
 
 	$Parking.show()
 	_set_parking_collisions(true)
+	$Parking.set_interactive(true)
 
 	time_aunote.global_position = $"Parking/Node2D/zone pop".global_position
 	time_aunote.scale = Vector2(0.65, 0.65)
@@ -74,7 +75,6 @@ func _go_to_parking() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
 
-	DialogueSystem.complete_step("quete_acces_centrale", "etape_chercher_carte")
 	_update_objective("Fouiller le parking")
 	can_move = true
 
@@ -88,6 +88,7 @@ func _return_from_parking() -> void:
 
 	$Parking.hide()
 	_set_parking_collisions(false)
+	$Parking.set_interactive(false)
 
 	$fondPresent.show()
 	_set_fond_collisions(true)
@@ -236,6 +237,7 @@ func start(spawn_id: String = "entree") -> void:
 			pnj_secu.get_node("ZoneDialogue").monitoring = false
 		$Parking.show()
 		_set_parking_collisions(true)
+		$Parking.set_interactive(true)
 		time_aunote.position = $"Parking/Node2D/zone pop".position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
@@ -284,12 +286,21 @@ func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale)
 	stopped = false
 
 
+func _on_parking_minigame_won() -> void:
+	DialogueSystem.complete_step("quete_acces_centrale", "etape_chercher_carte")
+	time_aunote.global_position = $"Parking/Node2D/zone pop after jeux".global_position
+	_update_objective("Retourner voir l'agent de sécurité")
+	can_move = true
+
+
 func stop() -> void:
 	hide()
 	$ObjectiveHUD.hide()
 	can_move = false
 	started = false
 	stopped = true
+	$Parking.stop_minigame()
+	$Parking.set_interactive(false)
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
