@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://bjev30qv7iscl"]
+
+[ext_resource type="Texture2D" uid="uid://b6hq6j12y827h" path="res://art/Present/gars maintenence face.png" id="1_v1rc8"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1b2mu"]
+atlas = ExtResource("1_v1rc8")
+region = Rect2(50, 11, 393, 279)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hwloo"]
+atlas = ExtResource("1_v1rc8")
+region = Rect2(443, 11, 393, 279)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_31bsa"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1b2mu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hwloo")
+}],
+"loop": true,
+"name": &"default",
+"speed": 1.0
+}]
+
+[node name="PnjMaintenenceMap" type="Node2D" unique_id=879263730]
+scale = Vector2(3, 3)
+
+[node name="pnj" type="AnimatedSprite2D" parent="." unique_id=106624996]
+position = Vector2(16, -2)
+sprite_frames = SubResource("SpriteFrames_31bsa")
+autoplay = "default"
+frame_progress = 0.6455771

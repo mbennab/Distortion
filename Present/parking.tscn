@@ -2,9 +2,13 @@
 
 [ext_resource type="Texture2D" uid="uid://c50qav0bjsb2g" path="res://art/Present/parking.png" id="1_itqnm"]
 [ext_resource type="Script" uid="uid://72vtufuu2l1n" path="res://Present/parking.gd" id="2_script"]
+[ext_resource type="PackedScene" uid="uid://bjev30qv7iscl" path="res://Present/pnjMaintenenceMap.tscn" id="3_pnj"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_retour"]
 size = Vector2(89, 217)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_v726n"]
+size = Vector2(417, 222.5)
 
 [node name="Parking" type="Node2D" unique_id=11570222]
 script = ExtResource("2_script")
@@ -18,13 +22,24 @@ centered = false
 collision_layer = 0
 
 [node name="colision mobs" type="CollisionPolygon2D" parent="limiteParking" unique_id=1845536762]
+position = Vector2(0, 6)
 build_mode = 1
-polygon = PackedVector2Array(2408, 966, 2413, 858, 2221, 858, 2180, 813, 1885, 824, 1852, 574, 1560, 588, 1554, 418, 1368, 421, 1365, 632, 1234, 635, 1229, 429, 1029, 429, 1023, 632, 829, 630, 834, 427, 628, 429, 628, 638, 387, 632, 373, 896, 609, 902, 601, 1183, 831, 1186, 820, 902, 1504, 899, 1507, 1166, 1518, 1199, 2413, 1202)
+polygon = PackedVector2Array(2422, 1205, 1520, 1205, 1520, 771, 1854, 773, 1858, 847, 1942, 851, 1952, 769, 2174, 769, 2212, 853, 2422, 857)
 
 [node name="Node2D" type="Node2D" parent="." unique_id=660242797]
 
 [node name="zone pop" type="Marker2D" parent="Node2D" unique_id=1644447377]
 position = Vector2(2170, 1064)
+
+[node name="zone pop after jeux" type="Marker2D" parent="Node2D" unique_id=940733130]
+position = Vector2(1632, 1030)
+
+[node name="position pnj map" type="Marker2D" parent="Node2D" unique_id=1599737684]
+position = Vector2(630, 846)
+
+[node name="pnjMaintenanceMap" parent="." unique_id=938075325 instance=ExtResource("3_pnj")]
+position = Vector2(514, 836)
+scale = Vector2(0.5, 0.5)
 
 [node name="zone retour parking" type="Area2D" parent="." unique_id=1037844511]
 collision_layer = 0
@@ -36,3 +51,9 @@ shape = SubResource("RectangleShape2D_retour")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=6322449]
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
+
+[node name="zone interation minijeux" type="Area2D" parent="." unique_id=940188511]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="zone interation minijeux" unique_id=249007574]
+position = Vector2(1707, 870.25)
+shape = SubResource("RectangleShape2D_v726n")

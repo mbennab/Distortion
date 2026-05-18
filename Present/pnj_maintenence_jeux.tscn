@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://d231iqprx8lps"]
+
+[ext_resource type="Texture2D" uid="uid://caun3f8jgmhms" path="res://art/Present/gars_maintenance_profil.png" id="1_m7wxl"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ys28t"]
+atlas = ExtResource("1_m7wxl")
+region = Rect2(0, 0, 250, 500)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y1jtx"]
+atlas = ExtResource("1_m7wxl")
+region = Rect2(250, 0, 250, 500)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_igs53"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ys28t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y1jtx")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dkcee"]
+radius = 364.5888
+
+[node name="PnjMaintenenceJeux" type="Node2D" unique_id=655996173]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1677465673]
+sprite_frames = SubResource("SpriteFrames_igs53")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1711041036]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=642275826]
+position = Vector2(14, 10)
+shape = SubResource("CircleShape2D_dkcee")
