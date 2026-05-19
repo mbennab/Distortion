@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://4kq61r1sycwg"]
+
+[ext_resource type="Texture2D" uid="uid://dn1hon71ty21l" path="res://art/Futur/tour_entree.png" id="1_bdpgl"]
+
+[node name="fondTour" type="Node2D" unique_id=849302617]
+
+[node name="image" type="Sprite2D" parent="." unique_id=274019583]
+position = Vector2(1217.7501, 815.5)
+scale = Vector2(1.7293153, 1.6629554)
+texture = ExtResource("1_bdpgl")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=883726154]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="Marker" type="Node2D" parent="." unique_id=539184720]
+
+[node name="Entrée" type="Marker2D" parent="Marker" unique_id=168491235]
+position = Vector2(1216, 1530)
+
+[node name="limite-entree-tour" type="StaticBody2D" parent="." unique_id=1294772951]
+collision_layer = 16
+
+[node name="collision" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=972241374]
+build_mode = 1
+polygon = PackedVector2Array(74, 336, 1, 339, -2, 1603, 2414, 1606, 2418, 329, 2349, 360, 2242, 453, 2121, 457, 2118, 532, 1693, 532, 1493, 526, 1489, 398, 1493, 325, 985, 332, 944, 415, 944, 529, 833, 546, 702, 546, 312, 543, 312, 443, 181, 443)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=1477928320]
+build_mode = 1
+polygon = PackedVector2Array(454, 1161, 454, 1026, 457, 947, 454, 867, 350, 788, 257, 822, 229, 961, 229, 1154, 277, 1185)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=407099304]
+build_mode = 1
+polygon = PackedVector2Array(1969, 1178, 2176, 1182, 2183, 1033, 2135, 1002, 2187, 929, 2183, 857, 2104, 788, 2028, 788, 1966, 888, 1955, 964)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=1932354892]
+build_mode = 1
+polygon = PackedVector2Array(640, 1534, 647, 1485, 588, 1468, 588, 1333, 502, 1333, 509, 1458, 205, 1461, 208, 1565)
+
+[node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=652076952]
+build_mode = 1
+polygon = PackedVector2Array(1765, 1554, 1769, 1485, 1841, 1496, 1838, 1333, 1928, 1337, 1924, 1468, 2131, 1440, 2197, 1475, 2187, 1565, 1990, 1561)
