@@ -12,6 +12,8 @@ var destinations := {
 	"moyenage_ville":	{"zone": "moyenage", "name": "Moyen Âge — Ville", "id": "ville"},
 	"moyenage_auberge":	{"zone": "moyenage", "name": "Moyen Âge — Auberge", "id": "auberge"},
 	"present_entree":	{"zone": "present", "name": "Present — Entrée", "id": "entree"},
+	"present_parking":	{"zone": "present", "name": "Present — Parking", "id": "parking"},
+	"present_hall":		{"zone": "present", "name": "Present — Hall", "id": "hall"},
 	"futur_entree":		{"zone": "futur", "name": "Futur — Entrée", "id": "entree"},
 	"futur_soussol":	{"zone": "futur", "name": "Futur — Sous-sol", "id": "soussol"},
 	"futur_superette":	{"zone": "futur", "name": "Futur — Supérette", "id": "superette"},
@@ -111,6 +113,20 @@ func _setup_ui() -> void:
 	_add_btn_style(undisguise_btn, Color(0.5, 0.2, 0.2))
 	debug_bar.add_child(undisguise_btn)
 
+	var badge_give_btn := Button.new()
+	badge_give_btn.text = "🎫 Badge : Fait"
+	badge_give_btn.custom_minimum_size = Vector2(220, 36)
+	badge_give_btn.pressed.connect(_on_badge_done)
+	_add_btn_style(badge_give_btn, Color(0.2, 0.4, 0.5))
+	debug_bar.add_child(badge_give_btn)
+
+	var badge_remove_btn := Button.new()
+	badge_remove_btn.text = "❌ Badge : Pas fait"
+	badge_remove_btn.custom_minimum_size = Vector2(220, 36)
+	badge_remove_btn.pressed.connect(_on_badge_undone)
+	_add_btn_style(badge_remove_btn, Color(0.5, 0.2, 0.2))
+	debug_bar.add_child(badge_remove_btn)
+
 	for zone in zone_order:
 		var zone_dests := []
 		for key in destinations:
@@ -207,6 +223,27 @@ func _on_undisguise() -> void:
 	var player = get_tree().current_scene.find_child("TimeAunote", true)
 	if player:
 		player.remove_disguise()
+
+
+func _on_badge_done() -> void:
+	_set_parking_badge(true)
+
+
+func _on_badge_undone() -> void:
+	_set_parking_badge(false)
+
+
+func _set_parking_badge(done: bool) -> void:
+	var present = get_tree().current_scene.find_child("Present", true, false)
+	if not present:
+		return
+	var parking = present.get_node_or_null("Parking")
+	if parking:
+		parking._badge_obtained = done
+	var pnj = present.get_node_or_null("PnjSecurité")
+	if pnj:
+		pnj.npc_id = "npc_securite_present_retour" if done else "npc_securite_present"
+	print("[WarpSystem] Badge %s" % ("FAIT" if done else "PAS FAIT"))
 
 
 func _do_warp(zone: String, spawn_id: String) -> void:

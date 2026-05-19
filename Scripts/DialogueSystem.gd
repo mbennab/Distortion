@@ -34,6 +34,7 @@ var _message_count: int = 0
 var _spoken_to: Dictionary = {}
 var _current_first_message: String = ""
 var _has_repeat_conversation: bool = false
+var _current_filtered_intentions: Array = []
 
 
 func _ready() -> void:
@@ -114,17 +115,38 @@ func start_dialogue(npc_id: String) -> void:
 	var was_spoken_before: bool = _spoken_to.has(npc_id)
 	_has_repeat_conversation = was_spoken_before
 
-	if npc.has("first_message") and npc.first_message is String and npc.first_message != "" and not was_spoken_before:
-		var first_msg = npc.first_message
-		if npc.has("first_message_after") and npc.first_message_after is Dictionary and not was_spoken_before:
-			var fma: Dictionary = npc.first_message_after
-			var fma_qid = fma.get("quest_id", "")
-			var fma_qs = fma.get("quest_status", "")
-			if fma_qid != "" and fma_qs != "":
+	var first_msg = ""
+	if npc.has("first_message") and npc.first_message is String and npc.first_message != "":
+		first_msg = npc.first_message
+
+	if npc.has("first_message_after"):
+		var fma_entries: Array = []
+		if npc.first_message_after is Dictionary:
+			fma_entries = [npc.first_message_after]
+		elif npc.first_message_after is Array:
+			fma_entries = npc.first_message_after
+		for entry in fma_entries:
+			if not entry is Dictionary:
+				continue
+			var fma_qid = entry.get("quest_id", "")
+			var fma_qs = entry.get("quest_status", "")
+			var fma_qstep = entry.get("quest_step", "")
+			if fma_qid != "":
 				var gs = game_state.get(fma_qid, {})
-				if gs.get("status", "") == fma_qs:
-					first_msg = fma.get("message", first_msg)
+				var status_match = (fma_qs == "" or gs.get("status", "") == fma_qs)
+				var step_match = (fma_qstep == "" or gs.get("current_step", "") == fma_qstep)
+				if status_match and step_match:
+					first_msg = entry.get("message", first_msg)
+
+	if first_msg != "" and not was_spoken_before:
 		_current_first_message = first_msg
+	elif first_msg != "" and was_spoken_before:
+		# Accroche contextuelle pour conversation suivante si le message diffère du first_message de base
+		var base_msg = npc.get("first_message", "")
+		if first_msg != base_msg:
+			_current_first_message = first_msg
+		else:
+			_current_first_message = ""
 	else:
 		_current_first_message = ""
 
@@ -159,6 +181,7 @@ func send_message(player_message: String) -> void:
 	_message_count += 1
 
 	var intentions = filter_intentions(current_npc_id)
+	_current_filtered_intentions = intentions
 	if intentions.is_empty():
 		var fallback = get_fallback(current_npc_id, "default_template")
 		dialogue_response.emit(current_npc.get("name", "?"), fallback)
@@ -275,7 +298,7 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 	var action_emitted = false
 	var action = ai_data.get("action")
 	if action != null and action is Dictionary:
-		var valid_action = _validate_action(action)
+		var valid_action = _validate_action(action, _current_filtered_intentions)
 		if not valid_action.is_empty():
 			print("[DialogueSystem] Action validée: %s/%s" % [valid_action.type, valid_action.id])
 			action_triggered.emit(valid_action)
@@ -285,7 +308,8 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 
 	# Filet de sécurité : forcer l'action après 5 messages si le PNJ en a une
 	if not action_emitted and _message_count >= 5:
-		for intent in current_npc.get("intentions", []):
+		var active_intentions = filter_intentions(current_npc_id)
+		for intent in active_intentions:
 			var forced_action = intent.get("action")
 			if forced_action != null and forced_action is Dictionary and forced_action.get("type") == "trigger":
 				print("[DialogueSystem] Forçage action après %d messages: %s/%s" % [_message_count, forced_action.type, forced_action.id])
@@ -293,14 +317,17 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 				break
 
 
-func _validate_action(action: Dictionary) -> Dictionary:
+func _validate_action(action: Dictionary, filtered_intentions: Array = []) -> Dictionary:
 	if not action.has("type") or not action.has("id"):
 		return {}
 
 	var action_type = action.get("type", "")
 	var action_id = action.get("id", "")
 
-	for intent in current_npc.get("intentions", []):
+	# Validation stricte : l'action doit correspondre à une intention ACTIVEMENT filtrée
+	# (c-à-d dont la condition de quête est remplie), pas n'importe quelle intention du JSON
+	var check_list = filtered_intentions if not filtered_intentions.is_empty() else current_npc.get("intentions", [])
+	for intent in check_list:
 		var intent_action = intent.get("action")
 		if intent_action == null or not intent_action is Dictionary:
 			continue
