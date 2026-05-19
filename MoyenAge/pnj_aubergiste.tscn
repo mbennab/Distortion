@@ -10,6 +10,7 @@ script = ExtResource("1_gd")
 
 [node name="ZoneDialogue" type="Area2D" parent="." unique_id=430209248]
 collision_layer = 0
+collision_mask = 1
 monitoring = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue" unique_id=1668008808]

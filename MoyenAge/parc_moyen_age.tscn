@@ -1,8 +1,14 @@
 [gd_scene format=3 uid="uid://cwslxj2dvam3i"]
 
 [ext_resource type="Texture2D" uid="uid://dfqlh2pjdika0" path="res://art/MoyenAge/parc.png" id="1_hm5t4"]
+[ext_resource type="Script" path="res://MoyenAge/parc_moyen_age.gd" id="2_parc_gd"]
+[ext_resource type="PackedScene" path="res://MoyenAge/pnj_femme.tscn" id="3_femme"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hm5t4"]
+size = Vector2(59, 179)
 
 [node name="parc_moyen-age" type="Node2D" unique_id=1396648869]
+script = ExtResource("2_parc_gd")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1067175253]
 position = Vector2(1213.5, 808.5)
@@ -13,13 +19,31 @@ texture = ExtResource("1_hm5t4")
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
 
+[node name="collisions" type="StaticBody2D" parent="." unique_id=1059753478]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="collisions" unique_id=701695660]
+build_mode = 1
+polygon = PackedVector2Array(1, 1007, 95, 1037, 128, 1080, 189, 996, 199, 998, 263, 1092, 335, 1284, 302, 1356, 417, 1366, 421, 1301, 486, 1266, 559, 1352, 673, 1356, 679, 1612, 1224, 1615, 1226, 1492, 1266, 1445, 1307, 1498, 1306, 1615, 1695, 1615, 1688, 1485, 1726, 1452, 1762, 1495, 1765, 1619, 2169, 1613, 2174, 1488, 2248, 1375, 2335, 1342, 2326, 1071, 2419, 946, 2424, 854, 2337, 842, 2314, 663, 2419, 597, 2424, 424, 2373, 394, 2426, 261, 2428, 0, 2141, 10, 2133, 300, 2047, 309, 2047, 417, 1817, 424, 1807, 305, 1769, 300, 1759, 406, 1695, 410, 1692, 194, 1603, 189, 1601, 3, 1385, 3, 1387, 195, 1299, 201, 1292.2454, 406.17206, 1227, 406, 1236, 300, 1088, 293, 1061, 336, 977, 334, 967, 605, 864, 602, 867, 679, 886, 708, 881, 821, 924, 867, 853, 918, 742, 932, 594, 853, 600, 645, 682, 589, 678, 198, 654, 203, 656, -3, 425, -3, 464, 431, 374.36758, 505.88763, 277, 509, 279, 669, 342, 701, 327, 796, 271, 840, 2, 817)
+
+[node name="fontaine" type="CollisionPolygon2D" parent="collisions" unique_id=1784710667]
+build_mode = 1
+polygon = PackedVector2Array(1823, 760, 1821, 860, 1770, 910, 1770, 992, 1839, 1051, 1937, 1051, 2004, 993, 2002, 909, 1944, 859, 1935, 763, 1886.4299, 755.9463)
+
 [node name="markers2D" type="Node2D" parent="." unique_id=445182230]
 
 [node name="femme" type="Marker2D" parent="markers2D" unique_id=1633186013]
 position = Vector2(1081, 529)
 
-[node name="collisions" type="StaticBody2D" parent="." unique_id=1059753478]
+[node name="apparition" type="Marker2D" parent="markers2D" unique_id=1401229623]
+position = Vector2(154, 857)
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="collisions" unique_id=701695660]
-build_mode = 1
-polygon = PackedVector2Array(1, 1007, 95, 1037, 128, 1080, 189, 996, 199, 998, 263, 1092, 335, 1284, 302, 1356, 417, 1366, 421, 1301, 486, 1266, 559, 1352, 673, 1356, 679, 1612, 1224, 1615, 1226, 1492, 1266, 1445, 1307, 1498, 1306, 1615, 1695, 1615, 1688, 1485, 1726, 1452, 1762, 1495, 1765, 1619, 2169, 1613, 2174, 1488, 2248, 1375, 2335, 1342, 2326, 1071, 2419, 946, 2424, 854, 2337, 842, 2314, 663, 2419, 597, 2424, 424, 2373, 394, 2426, 261, 2428, 0, 2141, 10, 1267, 1173, 2, 817)
+[node name="areas2D" type="Node2D" parent="." unique_id=225490167]
+
+[node name="sortieGauche" type="Area2D" parent="areas2D" unique_id=305287707]
+position = Vector2(77, 950)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/sortieGauche" unique_id=157432785]
+position = Vector2(-47.5, -32.5)
+shape = SubResource("RectangleShape2D_hm5t4")
+
+[node name="femme" parent="." instance=ExtResource("3_femme")]

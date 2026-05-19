@@ -8,9 +8,10 @@
 [ext_resource type="PackedScene" uid="uid://dpnve3db7i0rp" path="res://Futur/SousSol.tscn" id="6_soussol"]
 [ext_resource type="Script" uid="uid://crt0c7ceuwj0f" path="res://Futur/pnj_cheffe.gd" id="7_2plbm"]
 [ext_resource type="Texture2D" uid="uid://c8cbwosqxjxmg" path="res://art/Futur/pnj-cheffe.png" id="8_anmvl"]
-[ext_resource type="PackedScene" uid="uid://odweyi1k7ff2" path="res://Futur/route.tscn" id="9_route"]
-[ext_resource type="PackedScene" uid="uid://cy3gcng03ftj5" path="res://Futur/fond_superette.tscn" id="10_superette"]
-[ext_resource type="PackedScene" uid="uid://gjr7xmd45fbr" path="res://Futur/fond_metro.tscn" id="11_metro"]
+[ext_resource type="PackedScene" uid="uid://bcndk2esdoblk" path="res://Futur/route.tscn" id="9_route"]
+[ext_resource type="PackedScene" uid="uid://dkluhjp5toqnl" path="res://Futur/fond_superette.tscn" id="10_superette"]
+[ext_resource type="PackedScene" uid="uid://bk1ygcs1v5s80" path="res://Futur/fond_metro.tscn" id="11_metro"]
+[ext_resource type="PackedScene" path="res://Futur/fond_tour.tscn" id="12_tour"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_punk"]
 radius = 120.0
@@ -152,10 +153,14 @@ animation = &"idle-cheffe"
 [node name="car_minigame" parent="." unique_id=1948779547 instance=ExtResource("9_route")]
 visible = false
 
-[node name="FondSuperette" parent="." instance=ExtResource("10_superette")]
+[node name="FondSuperette" parent="." unique_id=2141941079 instance=ExtResource("10_superette")]
 visible = false
 z_index = -1
 
-[node name="FondMetro" parent="." instance=ExtResource("11_metro")]
+[node name="FondMetro" parent="." unique_id=1323852787 instance=ExtResource("11_metro")]
+visible = false
+z_index = -1
+
+[node name="FondTour" parent="." instance=ExtResource("12_tour")]
 visible = false
 z_index = -1

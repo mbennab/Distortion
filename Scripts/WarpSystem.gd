@@ -11,12 +11,15 @@ var destinations := {
 	"moyenage_magasin":	{"zone": "moyenage", "name": "Moyen Âge — Magasin", "id": "magasin"},
 	"moyenage_ville":	{"zone": "moyenage", "name": "Moyen Âge — Ville", "id": "ville"},
 	"moyenage_auberge":	{"zone": "moyenage", "name": "Moyen Âge — Auberge", "id": "auberge"},
+	"moyenage_parc":	{"zone": "moyenage", "name": "Moyen Âge — Parc", "id": "parc"},
 	"present_entree":	{"zone": "present", "name": "Present — Entrée", "id": "entree"},
 	"present_parking":	{"zone": "present", "name": "Present — Parking", "id": "parking"},
 	"present_hall":		{"zone": "present", "name": "Present — Hall", "id": "hall"},
 	"futur_entree":		{"zone": "futur", "name": "Futur — Entrée", "id": "entree"},
 	"futur_soussol":	{"zone": "futur", "name": "Futur — Sous-sol", "id": "soussol"},
 	"futur_superette":	{"zone": "futur", "name": "Futur — Supérette", "id": "superette"},
+	"futur_metro":		{"zone": "futur", "name": "Futur — Métro (QG Alfredo)", "id": "metro"},
+	"futur_tour":		{"zone": "futur", "name": "Futur — Tour Alfredo", "id": "tour"},
 }
 
 var zone_order := ["hub", "moyenage", "present", "futur"]

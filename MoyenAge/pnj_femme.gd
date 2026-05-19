@@ -1,9 +1,10 @@
 extends Node2D
 
-@export var npc_id: String = "npc_aubergiste_moyenage"
-@export var npc_name: String = "L'Aubergiste"
-@export var portrait_path: String = "res://art/MoyenAge/portrait_aubergiste.png"
+@export var npc_id: String = "npc_femme_parc"
+@export var npc_name: String = "La Femme du Parc"
+@export var portrait_path: String = ""
 
+var animation_femme: AnimatedSprite2D
 var zone_dialogue: Area2D
 var player_nearby: bool = false
 var bubble: Label
@@ -13,6 +14,9 @@ var bubble_timer: Timer
 func _ready() -> void:
 	hide()
 	add_to_group("npc_dialogue")
+
+	animation_femme = $AnimatedSprite2D
+	animation_femme.play()
 
 	zone_dialogue = $ZoneDialogue
 	zone_dialogue.body_entered.connect(_on_body_entered)
@@ -82,6 +86,7 @@ func _on_body_exited(body: Node2D) -> void:
 
 
 func apparition(position: Vector2) -> void:
+	animation_femme.animation = "default"
 	self.position = position
 	show()
 

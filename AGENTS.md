@@ -73,11 +73,11 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
 - `auberge_moyen_age.gd`: tavern sub-zone — managed 3-table eavesdropping + aubergiste PNJ
   - **Gating**: entry blocked unless `TimeAunoteScript.disguised` is true; table prompts hidden until aubergiste spoken to
   - **Eavesdropping minigame** (`Scripts/MiniJeuEcouteTables.gd`, ~227 lines): CanvasLayer-based — hold E to lean in, release to pull back
-    - **3 rounds** (one per table), green zone oscillates on a vertical bar; fill "Infos glanées" gauge before "Éveil des soupçons"
-    - **Lose = reset ALL 3 tables** — must redo everything
-    - `ROUND_CONFIG` drives per-round `[green_speed, info_rate, attn_rate, dir_min, dir_max]`; difficulty ramps across tables
-    - Win all 3 → completes `etape_enqueter_foret`, reveals "assassin → forêt au nord"
-    - `stop_table_minigame()` frees the CanvasLayer instance; `auberge_moyen_age.stop()` calls it on zone exit
+	- **3 rounds** (one per table), green zone oscillates on a vertical bar; fill "Infos glanées" gauge before "Éveil des soupçons"
+	- **Lose = reset ALL 3 tables** — must redo everything
+	- `ROUND_CONFIG` drives per-round `[green_speed, info_rate, attn_rate, dir_min, dir_max]`; difficulty ramps across tables
+	- Win all 3 → completes `etape_enqueter_foret`, reveals "assassin → forêt au nord"
+	- `stop_table_minigame()` frees the CanvasLayer instance; `auberge_moyen_age.stop()` calls it on zone exit
   - `pnj_aubergiste.gd`: standard PNJ pattern, gating flag `_spoken_to_aubergiste`
 - **Bug gotcha**: `magasin_moyen_age.gd._show_disguise_message()` creates a Label on `prompt_layer` with a 4.5s fade-out timer. If player exits before timer fires, `stop()` must explicitly `queue_free()` the stored `_disguise_label` reference, otherwise `process_mode = PROCESS_MODE_DISABLED` prevents the tween from running and the label persists forever.
 
