@@ -2,7 +2,78 @@
 
 [ext_resource type="Texture2D" uid="uid://cx3t5oigp6vsw" path="res://art/Present/couloir.png" id="1_3efmm"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3efmm"]
+size = Vector2(320.25, 654.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_l6jtn"]
+size = Vector2(243.5, 431.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_y0vjn"]
+size = Vector2(260.5, 400.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wmmmo"]
+size = Vector2(229.5, 355.375)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_l5qpk"]
+size = Vector2(250, 585.5)
+
 [node name="Couloir" type="Node2D" unique_id=2074864368]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=668019608]
+position = Vector2(1112.5, 810)
+scale = Vector2(1.6046649, 1.7088205)
 texture = ExtResource("1_3efmm")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1604024046]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="limites" type="StaticBody2D" parent="." unique_id=1099382532]
+collision_layer = 0
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limites" unique_id=84627411]
+position = Vector2(54.76037, -89.00015)
+scale = Vector2(2.295102, 2.4869187)
+build_mode = 1
+polygon = PackedVector2Array(-12.966905, 489.36063, 1035.3525, 491.77325, 1028, 684, -17.75972, 686.39154)
+
+[node name="Node2D" type="Node2D" parent="." unique_id=314634556]
+
+[node name="pop hall" type="Marker2D" parent="Node2D" unique_id=1525068866]
+position = Vector2(202, 1495)
+
+[node name="pop pc controle" type="Marker2D" parent="Node2D" unique_id=1718511660]
+position = Vector2(2072, 1286)
+
+[node name="pop machine" type="Marker2D" parent="Node2D" unique_id=1567875053]
+position = Vector2(1474, 1291)
+
+[node name="pop electricite" type="Marker2D" parent="Node2D" unique_id=1262375285]
+position = Vector2(807, 1308)
+
+[node name="pop vestiaires" type="Marker2D" parent="Node2D" unique_id=1184706718]
+position = Vector2(242, 1270)
+
+[node name="zone tp" type="Area2D" parent="." unique_id=1035458770]
+position = Vector2(5, 0)
+collision_layer = 0
+
+[node name="hall" type="CollisionShape2D" parent="zone tp" unique_id=570427730]
+position = Vector2(-86, 1570)
+shape = SubResource("RectangleShape2D_3efmm")
+
+[node name="pc controle" type="CollisionShape2D" parent="zone tp" unique_id=1215688421]
+position = Vector2(183, 972)
+shape = SubResource("RectangleShape2D_l6jtn")
+
+[node name="machines" type="CollisionShape2D" parent="zone tp" unique_id=689738885]
+position = Vector2(826, 1020)
+shape = SubResource("RectangleShape2D_y0vjn")
+
+[node name="electricite" type="CollisionShape2D" parent="zone tp" unique_id=1888463730]
+position = Vector2(1438.25, 1020.3125)
+shape = SubResource("RectangleShape2D_wmmmo")
+
+[node name="vestiaires" type="CollisionShape2D" parent="zone tp" unique_id=1019539068]
+position = Vector2(2058, 916)
+shape = SubResource("RectangleShape2D_l5qpk")

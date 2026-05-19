@@ -3,8 +3,8 @@ extends CanvasLayer
 signal done(success: bool)
 
 const ROUND_CONFIG := [
-	{"green_speed": 60.0, "info_rate": 15.0, "attn_rate": 10.0, "dir_min": 1.5, "dir_max": 3.0},
-	{"green_speed": 100.0, "info_rate": 12.0, "attn_rate": 13.0, "dir_min": 1.0, "dir_max": 2.0},
+	{"green_speed": 70.0, "info_rate": 15.0, "attn_rate": 10.0, "dir_min": 1.5, "dir_max": 3.0},
+	{"green_speed": 110.0, "info_rate": 12.0, "attn_rate": 13.0, "dir_min": 1.0, "dir_max": 2.0},
 	{"green_speed": 140.0, "info_rate": 10.0, "attn_rate": 18.0, "dir_min": 0.5, "dir_max": 1.5},
 ]
 

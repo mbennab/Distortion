@@ -20,3 +20,6 @@ build/
 
 # Local agent skill files
 .agents/
+
+# OpenCode
+.opencode/themes

@@ -38,6 +38,7 @@ func _ready() -> void:
 	pnjkoiai2Pos = $"SousSol/fondSousSol/Markers2D/pnjPos2".position
 	pnjkoiai2 = $"SousSol/pnj-koiai-2"
 	_connect_escalier_signals()
+	_connect_metro_sortie_signal()
 
 
 func _setup_fade_overlay() -> void:
@@ -61,6 +62,50 @@ func _connect_escalier_signals() -> void:
 func _on_escalier_entered(body: Node2D) -> void:
 	if body == time_aunote and can_move:
 		_go_to_basement()
+
+
+func _connect_metro_sortie_signal() -> void:
+	var sortie = $FondMetro/Sortie
+	if sortie:
+		sortie.collision_mask = 1
+		sortie.body_entered.connect(_on_metro_sortie_entered)
+
+
+func _on_metro_sortie_entered(body: Node2D) -> void:
+	if body != time_aunote or not can_move:
+		return
+
+	can_move = false
+	time_aunote.hide()
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = true
+
+	var vp := get_viewport().get_visible_rect().size
+	var text_label := Label.new()
+	text_label.text = "Vous arrivez devant la tour de Alfredo Sinko Nochez"
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.add_theme_font_size_override("font_size", 24)
+	text_label.add_theme_color_override("font_color", Color.WHITE)
+	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_label.custom_minimum_size = Vector2(600, 0)
+	text_label.position = Vector2(vp.x / 2.0 - 300, vp.y / 2.0 - 60)
+	text_label.size = Vector2(600, 120)
+	fade_layer.add_child(text_label)
+
+	$ObjectiveHUD.hide()
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+
+	await get_tree().create_timer(3.0).timeout
+
+	if is_instance_valid(text_label):
+		text_label.queue_free()
+
+	_play_cinematique_futur()
 
 
 func _go_to_basement() -> void:
@@ -390,6 +435,61 @@ func _transition_to_metro() -> void:
 	can_move = true
 
 
+func _play_cinematique_futur() -> void:
+	var video_layer := CanvasLayer.new()
+	video_layer.layer = 200
+	add_child(video_layer)
+
+	var video_player := VideoStreamPlayer.new()
+	var stream := VideoStreamTheora.new()
+	stream.file = "res://art/Futur/cinematique_futur.ogv"
+	video_player.stream = stream
+	video_player.expand = true
+	video_player.anchor_left = 0.0
+	video_player.anchor_right = 1.0
+	video_player.anchor_top = 0.0
+	video_player.anchor_bottom = 1.0
+	video_layer.add_child(video_player)
+	video_player.play()
+
+	video_player.finished.connect(_on_cinematique_finished.bind(video_layer, video_player))
+
+
+func _on_cinematique_finished(video_layer: CanvasLayer, video_player: VideoStreamPlayer) -> void:
+	if is_instance_valid(video_player):
+		video_player.queue_free()
+	if is_instance_valid(video_layer):
+		video_layer.queue_free()
+	_transition_to_tower()
+
+
+func _transition_to_tower() -> void:
+	var zone_escalier = $"fondFutur/escalier/zone-escalier"
+	if zone_escalier:
+		zone_escalier.monitoring = false
+
+	$FondMetro.hide()
+	$FondTour.show()
+
+	time_aunote.global_position = $FondTour/Marker/Entrée.global_position
+	time_aunote.show()
+	time_aunote.modulate.a = 1.0
+	time_aunote.scale = Vector2(0.35, 0.35)
+	time_aunote.rotation = 0.0
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = false
+
+	$ObjectiveHUD.show()
+	_update_objective("Entrer dans la tour d'Alfredo Sinko Nochez")
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	can_move = true
+
+
 func _show_superette_npcs() -> void:
 	if not is_inside_tree():
 		return
@@ -480,6 +580,34 @@ func start(spawn_id: String = "entree") -> void:
 		stopped = false
 		_update_objective("Parler aux personnes du sous-sol")
 		_setup_car_minigame()
+		return
+
+	if spawn_id == "tour":
+		var zone_escalier = $"fondFutur/escalier/zone-escalier"
+		if zone_escalier:
+			zone_escalier.monitoring = false
+		$fondFutur.hide()
+		$SousSol.hide()
+		$FondSuperette.hide()
+		$FondMetro.hide()
+		_set_upper_collisions(false)
+		_set_basement_collisions(false)
+		_set_superette_collisions(false)
+		$"pnj-futur".hide()
+		$"pnj-cheffe".hide()
+		$FondTour.show()
+		time_aunote.global_position = $FondTour/Marker/Entrée.global_position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(0.35, 0.35)
+		time_aunote.rotation = 0.0
+		var collision_node_tour := time_aunote.get_node("collision") as CollisionShape2D
+		collision_node_tour.disabled = false
+		can_move = true
+		started = true
+		stopped = false
+		$ObjectiveHUD.show()
+		_update_objective("Entrer dans la tour d'Alfredo Sinko Nochez")
 		return
 
 	time_aunote.position = position_entree_principale

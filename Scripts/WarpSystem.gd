@@ -16,6 +16,8 @@ var destinations := {
 	"futur_entree":		{"zone": "futur", "name": "Futur — Entrée", "id": "entree"},
 	"futur_soussol":	{"zone": "futur", "name": "Futur — Sous-sol", "id": "soussol"},
 	"futur_superette":	{"zone": "futur", "name": "Futur — Supérette", "id": "superette"},
+	"futur_metro":		{"zone": "futur", "name": "Futur — Métro (QG Alfredo)", "id": "metro"},
+	"futur_tour":		{"zone": "futur", "name": "Futur — Tour Alfredo", "id": "tour"},
 }
 
 var zone_order := ["hub", "moyenage", "present", "futur"]

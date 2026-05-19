@@ -57,7 +57,7 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
   - **MiniJeuMarchandage** (`Scripts/MiniJeuMarchandage.gd`, ~660 lines): CanvasLayer-based catching minigame (single phase)
     - **8 rounds** total: 5 good items to catch + 3 decoys (red, ⚠) to dodge
     - Win condition: `good_catches >= 4 AND decoy_caught <= 1` → `done(true)`
-    - **Difficulty curve**: fall duration 2.0s → 0.62s, catch radius constant 55px across rounds
+    - **Difficulty curve**: fall duration 2.0s → 0.62s, catch radius progressive 60→75px (was constant 55px)
     - **Parabolic trajectory** with random arc height (clamped to viewport) and lateral wobble that grows with round index
     - **Merchant moves** between 4 horizontal positions each round; throw originates from merchant position
     - **Player sprites**: `perso_idle_face.png` / `perso_marche_face1/2.png` (hframes=2, frame=0), animated on move
@@ -70,6 +70,16 @@ Each era sets `collision_mask` to its own layer (e.g. HUB→2, MoyenAge→4).
     - Emits `done(success: bool)` — interface unchanged, `magasin_moyen_age.gd` requires no edits
 	- **Known calibration**: `PLAYER_SPEED = 720`, landing zone margins 110px — worst-case distance (402px) always reachable in every round's fall duration
 - `pnj_roi.gd`: standard PNJ pattern with `ZoneDialogue`, `show_bubble/hide_bubble`, `add_to_group("npc_dialogue")`
+- `auberge_moyen_age.gd`: tavern sub-zone — managed 3-table eavesdropping + aubergiste PNJ
+  - **Gating**: entry blocked unless `TimeAunoteScript.disguised` is true; table prompts hidden until aubergiste spoken to
+  - **Eavesdropping minigame** (`Scripts/MiniJeuEcouteTables.gd`, ~227 lines): CanvasLayer-based — hold E to lean in, release to pull back
+	- **3 rounds** (one per table), green zone oscillates on a vertical bar; fill "Infos glanées" gauge before "Éveil des soupçons"
+	- **Lose = reset ALL 3 tables** — must redo everything
+	- `ROUND_CONFIG` drives per-round `[green_speed, info_rate, attn_rate, dir_min, dir_max]`; difficulty ramps across tables
+	- Win all 3 → completes `etape_enqueter_foret`, reveals "assassin → forêt au nord"
+	- `stop_table_minigame()` frees the CanvasLayer instance; `auberge_moyen_age.stop()` calls it on zone exit
+  - `pnj_aubergiste.gd`: standard PNJ pattern, gating flag `_spoken_to_aubergiste`
+- **Bug gotcha**: `magasin_moyen_age.gd._show_disguise_message()` creates a Label on `prompt_layer` with a 4.5s fade-out timer. If player exits before timer fires, `stop()` must explicitly `queue_free()` the stored `_disguise_label` reference, otherwise `process_mode = PROCESS_MODE_DISABLED` prevents the tween from running and the label persists forever.
 
 ## Futur specific
 - `Futur.gd`: escalier zone → `_go_to_basement()` fades out fondFutur, shows SousSol sub-zone

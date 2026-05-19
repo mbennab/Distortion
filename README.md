@@ -108,13 +108,28 @@ Le marchand vous lance ses affaires — attrapez les bons vêtements, esquivez l
 | **Rounds** | 8 lancers (5 bons vêtements + 3 pièges mélangés aléatoirement) |
 | **Contrôle** | ← → pour déplacer le personnage |
 | **Items** | Bons items en couleur tissu — pièges en rouge avec ⚠ |
-| **Difficulté** | Durée de chute 2.0 s → 0.62 s, zone d'attrape 55 px → 13 px |
+| **Difficulté** | Durée de chute 2.0 s → 0.62 s, rayon d'attrape progressif 60 → 75 px (+6% à +24%) |
 | **Trajectoires** | Arc parabolique aléatoire + déviation latérale croissante (wobble) |
 | **Marchand** | Se déplace entre 4 positions — le lancer part depuis sa position |
 | **Sprites** | Personnage joueur et marchand en pixel art réel |
 | **Barre d'objectifs** | Affichage temps réel `🎯 X/4 vêtements · ⚠ Y/2 pièges` |
 
 Résultat : `done(true)` → déguisement obtenu, progression vers la sortie du Moyen Âge.
+
+### Écoute aux Tables (auberge médiévale)
+L'aubergiste vous permet d'espionner les conversations des clients pour glaner des informations sur l'assassin.
+
+**Objectif :** remplir la jauge « Infos glanées » avant « Éveil des soupçons » sur les 3 tables.
+
+| Élément | Détail |
+|---------|--------|
+| **Rounds** | 3 tables, difficulté croissante |
+| **Contrôle** | Maintenir `E` pour se pencher (monter), relâcher pour se redresser (descendre) |
+| **Mécanique** | Zone verte oscillante sur une barre verticale — rester dedans remplit les infos |
+| **Échec** | Reset complet des 3 tables si la jauge de soupçons se remplit |
+| **Victoire** | L'assassin portait une cape sombre et s'est enfui vers la forêt au nord ! |
+
+Résultat : complète l'étape `etape_enqueter_foret` de la quête `quete_piste_assassin`.
 
 ### Crochetage (prison)
 Mini-jeu de timing : appuyer sur E quand l'indicateur passe dans la zone verte pour crocheter la serrure en 5 étapes.

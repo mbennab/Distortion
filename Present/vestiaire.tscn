@@ -2,7 +2,46 @@
 
 [ext_resource type="Texture2D" uid="uid://dqh76a0jnbbju" path="res://art/Present/vestiaire.png" id="1_bbw7r"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bbw7r"]
+size = Vector2(401.5, 150.5)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gja17"]
+radius = 161.0
+height = 488.0
+
 [node name="Vestiaire" type="Node2D" unique_id=368032887]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=437247911]
+position = Vector2(1211.0001, 817)
+scale = Vector2(1.4425837, 1.7136025)
 texture = ExtResource("1_bbw7r")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=519466864]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="limites" type="StaticBody2D" parent="." unique_id=994337478]
+collision_layer = 0
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limites" unique_id=1578702398]
+build_mode = 1
+polygon = PackedVector2Array(219, 1527, 987, 1539, 1003, 1612, 1408, 1612, 1412, 1547, 2425, 1539, 2330, 908, 1225, 909, 1214, 811, 1092, 803, 1092, 852, 910, 852, 902, 1109, 255, 1111, 243, 872, 118, 864, 122, 1062, 78, 1352, 222, 1366)
+
+[node name="table" type="CollisionPolygon2D" parent="limites" unique_id=795060796]
+polygon = PackedVector2Array(1617, 1016, 1583, 1429, 1695, 1503, 1793, 1436, 1875, 1500, 1955, 1445, 2056, 1509, 2179, 1439, 2163, 1222, 2122, 1005, 2026, 939, 2001, 1048, 1914, 968, 1814, 975, 1754, 1037, 1725, 946, 1624, 996)
+
+[node name="Node2D" type="Node2D" parent="." unique_id=488943378]
+
+[node name="zone pop" type="Marker2D" parent="Node2D" unique_id=1923462160]
+position = Vector2(1208, 1480)
+
+[node name="event" type="Area2D" parent="." unique_id=853454452]
+collision_layer = 0
+
+[node name="couloir" type="CollisionShape2D" parent="event" unique_id=144237464]
+position = Vector2(1211.25, 1633)
+shape = SubResource("RectangleShape2D_bbw7r")
+
+[node name="ordi" type="CollisionShape2D" parent="event" unique_id=2040575599]
+position = Vector2(1714, 1278)
+shape = SubResource("CapsuleShape2D_gja17")
