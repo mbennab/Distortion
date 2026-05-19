@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://7ehnjutvjerd"]
 
-[ext_resource type="Texture2D" uid="uid://cd1y5qgmf6lqy" path="res://art/Futur/fond-futur.png" id="1_yp6m1"]
+[ext_resource type="Texture2D" uid="uid://cebjyuqsmu8o6" path="res://art/Futur/fond-futur.png" id="1_yp6m1"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_yp6m1"]
 radius = 74.10803
@@ -68,6 +68,7 @@ position = Vector2(420, 1172)
 [node name="escalier" type="Node2D" parent="." unique_id=915031175]
 
 [node name="zone-escalier" type="Area2D" parent="escalier" unique_id=1065046573]
+collision_layer = 2048
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="escalier/zone-escalier" unique_id=531818562]
 position = Vector2(2041, 1430)
