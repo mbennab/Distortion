@@ -3,13 +3,13 @@
 [ext_resource type="Texture2D" uid="uid://e1t2bl3ky10m" path="res://art/Present/hall_entree.png" id="1_qcua4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qcua4"]
-size = Vector2(89, 150.5)
+size = Vector2(204.5, 449.25)
 
 [node name="Hall" type="Node2D" unique_id=799257370]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=891860409]
-position = Vector2(511.00003, 341.6875)
-scale = Vector2(0.7067773, 0.62431)
+position = Vector2(1225, 845.6876)
+scale = Vector2(1.6943293, 1.5516331)
 texture = ExtResource("1_qcua4")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1817887184]
@@ -20,17 +20,19 @@ zoom = Vector2(0.422, 0.422)
 collision_layer = 0
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Camera2D/limites" unique_id=780667944]
+position = Vector2(71.084, -74.94358)
+scale = Vector2(2.322019, 2.5651798)
 build_mode = 1
-polygon = PackedVector2Array(623, 667, 395, 669, 402, 604, 197, 592, 204, 538, 196, 468, 155, 459, 175, 350, 175, 328, 127, 320, 100, 294, 99, 279, 143, 280, 153, 226, 387, 228, 427, 230, 447, 228, 477, 219, 544, 217, 617, 224, 742, 229, 744, 296, 866, 294, 926, 293, 932, 392, 960, 513, 910, 514, 905, 466, 827, 466, 823, 530, 826, 586, 621, 588)
+polygon = PackedVector2Array(623, 667, 380.66696, 661.91986, 382.3896, 602.66473, 220.46156, 604.22406, 172.22769, 606.5631, 164.47581, 485.7139, 129.16173, 452.96768, 139.49756, 348.49158, 92.98631, 339.1355, 92.98631, 328.99976, 67.14673, 330.5591, 67.14673, 286.89746, 117.96457, 283.77875, 123.13249, 224.52365, 387, 228, 403.92258, 224.52365, 426.3169, 220.62529, 477, 219, 544, 217, 617, 224, 745.005, 221.40495, 744, 296, 866, 294, 926, 293, 937.0792, 389.8142, 963.7801, 526.25684, 900.9038, 539.5113, 897.4585, 479.47653, 838.02747, 481.0359, 826.8303, 488.8326, 832.85956, 604.22406, 616.6684, 605.0038)
 
 [node name="Node2D" type="Node2D" parent="Camera2D" unique_id=981326771]
 
 [node name="zone pop" type="Marker2D" parent="Camera2D/Node2D" unique_id=1295994613]
-position = Vector2(508, 639)
+position = Vector2(1210, 1447)
 
 [node name="couloir" type="Area2D" parent="Camera2D" unique_id=1778215358]
 collision_layer = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/couloir" unique_id=1943054152]
-position = Vector2(509, 156.75)
+position = Vector2(1222.75, 402.375)
 shape = SubResource("RectangleShape2D_qcua4")
