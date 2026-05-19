@@ -31,7 +31,7 @@ radius = 120.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1197646774]
 sprite_frames = SubResource("SpriteFrames_408xp")
-frame_progress = 0.75546056
+frame_progress = 0.10695344
 
 [node name="ZoneDialogue" type="Area2D" parent="." unique_id=274579071]
 collision_layer = 0

@@ -11,6 +11,7 @@ var destinations := {
 	"moyenage_magasin":	{"zone": "moyenage", "name": "Moyen Âge — Magasin", "id": "magasin"},
 	"moyenage_ville":	{"zone": "moyenage", "name": "Moyen Âge — Ville", "id": "ville"},
 	"moyenage_auberge":	{"zone": "moyenage", "name": "Moyen Âge — Auberge", "id": "auberge"},
+	"moyenage_parc":	{"zone": "moyenage", "name": "Moyen Âge — Parc", "id": "parc"},
 	"present_entree":	{"zone": "present", "name": "Present — Entrée", "id": "entree"},
 	"futur_entree":		{"zone": "futur", "name": "Futur — Entrée", "id": "entree"},
 	"futur_soussol":	{"zone": "futur", "name": "Futur — Sous-sol", "id": "soussol"},

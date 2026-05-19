@@ -1,21 +1,43 @@
-[gd_scene format=3 uid="uid://bnqvm2d1b7waa"]
+[gd_scene format=3 uid="uid://c3n5doqtonal7"]
 
-[ext_resource type="Script" uid="uid://twrdh48jx3xq" path="res://MoyenAge/pnj_femme.gd" id="1_gd"]
-[ext_resource type="Texture2D" uid="uid://b3gjw3pq07jri" path="res://art/MoyenAge/femme.png" id="2_femme"]
+[ext_resource type="Script" uid="uid://dpn2nqsg3epop" path="res://MoyenAge/pnj_femme.gd" id="1_gd"]
+[ext_resource type="Texture2D" uid="uid://bk56dvysx4v35" path="res://art/MoyenAge/femme.png" id="2_femme"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_osq78"]
+atlas = ExtResource("2_femme")
+region = Rect2(0, 0, 266, 468)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4ukt7"]
+atlas = ExtResource("2_femme")
+region = Rect2(266, 0, 266, 468)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_femme"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_osq78")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4ukt7")
+}],
+"loop": true,
+"name": &"default",
+"speed": 1.0
+}]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_detect"]
 radius = 120.0
 
-[node name="pnj-femme" type="Node2D"]
+[node name="pnj-femme" type="Node2D" unique_id=782132640]
 script = ExtResource("1_gd")
 
-[node name="sprite_femme" type="Sprite2D" parent="."]
-scale = Vector2(0.13, 0.13)
-texture = ExtResource("2_femme")
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1173113856]
+scale = Vector2(0.55, 0.55)
+sprite_frames = SubResource("SpriteFrames_femme")
+frame_progress = 0.49571967
 
-[node name="ZoneDialogue" type="Area2D" parent="."]
+[node name="ZoneDialogue" type="Area2D" parent="." unique_id=1307111654]
 collision_layer = 0
-collision_mask = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue" unique_id=72092308]
 shape = SubResource("CircleShape2D_detect")

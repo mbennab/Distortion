@@ -258,6 +258,25 @@ func start(spawn_id: String = "entree") -> void:
 			_update_objective("Explorer la ville")
 			return
 
+		"parc":
+			$fondMoyenAge.hide()
+			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
+			pnj_roi.hide()
+			pnj_roi.get_node("ZoneDialogue").monitoring = false
+			parc.start()
+			time_aunote.position = parc.get_node("markers2D/apparition").position
+			time_aunote.show()
+			time_aunote.modulate.a = 1.0
+			time_aunote.scale = Vector2(0.8, 0.8)
+			time_aunote.rotation = 0.0
+			can_move = true
+			var col_parc := time_aunote.get_node("collision") as CollisionShape2D
+			col_parc.disabled = false
+			started = true
+			stopped = false
+			_update_objective("Enquêter dans la forêt au nord")
+			return
+
 		_:
 			time_aunote.position = position_entree_principale
 			if prison:
