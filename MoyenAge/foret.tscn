@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://cxyhdm1xuaoe6"]
+
+[ext_resource type="Texture2D" uid="uid://bybsurcc80nhe" path="res://art/MoyenAge/forêt.png" id="1_7dshn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_iauno"]
+size = Vector2(295, 60)
+
+[node name="foret" type="Node2D" unique_id=583749073]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=58625958]
+position = Vector2(1214.25, 807)
+scale = Vector2(0.9977413, 1.0744681)
+texture = ExtResource("1_7dshn")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1042490480]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1339515473]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1434096930]
+build_mode = 1
+polygon = PackedVector2Array(1923, 2, 1925, 406, 2042.938, 447.0337, 2075, 566, 2131, 540, 2191, 581, 2182, 872, 1958, 895, 1954, 974, 1807, 969, 1766, 1040, 1672, 1056, 1598, 1195, 1468, 1193, 1391, 1129, 1372, 1054, 1310, 1044, 1228, 973, 1068, 880, 1061, 795, 815, 799, 796, 709, 732, 739, 823, 875, 644, 971, 583, 918, 609.74194, 1039.0868, 500, 1039, 566, 1108, 732, 1042, 812, 1242, 970, 1222, 1105, 1226, 1162, 1292, 1234, 1290, 1247, 1364, 1311, 1377, 1311, 1464, 1483, 1468, 1521, 1430, 1600, 1428, 1628, 1475, 1751, 1475, 1808, 1400, 1936, 1401, 1983, 1302, 2013, 1305, 2021, 1424, 2089, 1392, 2223, 1398, 2317, 1426, 2366, 1400, 2424, 1413, 2426, 374, 2379, 363, 2379, 285, 2302, 284, 2298, 108, 2221, 102, 2221, 2)
+
+[node name="markers2D" type="Node2D" parent="." unique_id=170426450]
+
+[node name="apparition" type="Marker2D" parent="markers2D" unique_id=394458256]
+position = Vector2(2083, 172)
+
+[node name="area2D" type="Node2D" parent="." unique_id=1185724470]
+
+[node name="sortie" type="Area2D" parent="area2D" unique_id=854126766]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="area2D/sortie" unique_id=746336480]
+position = Vector2(2072.5, 35)
+shape = SubResource("RectangleShape2D_iauno")
