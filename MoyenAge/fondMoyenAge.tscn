@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://cf0nq8bk1pvxm"]
 
-[ext_resource type="Texture2D" uid="uid://ri7m227i1bxn" path="res://art/MoyenAge/fond_moyen-age.png" id="1_bg"]
+[ext_resource type="Texture2D" uid="uid://bcgriy3dfrkd3" path="res://art/MoyenAge/chateau.png" id="1_4pknn"]
 
 [node name="fondMoyenAge" type="Node2D" unique_id=358863711]
 
 [node name="image" type="Sprite2D" parent="." unique_id=1394868288]
-position = Vector2(-64.99999, -86.00001)
-scale = Vector2(0.90909076, 1.108073)
-texture = ExtResource("1_bg")
+position = Vector2(-66, -85)
+scale = Vector2(1.5111896, 1.8336931)
+texture = ExtResource("1_4pknn")
 centered = false
 
 [node name="Markers2D" type="Node2D" parent="." unique_id=468515979]
