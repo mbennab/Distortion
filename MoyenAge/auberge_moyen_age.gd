@@ -138,7 +138,7 @@ func _on_table_minigame_done(success: bool) -> void:
 func _on_all_tables_done() -> void:
 	var vp := get_viewport().get_visible_rect().size
 	var label := Label.new()
-	label.text = "D'après les rumeurs entendues,\nl'assassin portait une cape sombre\net s'est enfui vers la forêt au nord !"
+	label.text = "D'après les rumeurs entendues,\nune femme située dans le parc à l'est\naurait un lien avec l'assassin"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

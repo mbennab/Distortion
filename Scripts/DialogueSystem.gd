@@ -10,6 +10,7 @@ signal dialogue_response(npc_name: String, text: String)
 signal dialogue_error(message: String)
 signal quest_updated(quest_id: String, status: String, current_step: String)
 signal action_triggered(action: Dictionary)
+signal player_message_submitted(message: String)
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 const MODEL = "mistralai/mistral-small-3.2-24b-instruct"
@@ -158,6 +159,8 @@ func send_message(player_message: String) -> void:
 	print("[DialogueSystem] send_message: '%s' (msg #%d)" % [player_message, _message_count + 1])
 	_message_count += 1
 
+	player_message_submitted.emit(player_message)
+
 	var intentions = filter_intentions(current_npc_id)
 	if intentions.is_empty():
 		var fallback = get_fallback(current_npc_id, "default_template")
@@ -283,8 +286,8 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 		else:
 			print("[DialogueSystem] Action rejetée (invalide): %s" % str(action))
 
-	# Filet de sécurité : forcer l'action après 5 messages si le PNJ en a une
-	if not action_emitted and _message_count >= 5:
+	# Filet de sécurité : forcer l'action après 2 messages si le PNJ en a une
+	if not action_emitted and _message_count >= 2:
 		for intent in current_npc.get("intentions", []):
 			var forced_action = intent.get("action")
 			if forced_action != null and forced_action is Dictionary and forced_action.get("type") == "trigger":
