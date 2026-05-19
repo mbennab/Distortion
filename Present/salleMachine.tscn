@@ -2,11 +2,35 @@
 
 [ext_resource type="Texture2D" uid="uid://cktiykf04ouov" path="res://art/Present/salle_machine.png" id="1_qf2w6"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qf2w6"]
+size = Vector2(506.25, 158.25)
+
 [node name="SalleMachine" type="Node2D" unique_id=920027068]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=692671536]
+position = Vector2(1213.5, 807.4999)
+scale = Vector2(1.4527512, 1.833156)
 texture = ExtResource("1_qf2w6")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1374627938]
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
+
+[node name="limites" type="StaticBody2D" parent="." unique_id=831721981]
+collision_layer = 0
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limites" unique_id=752878420]
+build_mode = 1
+polygon = PackedVector2Array(1354, 1600, 1034, 1603, 1111, 1511, 247, 1467, 243, 1239, 398, 1261, 457, 1214, 471, 1166, 677, 1181, 681, 1059, 674, 901, 622, 879, 545, 824, 758, 824, 751, 739, 813, 725, 824, 670, 810, 578, 736, 504, 670, 445, 824, 449, 846, 486, 975, 486, 975, 508, 1199, 511, 1240, 813, 1460, 831, 1486, 1203, 1666, 1221, 1688, 1475, 1306, 1475)
+
+[node name="Node2D" type="Node2D" parent="." unique_id=1451128677]
+
+[node name="zone pop" type="Marker2D" parent="Node2D" unique_id=189963620]
+position = Vector2(1199, 1415)
+
+[node name="couloir" type="Area2D" parent="." unique_id=1961255036]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="couloir" unique_id=1675863665]
+position = Vector2(1189, 1617)
+shape = SubResource("RectangleShape2D_qf2w6")

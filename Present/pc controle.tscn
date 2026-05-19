@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://b37iu2280wk6q"]
+
+[ext_resource type="Texture2D" uid="uid://biulrg1l58qig" path="res://art/Present/pc_controle.png" id="1_jhfkv"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0f3ii"]
+size = Vector2(458.5, 217)
+
+[node name="PcControle" type="Node2D" unique_id=1354360489]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2016706189]
+scale = Vector2(1.4886849, 1.7255716)
+texture = ExtResource("1_jhfkv")
+centered = false
+
+[node name="limiteParking" type="StaticBody2D" parent="." unique_id=1458314634]
+collision_layer = 0
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limiteParking" unique_id=572141294]
+build_mode = 1
+polygon = PackedVector2Array(1003, 1603, 1323, 1611, 1371, 1530, 1877, 1522, 1873, 1182, 2144, 1105, 2225, 1316, 2362, 1320, 2289, 798, 1929, 782, 1937, 931, 1869, 1077, 478, 1093, 401, 1008, 393, 762, 316, 762, 288, 919, 126, 915, 73, 1271, 170, 1324, 215, 1202, 239, 1077, 514, 1166, 542, 1502, 943, 1514)
+
+[node name="Node2D" type="Node2D" parent="." unique_id=1168375107]
+
+[node name="zone pop" type="Marker2D" parent="Node2D" unique_id=852545972]
+position = Vector2(1183, 1501)
+
+[node name="couloir" type="Area2D" parent="." unique_id=912812924]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="couloir" unique_id=696588291]
+position = Vector2(1154.75, 1670)
+shape = SubResource("RectangleShape2D_0f3ii")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=601496767]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
