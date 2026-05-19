@@ -12,7 +12,6 @@
 [ext_resource type="PackedScene" uid="uid://r7tyc432jnge" path="res://MoyenAge/auberge.tscn" id="10_auberge"]
 [ext_resource type="Script" path="res://MoyenAge/auberge_moyen_age.gd" id="11_auberge_gd"]
 [ext_resource type="PackedScene" uid="uid://cwslxj2dvam3i" path="res://MoyenAge/parc_moyen_age.tscn" id="12_parc"]
-[ext_resource type="Script" path="res://MoyenAge/parc_moyen_age.gd" id="13_parc_gd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ma"]
 bg_color = Color(0.08, 0.08, 0.15, 0.85)
@@ -81,5 +80,4 @@ script = ExtResource("11_auberge_gd")
 visible = false
 
 [node name="parc_moyen_age" parent="." instance=ExtResource("12_parc")]
-script = ExtResource("13_parc_gd")
 visible = false

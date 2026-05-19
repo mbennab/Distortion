@@ -1,8 +1,8 @@
 extends Node2D
 
-@export var npc_id: String = "npc_aubergiste_moyenage"
-@export var npc_name: String = "L'Aubergiste"
-@export var portrait_path: String = "res://art/MoyenAge/portrait_aubergiste.png"
+@export var npc_id: String = "npc_femme_parc"
+@export var npc_name: String = "La Femme du Parc"
+@export var portrait_path: String = ""
 
 var zone_dialogue: Area2D
 var player_nearby: bool = false

@@ -1,11 +1,14 @@
 [gd_scene format=3 uid="uid://cwslxj2dvam3i"]
 
 [ext_resource type="Texture2D" uid="uid://dfqlh2pjdika0" path="res://art/MoyenAge/parc.png" id="1_hm5t4"]
+[ext_resource type="Script" path="res://MoyenAge/parc_moyen_age.gd" id="2_parc_gd"]
+[ext_resource type="PackedScene" path="res://MoyenAge/pnj_femme.tscn" id="3_femme"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hm5t4"]
 size = Vector2(59, 179)
 
 [node name="parc_moyen-age" type="Node2D" unique_id=1396648869]
+script = ExtResource("2_parc_gd")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1067175253]
 position = Vector2(1213.5, 808.5)
@@ -42,3 +45,5 @@ position = Vector2(77, 950)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/sortieGauche" unique_id=157432785]
 position = Vector2(-47.5, -32.5)
 shape = SubResource("RectangleShape2D_hm5t4")
+
+[node name="femme" parent="." instance=ExtResource("3_femme")]

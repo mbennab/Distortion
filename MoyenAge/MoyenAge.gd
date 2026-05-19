@@ -476,6 +476,11 @@ func _on_auberge_all_tables_done() -> void:
 	can_move = true
 
 
+func _on_femme_friendship_done() -> void:
+	_update_objective("L'assassin est dans la forêt au nord")
+	can_move = true
+
+
 func _on_prison_sortie_entered(body: Node2D) -> void:
 	if body != time_aunote or _sortie_triggered:
 		return
