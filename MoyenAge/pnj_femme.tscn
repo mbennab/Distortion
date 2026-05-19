@@ -38,6 +38,7 @@ frame_progress = 0.49571967
 
 [node name="ZoneDialogue" type="Area2D" parent="." unique_id=1307111654]
 collision_layer = 0
+collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue" unique_id=72092308]
 shape = SubResource("CircleShape2D_detect")

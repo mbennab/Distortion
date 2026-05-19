@@ -338,48 +338,6 @@
 		"unknown": "Hein ? Désolé mon gars, j'ai pas tout suivi. Mais si tu veux parler du roi ou de la forêt, j'suis là.",
 		"default_template": "Le roi est mort, la ville est en ébullition, et les gardes arrêtent tout le monde. Si tu veux mon avis, l'assassin s'est enfui vers la forêt au nord. Mais c'est toi qui vois."
 	  }
-	}
-  ],
-  "quests": [
-	{
-	  "id": "quete_enquete_roi",
-	  "title": "Enquêter sur l'assassinat du roi",
-	  "status": "active",
-	  "requires_quests": [],
-	  "steps": [
-		{"id": "etape_parler_roi", "description": "Parler au roi mourant dans la salle du trône", "completed": false},
-		{"id": "etape_indices", "description": "Recueillir des indices sur l'assassin", "completed": false}
-	  ]
-	},
-	{
-	  "id": "quete_evasion",
-	  "title": "S'échapper de la prison",
-	  "status": "not_started",
-	  "requires_quests": [],
-	  "steps": [
-		{"id": "etape_crocheter", "description": "Crocheter la serrure de la cellule", "completed": false},
-		{"id": "etape_sortir", "description": "Trouver la sortie de la prison", "completed": false}
-	  ]
-	},
-	{
-	  "id": "quete_deguisement",
-	  "title": "Obtenir un déguisement",
-	  "status": "not_started",
-	  "requires_quests": ["quete_evasion"],
-	  "steps": [
-		{"id": "etape_parler_marchand", "description": "Parler au marchand dans son échoppe", "completed": false},
-		{"id": "etape_marchander", "description": "Marchander des habits dans l'armoire du fond", "completed": false}
-	  ]
-	},
-	{
-	  "id": "quete_piste_assassin",
-	  "title": "Suivre la piste de l'assassin",
-	  "status": "not_started",
-	  "requires_quests": ["quete_deguisement"],
-	  "steps": [
-		{"id": "etape_enqueter_foret", "description": "Enquêter dans la forêt au nord de la ville", "completed": false},
-		{"id": "etape_trouver_assassin", "description": "Retrouver l'assassin du roi", "completed": false}
-	  ]
 	},
 	{
 	  "id": "npc_femme_parc",
@@ -460,6 +418,48 @@
 		  "default_template": "La forêt au nord… souviens-toi. C'est là que tu trouveras des réponses."
 		}
 	  }
+	}
+  ],
+  "quests": [
+	{
+	  "id": "quete_enquete_roi",
+	  "title": "Enquêter sur l'assassinat du roi",
+	  "status": "active",
+	  "requires_quests": [],
+	  "steps": [
+		{"id": "etape_parler_roi", "description": "Parler au roi mourant dans la salle du trône", "completed": false},
+		{"id": "etape_indices", "description": "Recueillir des indices sur l'assassin", "completed": false}
+	  ]
+	},
+	{
+	  "id": "quete_evasion",
+	  "title": "S'échapper de la prison",
+	  "status": "not_started",
+	  "requires_quests": [],
+	  "steps": [
+		{"id": "etape_crocheter", "description": "Crocheter la serrure de la cellule", "completed": false},
+		{"id": "etape_sortir", "description": "Trouver la sortie de la prison", "completed": false}
+	  ]
+	},
+	{
+	  "id": "quete_deguisement",
+	  "title": "Obtenir un déguisement",
+	  "status": "not_started",
+	  "requires_quests": ["quete_evasion"],
+	  "steps": [
+		{"id": "etape_parler_marchand", "description": "Parler au marchand dans son échoppe", "completed": false},
+		{"id": "etape_marchander", "description": "Marchander des habits dans l'armoire du fond", "completed": false}
+	  ]
+	},
+	{
+	  "id": "quete_piste_assassin",
+	  "title": "Suivre la piste de l'assassin",
+	  "status": "not_started",
+	  "requires_quests": ["quete_deguisement"],
+	  "steps": [
+		{"id": "etape_enqueter_foret", "description": "Enquêter dans la forêt au nord de la ville", "completed": false},
+		{"id": "etape_trouver_assassin", "description": "Retrouver l'assassin du roi", "completed": false}
+	  ]
 	}
   ],
   "mini_games": [],
