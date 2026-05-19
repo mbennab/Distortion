@@ -20,6 +20,8 @@ var prison
 var magasin
 var ville
 var auberge
+var parc
+var _auberge_tables_done := false
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
 var _sortie_triggered := false
@@ -64,6 +66,12 @@ func _ready() -> void:
 		var static_auberge = auberge.get_node_or_null("StaticBody2D")
 		if static_auberge:
 			static_auberge.collision_layer = 0
+	parc = $parc_moyen_age
+	if parc:
+		parc.hide()
+		var static_parc = parc.get_node_or_null("collisions")
+		if static_parc:
+			static_parc.collision_layer = 0
 	_setup_fade_overlay()
 
 func _setup_spawn_particles() -> void:
@@ -316,6 +324,8 @@ func stop() -> void:
 		ville.stop()
 	if auberge:
 		auberge.stop()
+	if parc:
+		parc.stop()
 	_cleanup_knights()
 
 
@@ -461,6 +471,7 @@ func _on_auberge_table_minigame_success() -> void:
 
 
 func _on_auberge_all_tables_done() -> void:
+	_auberge_tables_done = true
 	_update_objective("Enquêter dans la forêt au nord")
 	can_move = true
 
@@ -654,6 +665,77 @@ func _on_auberge_exit() -> void:
 	auberge.stop()
 	ville.start()
 	time_aunote.global_position = ville.get_node("markers2D/auberge").global_position
+	time_aunote.scale = Vector2(0.4, 0.4)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	_update_objective("Explorer la ville")
+	can_move = true
+
+
+func _on_ville_to_parc() -> void:
+	if not _auberge_tables_done:
+		can_move = false
+		var label := Label.new()
+		label.text = "Je devrais d'abord enquêter à l'auberge"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", 20)
+		label.add_theme_color_override("font_color", Color(1, 1, 1))
+		label.custom_minimum_size = Vector2(500, 0)
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0.75)
+		style.corner_radius_top_left = 8
+		style.corner_radius_top_right = 8
+		style.corner_radius_bottom_left = 8
+		style.corner_radius_bottom_right = 8
+		label.add_theme_stylebox_override("normal", style)
+		label.z_index = 100
+		label.position = time_aunote.global_position + Vector2(-250, -200)
+		add_child(label)
+
+		await get_tree().create_timer(2.5).timeout
+		if is_instance_valid(label):
+			label.queue_free()
+		can_move = true
+		return
+
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	ville.stop()
+	parc.start()
+	time_aunote.global_position = parc.get_node("markers2D/apparition").global_position
+	time_aunote.scale = Vector2(0.8, 0.8)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	_update_objective("Enquêter dans la forêt au nord")
+	can_move = true
+
+
+func _on_parc_exit() -> void:
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	parc.stop()
+	ville.start()
+	time_aunote.global_position = ville.get_node("markers2D/parc").global_position
 	time_aunote.scale = Vector2(0.4, 0.4)
 
 	tween_fade = create_tween()
