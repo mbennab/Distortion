@@ -2,7 +2,35 @@
 
 [ext_resource type="Texture2D" uid="uid://e1t2bl3ky10m" path="res://art/Present/hall_entree.png" id="1_qcua4"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qcua4"]
+size = Vector2(89, 150.5)
+
 [node name="Hall" type="Node2D" unique_id=799257370]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=891860409]
+position = Vector2(511.00003, 341.6875)
+scale = Vector2(0.7067773, 0.62431)
 texture = ExtResource("1_qcua4")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1817887184]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="limites" type="StaticBody2D" parent="Camera2D" unique_id=538305750]
+collision_layer = 0
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Camera2D/limites" unique_id=780667944]
+build_mode = 1
+polygon = PackedVector2Array(623, 667, 395, 669, 402, 604, 197, 592, 204, 538, 196, 468, 155, 459, 175, 350, 175, 328, 127, 320, 100, 294, 99, 279, 143, 280, 153, 226, 387, 228, 427, 230, 447, 228, 477, 219, 544, 217, 617, 224, 742, 229, 744, 296, 866, 294, 926, 293, 932, 392, 960, 513, 910, 514, 905, 466, 827, 466, 823, 530, 826, 586, 621, 588)
+
+[node name="Node2D" type="Node2D" parent="Camera2D" unique_id=981326771]
+
+[node name="zone pop" type="Marker2D" parent="Camera2D/Node2D" unique_id=1295994613]
+position = Vector2(508, 639)
+
+[node name="couloir" type="Area2D" parent="Camera2D" unique_id=1778215358]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/couloir" unique_id=1943054152]
+position = Vector2(509, 156.75)
+shape = SubResource("RectangleShape2D_qcua4")
