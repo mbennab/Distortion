@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://bua03cjtdmffo" path="res://art/MoyenAge/ville.png" id="1_a8t86"]
 [ext_resource type="Texture2D" uid="uid://b1rly0mbths1d" path="res://art/MoyenAge/charette.png" id="2_t0ao7"]
-[ext_resource type="Script" path="res://MoyenAge/ville_moyen_age.gd" id="3_ville_gd"]
+[ext_resource type="Script" uid="uid://dq8u7qoud5yuf" path="res://MoyenAge/ville_moyen_age.gd" id="3_ville_gd"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8r2hw"]
 size = Vector2(108, 97)
@@ -12,6 +12,9 @@ size = Vector2(82, 61)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vl2ks"]
 size = Vector2(71, 79)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tol7f"]
+size = Vector2(55.5, 125)
 
 [node name="ville_moyen_age" type="Node2D" unique_id=40525661]
 script = ExtResource("3_ville_gd")
@@ -39,25 +42,29 @@ polygon = PackedVector2Array(447, 1204, 446, 1410, 304, 1407, 378, 1615, 1013, 1
 [node name="areas2D" type="Node2D" parent="." unique_id=615566627]
 
 [node name="chateau" type="Area2D" parent="areas2D" unique_id=1669649938]
-collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/chateau" unique_id=1996783234]
 position = Vector2(502, 1172)
 shape = SubResource("RectangleShape2D_8r2hw")
 
 [node name="magasin" type="Area2D" parent="areas2D" unique_id=2136524326]
-collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/magasin" unique_id=1978081732]
 position = Vector2(1560, 1126.5)
 shape = SubResource("RectangleShape2D_imwoe")
 
 [node name="auberge" type="Area2D" parent="areas2D" unique_id=1003274055]
-collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/auberge" unique_id=1167408965]
 position = Vector2(2119.5, 1163.5)
 shape = SubResource("RectangleShape2D_vl2ks")
+
+[node name="parc" type="Area2D" parent="areas2D" unique_id=121547329]
+position = Vector2(-200, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/parc" unique_id=1540616384]
+position = Vector2(2601.75, 1348)
+shape = SubResource("RectangleShape2D_tol7f")
 
 [node name="markers2D" type="Node2D" parent="." unique_id=1001668199]
 
@@ -69,3 +76,6 @@ position = Vector2(1561, 1193)
 
 [node name="auberge" type="Marker2D" parent="markers2D" unique_id=1641896861]
 position = Vector2(2120, 1233)
+
+[node name="parc" type="Marker2D" parent="markers2D" unique_id=2100455306]
+position = Vector2(2318, 1314)
