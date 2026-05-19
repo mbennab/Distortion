@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://jobybqofpbv6"]
+
+[ext_resource type="Texture2D" uid="uid://0jtlbyacbne7" path="res://art/MoyenAge/campement.png" id="1_m2726"]
+
+[node name="campement" type="Node2D" unique_id=1188731684]
+
+[node name="campement" type="Sprite2D" parent="." unique_id=579514667]
+position = Vector2(1213.5, 808)
+scale = Vector2(1.0663445, 1.0744681)
+texture = ExtResource("1_m2726")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1524111735]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)

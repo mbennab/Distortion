@@ -68,7 +68,7 @@ position = Vector2(420, 1172)
 [node name="escalier" type="Node2D" parent="." unique_id=915031175]
 
 [node name="zone-escalier" type="Area2D" parent="escalier" unique_id=1065046573]
-collision_layer = 2048
+collision_layer = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="escalier/zone-escalier" unique_id=531818562]
 position = Vector2(2041, 1430)

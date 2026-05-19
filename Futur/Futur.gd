@@ -702,6 +702,8 @@ func stop() -> void:
 		if zone:
 			zone.monitoring = false
 	_set_superette_collisions(false)
+	_set_upper_collisions(false)
+	_set_basement_collisions(false)
 	if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
 		DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
 	var minijeu = $FondSuperette/MiniJeuTourelles
