@@ -2,6 +2,7 @@ extends Node2D
 
 var time_aunote: CharacterBody2D
 var pnj_secu
+var pnj_secretaire
 var secu_pos: Vector2
 var position_entree_principale: Vector2
 var started: bool = false
@@ -16,7 +17,9 @@ var _objective_label: Label
 var _parking_unlocked: bool = false
 
 var hall
+var couloir
 var _player_in_couloir: bool = false
+var _couloir_unlocked: bool = false
 var _couloir_prompt: Label
 var _couloir_prompt_layer: CanvasLayer
 var _hall_transition_started: bool = false
@@ -29,14 +32,17 @@ func _ready() -> void:
 	_setup_spawn_particles()
 	_setup_fade_overlay()
 	pnj_secu = $"PnjSecurité"
+	pnj_secretaire = $"PnjSecretaire"
 	_connect_parking_signals()
 	DialogueSystem.action_triggered.connect(_on_action_triggered)
 	DialogueSystem.dialogue_ended.connect(_on_dialogue_ended)
 	DialogueSystem.quest_updated.connect(_on_quest_updated)
 	DialogueSystem.dialogue_response.connect(_on_dialogue_response)
 	hall = $Hall
+	couloir = $Couloir
 	_connect_couloir_signals()
 	_setup_couloir_prompt()
+	_connect_couloir_retour()
 
 
 func _setup_fade_overlay() -> void:
@@ -142,6 +148,95 @@ func _show_couloir_locked_message() -> void:
 		label.queue_free()
 
 
+func _connect_couloir_retour() -> void:
+	var retour = couloir.get_node_or_null("retour_hall")
+	if retour and not retour.body_entered.is_connected(_on_couloir_retour_entered):
+		retour.body_entered.connect(_on_couloir_retour_entered)
+
+
+func _on_couloir_retour_entered(body: Node2D) -> void:
+	if body == time_aunote and couloir.visible and can_move:
+		_return_from_couloir()
+
+
+func _go_to_couloir() -> void:
+	if not is_inside_tree() or couloir.visible:
+		return
+	can_move = false
+	_couloir_prompt.visible = false
+	_player_in_couloir = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	hall.hide()
+	_set_hall_collisions(false)
+	if pnj_secretaire:
+		pnj_secretaire.hide()
+		var zone_s = pnj_secretaire.get_node_or_null("ZoneDialogue")
+		if zone_s:
+			zone_s.monitoring = false
+
+	couloir.show()
+	_set_couloir_collisions(true)
+	_set_zone_camera("couloir")
+
+	time_aunote.global_position = couloir.get_node("Node2D/pop hall").global_position
+	time_aunote.scale = Vector2(0.65, 0.65)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	can_move = true
+
+
+func _return_from_couloir() -> void:
+	if not is_inside_tree() or hall.visible:
+		return
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	couloir.hide()
+	_set_couloir_collisions(false)
+
+	hall.show()
+	_set_hall_collisions(true)
+	_set_zone_camera("hall")
+
+	time_aunote.global_position = hall.get_node("Camera2D/Node2D/zone pop").global_position
+	time_aunote.scale = Vector2(0.65, 0.65)
+
+	var secretaire_marker = hall.get_node_or_null("Camera2D/Node2D/secretairePos")
+	if pnj_secretaire and secretaire_marker:
+		pnj_secretaire.apparition(secretaire_marker.global_position)
+		pnj_secretaire.get_node("ZoneDialogue").monitoring = true
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	can_move = true
+
+
+func _set_couloir_collisions(enabled: bool) -> void:
+	var limites = couloir.get_node_or_null("limites")
+	if limites:
+		limites.collision_layer = 8 if enabled else 0
+
+
 func _input(event: InputEvent) -> void:
 	if not started or not can_move:
 		return
@@ -151,7 +246,10 @@ func _input(event: InputEvent) -> void:
 		return
 	if _player_in_couloir and hall.visible:
 		get_viewport().set_input_as_handled()
-		_show_couloir_locked_message()
+		if _couloir_unlocked:
+			_go_to_couloir()
+		else:
+			_show_couloir_locked_message()
 
 
 func _on_parking_entered(body: Node2D) -> void:
@@ -255,6 +353,11 @@ func _go_to_hall() -> void:
 	time_aunote.global_position = hall.get_node("Camera2D/Node2D/zone pop").global_position
 	time_aunote.scale = Vector2(0.65, 0.65)
 
+	var secretaire_marker = hall.get_node_or_null("Camera2D/Node2D/secretairePos")
+	if pnj_secretaire and secretaire_marker:
+		pnj_secretaire.apparition(secretaire_marker.global_position)
+		pnj_secretaire.get_node("ZoneDialogue").monitoring = true
+
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
@@ -262,7 +365,11 @@ func _go_to_hall() -> void:
 		return
 
 	DialogueSystem.complete_step("quete_acces_centrale", "etape_retour_gardien")
-	_update_objective("Explorer le hall")
+	var qp = DialogueSystem.game_state.get("quete_preparation")
+	if qp is Dictionary and qp.get("status", "") == "not_started":
+		qp["status"] = "active"
+		qp["current_step"] = "etape_parler_secretaire"
+	_update_objective("Parler à la secrétaire")
 	can_move = true
 
 
@@ -276,12 +383,15 @@ func _set_zone_camera(zone_name: String) -> void:
 	var fond_cam = $fondPresent.get_node_or_null("Camera2D")
 	var parking_cam = $Parking.get_node_or_null("Camera2D")
 	var hall_cam = hall.get_node_or_null("Camera2D")
+	var couloir_cam = couloir.get_node_or_null("Camera2D")
 	if fond_cam:
 		fond_cam.enabled = (zone_name == "fond")
 	if parking_cam:
 		parking_cam.enabled = (zone_name == "parking")
 	if hall_cam:
 		hall_cam.enabled = (zone_name == "hall")
+	if couloir_cam:
+		couloir_cam.enabled = (zone_name == "couloir")
 
 
 func _on_action_triggered(action: Dictionary) -> void:
@@ -295,6 +405,9 @@ func _on_action_triggered(action: Dictionary) -> void:
 		var parking = $Parking
 		if parking and parking._badge_obtained:
 			_go_to_hall()
+	elif act_type == "trigger" and act_id == "secretaire_accueil":
+		DialogueSystem.complete_step("quete_preparation", "etape_parler_secretaire")
+		_couloir_unlocked = true
 
 
 func _on_quest_updated(quest_id: String, status: String, current_step: String) -> void:
@@ -330,6 +443,9 @@ func _on_dialogue_ended() -> void:
 	if not started:
 		return
 	_try_unlock_parking()
+	if not _couloir_unlocked and DialogueSystem.current_npc_id == "npc_secretaire_present":
+		_couloir_unlocked = true
+		DialogueSystem.complete_step("quete_preparation", "etape_parler_secretaire")
 
 
 func _try_unlock_parking() -> void:
@@ -448,6 +564,13 @@ func start(spawn_id: String = "entree") -> void:
 	$Parking.set_interactive(false)
 	hall.hide()
 	_set_hall_collisions(false)
+	couloir.hide()
+	_set_couloir_collisions(false)
+	if pnj_secretaire:
+		pnj_secretaire.hide()
+		var zone_s = pnj_secretaire.get_node_or_null("ZoneDialogue")
+		if zone_s:
+			zone_s.monitoring = false
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 8
 	pnj_secu = $"PnjSecurité"
@@ -458,6 +581,7 @@ func start(spawn_id: String = "entree") -> void:
 	pnj_secu.get_node("ZoneDialogue").monitoring = true
 	_parking_unlocked = false
 	$"fondPresent/zone escape parking".monitoring = false
+	_couloir_unlocked = false
 
 	if spawn_id == "parking":
 		$fondPresent.hide()
@@ -495,6 +619,10 @@ func start(spawn_id: String = "entree") -> void:
 		_set_hall_collisions(true)
 		_set_zone_camera("hall")
 		time_aunote.position = hall.get_node("Camera2D/Node2D/zone pop").position
+		var secretaire_marker = hall.get_node_or_null("Camera2D/Node2D/secretairePos")
+		if pnj_secretaire and secretaire_marker:
+			pnj_secretaire.apparition(secretaire_marker.global_position)
+			pnj_secretaire.get_node("ZoneDialogue").monitoring = true
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
 		time_aunote.scale = Vector2(0.65, 0.65)
@@ -504,7 +632,7 @@ func start(spawn_id: String = "entree") -> void:
 		col_hall.disabled = false
 		started = true
 		stopped = false
-		_update_objective("Explorer le hall")
+		_update_objective("Parler à la secrétaire")
 		return
 
 	_update_objective("Parler à l'agent de sécurité")
@@ -567,10 +695,16 @@ func stop() -> void:
 		var zone = pnj_secu.get_node_or_null("ZoneDialogue")
 		if zone:
 			zone.monitoring = false
+	if pnj_secretaire:
+		var zone_s = pnj_secretaire.get_node_or_null("ZoneDialogue")
+		if zone_s:
+			zone_s.monitoring = false
 	$Parking.hide()
 	_set_parking_collisions(false)
 	hall.hide()
 	_set_hall_collisions(false)
+	couloir.hide()
+	_set_couloir_collisions(false)
 	_player_in_couloir = false
 	_hall_transition_started = false
 	if _couloir_prompt:
