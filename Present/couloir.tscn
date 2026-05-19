@@ -6,3 +6,7 @@
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=668019608]
 texture = ExtResource("1_3efmm")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1604024046]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
