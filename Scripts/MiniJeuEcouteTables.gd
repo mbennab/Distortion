@@ -31,10 +31,15 @@ var cursor_sprite: ColorRect
 var info_fill: ColorRect
 var attn_fill: ColorRect
 
+# ── BGM ────────────────────────────────────────────────────────────────────────
+var _bgm_player: AudioStreamPlayer
+
 
 func _ready() -> void:
 	var vp := get_viewport().get_visible_rect().size
 	var cx := vp.x / 2.0
+
+	_setup_bgm()
 
 	var bg := ColorRect.new()
 	bg.color = Color(0, 0, 0, 0.75)
@@ -220,6 +225,27 @@ func _show_result(success: bool) -> void:
 	tween.tween_interval(1.2)
 	tween.tween_property(label, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(_finish_game.bind(success))
+
+
+func _setup_bgm() -> void:
+	# Voix d'ambiance de taverne uniquement (la musique vient de la zone)
+	_bgm_player = AudioStreamPlayer.new()
+	_bgm_player.bus = "Master"
+	_bgm_player.volume_db = -14.0
+	var dir := DirAccess.open("res://audio/moyen_age/minijeu_ecoute/")
+	if dir:
+		dir.list_dir_begin()
+		var file_name := dir.get_next()
+		while file_name != "":
+			if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+				_bgm_player.stream = load("res://audio/moyen_age/minijeu_ecoute/" + file_name)
+				if _bgm_player.stream:
+					break
+			file_name = dir.get_next()
+		dir.list_dir_end()
+	add_child(_bgm_player)
+	if _bgm_player.stream:
+		_bgm_player.play()
 
 
 func _finish_game(success: bool) -> void:

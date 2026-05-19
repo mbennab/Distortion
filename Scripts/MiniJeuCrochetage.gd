@@ -50,6 +50,9 @@ const TICK_INTERVAL := 0.18
 const TICK_INTERVAL_FAST := 0.09
 var _last_tick_angle := 0.0
 
+# —— BGM ———————————————
+var _bgm_player: AudioStreamPlayer
+
 # —— Cutscene victoire —————————
 var _victory_playing := false
 var _victory_timer := 0.0
@@ -88,6 +91,7 @@ func _ready() -> void:
 	_setup_msg_label(vp)
 	_load_audio()
 	_setup_tick_player()
+	_setup_bgm()
 	_draw_area.draw.connect(_on_draw_area_draw)
 	_start_stage(0)
 
@@ -146,6 +150,26 @@ func _setup_tick_player() -> void:
 	_tick_player.volume_db = -14.0
 	_tick_player.stream = _audio_tick[0]
 	add_child(_tick_player)
+
+
+func _setup_bgm() -> void:
+	_bgm_player = AudioStreamPlayer.new()
+	_bgm_player.bus = "Master"
+	_bgm_player.volume_db = -14.0
+	var dir := DirAccess.open("res://audio/moyen_age/minijeu_crochetage/")
+	if dir:
+		dir.list_dir_begin()
+		var file_name := dir.get_next()
+		while file_name != "":
+			if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+				_bgm_player.stream = load("res://audio/moyen_age/minijeu_crochetage/" + file_name)
+				if _bgm_player.stream:
+					break
+			file_name = dir.get_next()
+		dir.list_dir_end()
+	add_child(_bgm_player)
+	if _bgm_player.stream:
+		_bgm_player.play()
 
 
 func _scan_audio_dir(dir_path: String) -> Array[AudioStream]:

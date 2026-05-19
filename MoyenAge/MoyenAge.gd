@@ -27,6 +27,11 @@ var fade_rect: ColorRect
 var _sortie_triggered := false
 var _objective_label: Label
 
+# Audio ambient
+var _ambient_player: AudioStreamPlayer
+var _current_zone: String = ""
+var _audio_buffers: Dictionary = {}
+
 
 func _ready() -> void:
 	position_entree_principale = $"fondMoyenAge/Markers2D/entreePrincipale".position
@@ -73,6 +78,7 @@ func _ready() -> void:
 		if static_parc:
 			static_parc.collision_layer = 0
 	_setup_fade_overlay()
+	_setup_ambient_audio()
 
 func _setup_spawn_particles() -> void:
 	spawn_particles = CPUParticles2D.new()
@@ -106,6 +112,52 @@ func _setup_fade_overlay() -> void:
 	fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fade_rect.size = get_viewport_rect().size
 	fade_layer.add_child(fade_rect)
+
+
+func _setup_ambient_audio() -> void:
+	_ambient_player = AudioStreamPlayer.new()
+	_ambient_player.bus = "Master"
+	_ambient_player.volume_db = -8.0
+	add_child(_ambient_player)
+
+
+func _load_zone_audio(zone: String) -> void:
+	if zone in _audio_buffers and not _audio_buffers[zone].is_empty():
+		return
+	var dir := DirAccess.open("res://audio/moyen_age/" + zone + "/")
+	if not dir:
+		return
+	var streams: Array[AudioStream] = []
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+			var stream := load("res://audio/moyen_age/" + zone + "/" + file_name) as AudioStream
+			if stream:
+				streams.append(stream)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	_audio_buffers[zone] = streams
+
+
+func _play_zone_audio(zone: String) -> void:
+	if zone == _current_zone:
+		return
+	_stop_ambient()
+	_load_zone_audio(zone)
+	var streams: Array = _audio_buffers.get(zone, [])
+	if streams.is_empty():
+		_current_zone = zone
+		return
+	var idx := randi() % streams.size()
+	_ambient_player.stream = streams[idx]
+	_ambient_player.play()
+	_current_zone = zone
+
+
+func _stop_ambient() -> void:
+	_ambient_player.stop()
+	_current_zone = ""
 
 
 func _create_particle_texture() -> ImageTexture:
@@ -174,6 +226,7 @@ func start(spawn_id: String = "entree") -> void:
 		static_body.collision_layer = 0
 
 	_update_objective("Enquêter sur le roi")
+	_play_zone_audio("fond")
 
 	match spawn_id:
 		"prison":
@@ -199,6 +252,7 @@ func start(spawn_id: String = "entree") -> void:
 			started = true
 			stopped = false
 			_update_objective("S'échapper de la prison")
+			_play_zone_audio("prison")
 			return
 
 		"magasin":
@@ -218,6 +272,7 @@ func start(spawn_id: String = "entree") -> void:
 			started = true
 			stopped = false
 			_update_objective("Marchander avec le marchand")
+			_play_zone_audio("magasin")
 			return
 
 		"auberge":
@@ -237,6 +292,7 @@ func start(spawn_id: String = "entree") -> void:
 			started = true
 			stopped = false
 			_update_objective("Explorer l'auberge")
+			_play_zone_audio("auberge")
 			return
 
 		"ville":
@@ -256,6 +312,7 @@ func start(spawn_id: String = "entree") -> void:
 			started = true
 			stopped = false
 			_update_objective("Explorer la ville")
+			_play_zone_audio("ville")
 			return
 
 		"parc":
@@ -275,6 +332,7 @@ func start(spawn_id: String = "entree") -> void:
 			started = true
 			stopped = false
 			_update_objective("Enquêter dans la forêt au nord")
+			_play_zone_audio("parc")
 			return
 
 		_:
@@ -346,6 +404,7 @@ func stop() -> void:
 	if parc:
 		parc.stop()
 	_cleanup_knights()
+	_stop_ambient()
 
 
 func _on_action_triggered(action: Dictionary) -> void:
@@ -459,33 +518,40 @@ func _trigger_roi_adieu_sequence() -> void:
 	await tween_fade.finished
 
 	_update_objective("S'échapper de la prison")
+	_play_zone_audio("prison")
 	can_move = true
 
 
 func _on_minigame_started() -> void:
 	can_move = false
+	_stop_ambient()
 
 
 func _on_minigame_success() -> void:
 	time_aunote.global_position = prison.get_node("markers2d/teleportation").global_position
 	_update_objective("Trouver la sortie de la prison")
+	_play_zone_audio("prison")
 	can_move = true
 
 
 func _on_shop_minigame_started() -> void:
 	can_move = false
+	_stop_ambient()
 
 
 func _on_shop_minigame_success() -> void:
 	_update_objective("Se rendre à la taverne du village")
+	_play_zone_audio("magasin")
 	can_move = true
 
 
 func _on_auberge_table_minigame_started() -> void:
 	can_move = false
+	# Ne pas couper la musique de l'auberge, les voix du mini-jeu se superposeront
 
 
 func _on_auberge_table_minigame_success() -> void:
+	_play_zone_audio("auberge")
 	can_move = true
 
 
@@ -550,6 +616,7 @@ func _on_prison_sortie_entered(body: Node2D) -> void:
 	await tween_fade.finished
 
 	_update_objective("Explorer la ville")
+	_play_zone_audio("ville")
 	can_move = true
 
 
@@ -581,6 +648,7 @@ func _on_ville_to_prison() -> void:
 	await tween_fade.finished
 
 	_update_objective("S'échapper de la prison")
+	_play_zone_audio("prison")
 	can_move = true
 
 
@@ -603,6 +671,7 @@ func _on_ville_to_magasin() -> void:
 	await tween_fade.finished
 
 	_update_objective("Marchander avec le marchand")
+	_play_zone_audio("magasin")
 	can_move = true
 
 
@@ -625,6 +694,7 @@ func _on_magasin_exit() -> void:
 	await tween_fade.finished
 
 	_update_objective("Explorer la ville")
+	_play_zone_audio("ville")
 	can_move = true
 
 
@@ -674,6 +744,7 @@ func _on_ville_to_auberge() -> void:
 	await tween_fade.finished
 
 	_update_objective("Explorer la ville")
+	_play_zone_audio("auberge")
 	can_move = true
 
 
@@ -696,6 +767,7 @@ func _on_auberge_exit() -> void:
 	await tween_fade.finished
 
 	_update_objective("Explorer la ville")
+	_play_zone_audio("ville")
 	can_move = true
 
 
@@ -745,6 +817,7 @@ func _on_ville_to_parc() -> void:
 	await tween_fade.finished
 
 	_update_objective("Enquêter dans la forêt au nord")
+	_play_zone_audio("parc")
 	can_move = true
 
 
@@ -767,6 +840,7 @@ func _on_parc_exit() -> void:
 	await tween_fade.finished
 
 	_update_objective("Explorer la ville")
+	_play_zone_audio("ville")
 	can_move = true
 
 

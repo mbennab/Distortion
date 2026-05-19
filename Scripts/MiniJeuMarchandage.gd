@@ -86,6 +86,14 @@ var _round_lbl:    Label
 var _warn_lbl:     Label
 var _obj_lbl:      Label   # barre d'objectifs persistante
 
+# ── BGM ────────────────────────────────────────────────────────────────────────
+var _bgm_player: AudioStreamPlayer
+
+# ── SFX ────────────────────────────────────────────────────────────────────────
+var _audio_catch: Array[AudioStream] = []
+var _audio_decoy: Array[AudioStream] = []
+var _audio_miss: Array[AudioStream] = []
+
 # ── Pools d'items ─────────────────────────────────────────────────────────────
 var _good_pool := [
 	{"name": "Tunique en lin",    "col": Color(0.45, 0.50, 0.65)},
@@ -112,6 +120,8 @@ func _ready() -> void:
 	randomize()
 	_load_textures()
 	_build_ui()
+	_setup_bgm()
+	_load_sfx()
 	_build_sequence()
 	_show_intro()
 
@@ -139,6 +149,72 @@ func _load_textures() -> void:
 	_tex_walk1 = load("res://art/perso_marche_face1.png")
 	_tex_walk2 = load("res://art/perso_marche_face2.png")
 	_tex_merch = load("res://art/MoyenAge/marchand.png")
+
+
+func _setup_bgm() -> void:
+	_bgm_player = AudioStreamPlayer.new()
+	_bgm_player.bus = "Master"
+	_bgm_player.volume_db = -14.0
+	var dir := DirAccess.open("res://audio/moyen_age/minijeu_marchandage/")
+	if dir:
+		dir.list_dir_begin()
+		var file_name := dir.get_next()
+		while file_name != "":
+			if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+				_bgm_player.stream = load("res://audio/moyen_age/minijeu_marchandage/" + file_name)
+				if _bgm_player.stream:
+					break
+			file_name = dir.get_next()
+		dir.list_dir_end()
+	add_child(_bgm_player)
+	if _bgm_player.stream:
+		_bgm_player.play()
+
+
+func _scan_sfx_dir(dir_path: String) -> Array[AudioStream]:
+	var streams: Array[AudioStream] = []
+	if not DirAccess.dir_exists_absolute(dir_path):
+		return streams
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return streams
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir():
+			var ext := file_name.get_extension().to_lower()
+			if ext in ["mp3", "ogg", "wav"]:
+				var full_path := dir_path + "/" + file_name
+				var stream: AudioStream
+				if ext == "mp3":
+					stream = load(full_path) as AudioStreamMP3
+				elif ext == "ogg":
+					stream = load(full_path) as AudioStreamOggVorbis
+				else:
+					stream = load(full_path) as AudioStreamWAV
+				if stream:
+					streams.append(stream)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	return streams
+
+
+func _load_sfx() -> void:
+	_audio_catch = _scan_sfx_dir("res://audio/marchandage/catch")
+	_audio_decoy = _scan_sfx_dir("res://audio/marchandage/decoy")
+	_audio_miss = _scan_sfx_dir("res://audio/marchandage/miss")
+
+
+func _play_sfx(streams: Array[AudioStream], vol_db: float = -6.0) -> void:
+	if streams.is_empty():
+		return
+	var player := AudioStreamPlayer.new()
+	player.bus = "Master"
+	player.volume_db = vol_db
+	player.stream = streams[randi() % streams.size()]
+	player.finished.connect(player.queue_free)
+	add_child(player)
+	player.play()
 
 
 func _build_ui() -> void:
@@ -321,6 +397,7 @@ func _resolve_round(caught: bool) -> void:
 			_warn_flash_t = 0.65
 			_results.append(-1)
 			_spawn_dust(_fall_x_land)
+			_play_sfx(_audio_decoy, -8.0)
 		else:
 			_fb_text  = _MSG_DODGE[randi() % _MSG_DODGE.size()]
 			_fb_ok    = true
@@ -331,6 +408,7 @@ func _resolve_round(caught: bool) -> void:
 			_good_catches += 1
 			_combo        += 1
 			_catch_flash_t = 0.55
+			_play_sfx(_audio_catch, -8.0)
 			if _combo >= 3:
 				_fb_text = "COMBO x%d — %s" % [_combo, _MSG_COMBO[randi() % _MSG_COMBO.size()]]
 			elif _combo == 2:
@@ -348,6 +426,7 @@ func _resolve_round(caught: bool) -> void:
 			_shake   = 7.0
 			_results.append(0)
 			_spawn_dust(_fall_x_land)
+			_play_sfx(_audio_miss, -8.0)
 
 	_round += 1
 	_warn_lbl.text = ""
