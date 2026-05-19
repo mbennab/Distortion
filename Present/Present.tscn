@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" path="res://Present/parking.tscn" id="4_parking"]
 [ext_resource type="PackedScene" path="res://Present/pnj_securité.tscn" id="5_pnj"]
 [ext_resource type="PackedScene" uid="uid://c0iif60cs45c3" path="res://Present/hall.tscn" id="6_hall"]
+[ext_resource type="PackedScene" path="res://Present/pnj_secretaire.tscn" id="7_secretaire"]
+[ext_resource type="PackedScene" uid="uid://bciogksqf67in" path="res://Present/couloir.tscn" id="8_couloir"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_present"]
 bg_color = Color(0.08, 0.08, 0.15, 0.85)
@@ -31,7 +33,12 @@ visible = false
 
 [node name="PnjSecurité" type="Node2D" parent="." instance=ExtResource("5_pnj")]
 
+[node name="PnjSecretaire" type="Node2D" parent="." instance=ExtResource("7_secretaire")]
+
 [node name="Hall" type="Node2D" parent="." instance=ExtResource("6_hall")]
+visible = false
+
+[node name="Couloir" type="Node2D" parent="." instance=ExtResource("8_couloir")]
 visible = false
 
 [node name="ObjectiveHUD" type="CanvasLayer" parent="."]

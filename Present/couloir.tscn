@@ -54,13 +54,20 @@ position = Vector2(807, 1308)
 [node name="pop vestiaires" type="Marker2D" parent="Node2D" unique_id=1184706718]
 position = Vector2(242, 1270)
 
+[node name="retour_hall" type="Area2D" parent="." unique_id=2074960105]
+collision_layer = 0
+monitoring = true
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="retour_hall" unique_id=2839284330]
+position = Vector2(-81, 1576)
+shape = SubResource("RectangleShape2D_3efmm")
+
 [node name="zone tp" type="Area2D" parent="." unique_id=1035458770]
 position = Vector2(5, 0)
 collision_layer = 0
-
-[node name="hall" type="CollisionShape2D" parent="zone tp" unique_id=570427730]
-position = Vector2(-86, 1570)
-shape = SubResource("RectangleShape2D_3efmm")
+monitoring = false
+monitorable = false
 
 [node name="pc controle" type="CollisionShape2D" parent="zone tp" unique_id=1215688421]
 position = Vector2(183, 972)

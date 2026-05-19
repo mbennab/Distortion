@@ -30,6 +30,9 @@ polygon = PackedVector2Array(623, 667, 380.66696, 661.91986, 382.3896, 602.66473
 [node name="zone pop" type="Marker2D" parent="Camera2D/Node2D" unique_id=1295994613]
 position = Vector2(1210, 1447)
 
+[node name="secretairePos" type="Marker2D" parent="Camera2D/Node2D" unique_id=2037805306]
+position = Vector2(1218, 846)
+
 [node name="couloir" type="Area2D" parent="Camera2D" unique_id=1778215358]
 collision_layer = 0
 
