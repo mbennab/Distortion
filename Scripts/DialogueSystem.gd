@@ -283,8 +283,8 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 		else:
 			print("[DialogueSystem] Action rejetée (invalide): %s" % str(action))
 
-	# Filet de sécurité : forcer l'action après 5 messages si le PNJ en a une
-	if not action_emitted and _message_count >= 5:
+	# Filet de sécurité : forcer l'action après 2 messages si le PNJ en a une
+	if not action_emitted and _message_count >= 2:
 		for intent in current_npc.get("intentions", []):
 			var forced_action = intent.get("action")
 			if forced_action != null and forced_action is Dictionary and forced_action.get("type") == "trigger":
