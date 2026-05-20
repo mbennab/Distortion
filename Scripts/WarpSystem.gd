@@ -5,7 +5,6 @@ const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
 
 var destinations := {
 	"hub_entree":	{"zone": "hub", "name": "HUB — Entrée principale", "id": "entree"},
-
 	"moyenage_entree":	{"zone": "moyenage", "name": "Moyen Âge — Entrée château", "id": "entree"},
 	"moyenage_prison":	{"zone": "moyenage", "name": "Moyen Âge — Prison", "id": "prison"},
 	"moyenage_magasin":	{"zone": "moyenage", "name": "Moyen Âge — Magasin", "id": "magasin"},

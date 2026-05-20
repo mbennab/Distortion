@@ -63,7 +63,7 @@ position = Vector2(1240, 1224)
 position = Vector2(711, 1199)
 
 [node name="limite-superette" type="StaticBody2D" parent="." unique_id=586970016]
-collision_layer = 16
+collision_layer = 128
 
 [node name="Collision2" type="CollisionPolygon2D" parent="limite-superette" unique_id=1133650795]
 build_mode = 1

@@ -699,6 +699,8 @@ func stop() -> void:
 		var zone_s = pnj_secretaire.get_node_or_null("ZoneDialogue")
 		if zone_s:
 			zone_s.monitoring = false
+	$fondPresent.hide()
+	_set_fond_collisions(false)
 	$Parking.hide()
 	_set_parking_collisions(false)
 	hall.hide()

@@ -179,13 +179,13 @@ func _return_from_basement() -> void:
 func _set_upper_collisions(enabled: bool) -> void:
 	var limite = $fondFutur.get_node_or_null("limite-futur")
 	if limite:
-		limite.collision_layer = 16 if enabled else 0
+		limite.collision_layer = 32 if enabled else 0
 
 
 func _set_basement_collisions(enabled: bool) -> void:
 	var limite = $"SousSol/fondSousSol".get_node_or_null("limite-sous-sol")
 	if limite:
-		limite.collision_layer = 16 if enabled else 0
+		limite.collision_layer = 64 if enabled else 0
 
 
 func _setup_spawn_particles() -> void:
@@ -380,7 +380,7 @@ func _on_tourelle_minigame_done(success: bool) -> void:
 func _set_superette_collisions(enabled: bool) -> void:
 	var limite = $FondSuperette.get_node_or_null("limite-superette")
 	if limite:
-		limite.collision_layer = 16 if enabled else 0
+		limite.collision_layer = 128 if enabled else 0
 
 
 func _transition_to_metro() -> void:
@@ -416,11 +416,12 @@ func _transition_to_metro() -> void:
 			zone.monitoring = false
 
 	$FondMetro.show()
-	var metro_collision = $FondMetro/StaticBody2D/CollisionPolygon2D
+	var metro_collision = $FondMetro.get_node("limite-metro")
 	if metro_collision:
-		metro_collision.disabled = false
+		metro_collision.collision_layer = 256
 	time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
 	time_aunote.show()
+	time_aunote.scale = Vector2(0.8, 0.8)
 	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 	if collision_node:
 		collision_node.disabled = false
@@ -470,6 +471,9 @@ func _transition_to_tower() -> void:
 
 	$FondMetro.hide()
 	$FondTour.show()
+	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
+	if tour_limite:
+		tour_limite.collision_layer = 512
 
 	time_aunote.global_position = $FondTour/Marker/Entrée.global_position
 	time_aunote.show()
@@ -506,50 +510,62 @@ func _update_objective(text: String) -> void:
 	if _objective_label:
 		_objective_label.text = text
 
+func _disable_all_collisions() -> void:
+	$fondFutur.hide()
+	$SousSol.hide()
+	$FondSuperette.hide()
+	$FondMetro.hide()
+	$FondTour.hide()
+	$"pnj-futur".hide()
+	$"pnj-cheffe".hide()
+	$"SousSol/pnj-futur".hide()
+	$"SousSol/pnj-koiai-2".hide()
+	_set_upper_collisions(false)
+	_set_basement_collisions(false)
+	_set_superette_collisions(false)
+	var metro_limite = $FondMetro.get_node_or_null("limite-metro")
+	if metro_limite:
+		metro_limite.collision_layer = 0
+	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
+	if tour_limite:
+		tour_limite.collision_layer = 0
+	if pnjfutur:
+		var zone = pnjfutur.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+	if pnjcheffe:
+		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+
+
 func start(spawn_id: String = "entree") -> void:
 	show()
+	_disable_all_collisions()
 	_objective_label = $ObjectiveHUD/Panel/Objective
-	_update_objective("Parler à la cheffe")
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://Futur/dimension_futur.json")
-	$fondFutur.show()
-	$"pnj-futur".show()
-	$"pnj-cheffe".show()
-	$SousSol.hide()
-	_set_upper_collisions(true)
-	_set_basement_collisions(false)
 	time_aunote = $TimeAunote
-	time_aunote.collision_mask = 16
+	time_aunote.collision_mask = 992
 	pnjfutur = $"pnj-futur"
-	pnjfutur.apparition(pnjfuturPos)
-	pnjfutur.get_node("ZoneDialogue").monitoring = true
 	pnjcheffe = $"pnj-cheffe"
-	pnjcheffe.apparition(pnjcheffePos)
-	pnjcheffe.get_node("ZoneDialogue").monitoring = true
 
 	if spawn_id == "superette":
-		$fondFutur.hide()
-		$SousSol.hide()
-		_set_upper_collisions(false)
-		_set_basement_collisions(false)
-		$"pnj-futur".hide()
-		$"pnj-cheffe".hide()
 		$FondSuperette.show()
+		_set_superette_collisions(true)
 		time_aunote.global_position = $FondSuperette/Markers2D/entree.position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
 		time_aunote.scale = Vector2(0.8, 0.8)
 		time_aunote.rotation = 0.0
-		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
-		collision_node.disabled = false
+		var collision_node_super := time_aunote.get_node("collision") as CollisionShape2D
+		collision_node_super.disabled = false
 		if pnjcheffe:
 			pnjcheffe.apparition($FondSuperette/Markers2D/cheffe.position)
 			pnjcheffe.show()
 			var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
 			if zone:
 				zone.monitoring = true
-		_set_superette_collisions(true)
-		$ObjectiveHUD.show()
 		_update_objective("Explorer la supérette")
 		can_move = true
 		started = true
@@ -558,10 +574,6 @@ func start(spawn_id: String = "entree") -> void:
 		return
 
 	if spawn_id == "soussol":
-		$fondFutur.hide()
-		_set_upper_collisions(false)
-		$"pnj-futur".hide()
-		$"pnj-cheffe".hide()
 		$SousSol.show()
 		_set_basement_collisions(true)
 		$"SousSol/pnj-futur".apparition($"SousSol/fondSousSol/Markers2D/pnjPos".position)
@@ -574,28 +586,44 @@ func start(spawn_id: String = "entree") -> void:
 		time_aunote.scale = Vector2(0.8, 0.8)
 		time_aunote.rotation = 0.0
 		can_move = true
-		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
-		collision_node.disabled = false
+		var collision_node_sol := time_aunote.get_node("collision") as CollisionShape2D
+		collision_node_sol.disabled = false
 		started = true
 		stopped = false
 		_update_objective("Parler aux personnes du sous-sol")
 		_setup_car_minigame()
 		return
 
+	if spawn_id == "metro":
+		var zone_escalier = $"fondFutur/escalier/zone-escalier"
+		if zone_escalier:
+			zone_escalier.monitoring = false
+		$FondMetro.show()
+		var metro_collision = $FondMetro.get_node("limite-metro")
+		if metro_collision:
+			metro_collision.collision_layer = 256
+		time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(0.8, 0.8)
+		time_aunote.rotation = 0.0
+		var collision_node_metro := time_aunote.get_node("collision") as CollisionShape2D
+		collision_node_metro.disabled = false
+		can_move = true
+		started = true
+		stopped = false
+		$ObjectiveHUD.show()
+		_update_objective("Trouver le QG d'Alfredo")
+		return
+
 	if spawn_id == "tour":
 		var zone_escalier = $"fondFutur/escalier/zone-escalier"
 		if zone_escalier:
 			zone_escalier.monitoring = false
-		$fondFutur.hide()
-		$SousSol.hide()
-		$FondSuperette.hide()
-		$FondMetro.hide()
-		_set_upper_collisions(false)
-		_set_basement_collisions(false)
-		_set_superette_collisions(false)
-		$"pnj-futur".hide()
-		$"pnj-cheffe".hide()
 		$FondTour.show()
+		var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
+		if tour_limite:
+			tour_limite.collision_layer = 512
 		time_aunote.global_position = $FondTour/Marker/Entrée.global_position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
@@ -610,12 +638,21 @@ func start(spawn_id: String = "entree") -> void:
 		_update_objective("Entrer dans la tour d'Alfredo Sinko Nochez")
 		return
 
-	time_aunote.position = position_entree_principale
-	time_aunote.hide()
-	time_aunote.modulate.a = 0.0
-	time_aunote.scale = Vector2.ZERO
-	time_aunote.rotation = TAU
-	_play_spawn_animation()
+	if spawn_id == "entree":
+		$fondFutur.show()
+		_set_upper_collisions(true)
+		$"pnj-futur".show()
+		$"pnj-cheffe".show()
+		pnjfutur.apparition(pnjfuturPos)
+		pnjfutur.get_node("ZoneDialogue").monitoring = true
+		pnjcheffe.apparition(pnjcheffePos)
+		pnjcheffe.get_node("ZoneDialogue").monitoring = true
+		time_aunote.position = position_entree_principale
+		time_aunote.hide()
+		time_aunote.modulate.a = 0.0
+		time_aunote.scale = Vector2.ZERO
+		time_aunote.rotation = TAU
+		_play_spawn_animation()
 
 
 func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale) -> void:
@@ -660,7 +697,7 @@ func start_from_escalier() -> void:
 	_set_upper_collisions(true)
 	_set_basement_collisions(false)
 	time_aunote = $TimeAunote
-	time_aunote.collision_mask = 16
+	time_aunote.collision_mask = 992
 	pnjfutur = $"pnj-futur"
 	pnjfutur.apparition(pnjfuturPos)
 	pnjfutur.get_node("ZoneDialogue").monitoring = true
@@ -690,20 +727,10 @@ func stop() -> void:
 	var car_zone = $"fondFutur/zone-voiture"
 	if car_zone:
 		car_zone.monitoring = false
+	_disable_all_collisions()
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
-	if pnjfutur:
-		var zone = pnjfutur.get_node_or_null("ZoneDialogue")
-		if zone:
-			zone.monitoring = false
-	if pnjcheffe:
-		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
-		if zone:
-			zone.monitoring = false
-	_set_superette_collisions(false)
-	_set_upper_collisions(false)
-	_set_basement_collisions(false)
 	if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
 		DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
 	var minijeu = $FondSuperette/MiniJeuTourelles

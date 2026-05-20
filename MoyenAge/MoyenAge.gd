@@ -224,6 +224,18 @@ func start(spawn_id: String = "entree") -> void:
 	var static_body = magasin.get_node_or_null("StaticBody2D")
 	if static_body:
 		static_body.collision_layer = 0
+	ville.hide()
+	var static_ville = ville.get_node_or_null("StaticBody2D")
+	if static_ville:
+		static_ville.collision_layer = 0
+	auberge.hide()
+	var static_auberge = auberge.get_node_or_null("StaticBody2D")
+	if static_auberge:
+		static_auberge.collision_layer = 0
+	parc.hide()
+	var static_parc = parc.get_node_or_null("collisions")
+	if static_parc:
+		static_parc.collision_layer = 0
 
 	_update_objective("Enquêter sur le roi")
 	_play_zone_audio("fond")
@@ -403,6 +415,13 @@ func stop() -> void:
 		auberge.stop()
 	if parc:
 		parc.stop()
+	var fond_limites = $fondMoyenAge.get_node_or_null("limitesDeplacements")
+	if fond_limites:
+		fond_limites.collision_layer = 0
+	if prison:
+		var prison_limite = prison.get_node_or_null("limiteDeplacement")
+		if prison_limite:
+			prison_limite.collision_layer = 0
 	_cleanup_knights()
 	_stop_ambient()
 

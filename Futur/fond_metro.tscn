@@ -29,7 +29,7 @@ position = Vector2(58, -24)
 shape = SubResource("RectangleShape2D_vmnwc")
 
 [node name="limite-metro" type="StaticBody2D" parent="." unique_id=340093161]
-collision_layer = 16
+collision_layer = 256
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limite-metro" unique_id=1970535297]
 build_mode = 1
