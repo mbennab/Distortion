@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://crctvpgw6b6v2"]
+
+[ext_resource type="Texture2D" uid="uid://bpv3phbwrqjcx" path="res://art/MoyenAge/assassin_idle.png" id="1_p7nb6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xrbpe"]
+atlas = ExtResource("1_p7nb6")
+region = Rect2(0, 0, 366, 338)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h1f8b"]
+atlas = ExtResource("1_p7nb6")
+region = Rect2(366, 0, 366, 338)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_88oai"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"attaque",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"defense",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xrbpe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h1f8b")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 2.0
+}]
+
+[node name="assassin" type="Node2D" unique_id=871506282]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=681549313]
+sprite_frames = SubResource("SpriteFrames_88oai")
+animation = &"idle"
+frame_progress = 0.07909925
