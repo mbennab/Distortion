@@ -164,12 +164,13 @@ func get_first_message() -> String:
 
 func stop_dialogue() -> void:
 	is_active = false
+	# Émettre AVANT de vider l'état pour que les listeners puissent lire current_npc_id
+	dialogue_ended.emit()
 	current_npc = {}
 	current_npc_id = ""
 	conversation_history.clear()
 	_current_first_message = ""
 	_has_repeat_conversation = false
-	dialogue_ended.emit()
 
 
 func send_message(player_message: String) -> void:
