@@ -27,6 +27,8 @@ var fade_layer: CanvasLayer
 var fade_rect: ColorRect
 var _sortie_triggered := false
 var _objective_label: Label
+var campement
+
 
 # Audio ambient
 var _ambient_player: AudioStreamPlayer
@@ -84,6 +86,9 @@ func _ready() -> void:
 		var static_foret = foret.get_node_or_null("StaticBody2D")
 		if static_foret:
 			static_foret.collision_layer = 0
+	campement = $campement
+	if campement:
+		campement.hide()
 	_setup_fade_overlay()
 	_setup_ambient_audio()
 
@@ -467,6 +472,11 @@ func stop() -> void:
 		var sortie_foret = foret.get_node_or_null("area2D/sortie")
 		if sortie_foret:
 			sortie_foret.monitoring = false
+	if campement:
+		campement.hide()
+		campement.is_combat_active = false
+		if campement.combat_ui:
+			campement.combat_ui.hide()
 	var fond_limites = $fondMoyenAge.get_node_or_null("limitesDeplacements")
 	if fond_limites:
 		fond_limites.collision_layer = 0
@@ -479,10 +489,13 @@ func stop() -> void:
 
 
 func _on_action_triggered(action: Dictionary) -> void:
-	if not started or _roi_adieu_triggered:
+	if not started:
 		return
 	if action.get("type") == "trigger" and action.get("id") == "roi_adieu":
-		_trigger_roi_adieu_sequence()
+		if not _roi_adieu_triggered:
+			_trigger_roi_adieu_sequence()
+	elif action.get("type") == "trigger" and action.get("id") == "assassin_combat":
+		_start_assassin_combat()
 
 
 func _on_quest_updated(quest_id: String, status: String, current_step: String) -> void:
@@ -1001,3 +1014,35 @@ func _cleanup_knights() -> void:
 			k.queue_free()
 	knights.clear()
 	_roi_adieu_triggered = false
+
+
+func _start_assassin_combat() -> void:
+	can_move = false
+	DialogueUI.close_dialogue()
+	_stop_ambient()
+	
+	# Transition fade out
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+		
+	# Hide the forest zone and disable movement
+	foret.hide()
+	var static_foret = foret.get_node_or_null("StaticBody2D")
+	if static_foret:
+		static_foret.collision_layer = 0
+		
+	time_aunote.hide()
+	var col_node := time_aunote.get_node("collision") as CollisionShape2D
+	if col_node:
+		col_node.disabled = true
+		
+	# Display and trigger combat at the campement
+	campement.start_combat()
+	
+	# Fade back in
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished

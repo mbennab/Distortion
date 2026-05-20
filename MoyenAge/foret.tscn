@@ -1,6 +1,8 @@
-[gd_scene format=3 uid="uid://cxyhdm1xuaoe6"]
+[gd_scene load_steps=3 format=3 uid="uid://cxyhdm1xuaoe6"]
 
 [ext_resource type="Texture2D" uid="uid://bybsurcc80nhe" path="res://art/MoyenAge/forêt.png" id="1_7dshn"]
+[ext_resource type="PackedScene" uid="uid://crctvpgw6b6v2" path="res://MoyenAge/assassin.tscn" id="2_assassin"]
+
 
 [node name="foret" type="Node2D" unique_id=583749073]
 
@@ -26,6 +28,9 @@ position = Vector2(2083, 172)
 
 [node name="assassin" type="Marker2D" parent="markers2D" unique_id=829322022]
 position = Vector2(1134, 1068)
+
+[node name="assassin" parent="markers2D/assassin" instance=ExtResource("2_assassin")]
+
 
 [node name="area2D" type="Node2D" parent="." unique_id=1185724470]
 position = Vector2(331, -96)
