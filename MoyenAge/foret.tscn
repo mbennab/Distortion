@@ -2,9 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://bybsurcc80nhe" path="res://art/MoyenAge/forêt.png" id="1_7dshn"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_iauno"]
-size = Vector2(295, 60)
-
 [node name="foret" type="Node2D" unique_id=583749073]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=58625958]
@@ -28,9 +25,3 @@ polygon = PackedVector2Array(1923, 2, 1925, 406, 2042.938, 447.0337, 2075, 566, 
 position = Vector2(2083, 172)
 
 [node name="area2D" type="Node2D" parent="." unique_id=1185724470]
-
-[node name="sortie" type="Area2D" parent="area2D" unique_id=854126766]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="area2D/sortie" unique_id=746336480]
-position = Vector2(2072.5, 35)
-shape = SubResource("RectangleShape2D_iauno")

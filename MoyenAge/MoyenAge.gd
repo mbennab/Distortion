@@ -21,6 +21,7 @@ var magasin
 var ville
 var auberge
 var parc
+var foret
 var _auberge_tables_done := false
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
@@ -77,6 +78,12 @@ func _ready() -> void:
 		var static_parc = parc.get_node_or_null("collisions")
 		if static_parc:
 			static_parc.collision_layer = 0
+	foret = $foret
+	if foret:
+		foret.hide()
+		var static_foret = foret.get_node_or_null("StaticBody2D")
+		if static_foret:
+			static_foret.collision_layer = 0
 	_setup_fade_overlay()
 	_setup_ambient_audio()
 
@@ -347,6 +354,43 @@ func start(spawn_id: String = "entree") -> void:
 			_play_zone_audio("parc")
 			return
 
+		"foret":
+			$fondMoyenAge.hide()
+			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
+			pnj_roi.hide()
+			pnj_roi.get_node("ZoneDialogue").monitoring = false
+			parc.stop()
+			ville.stop()
+			auberge.stop()
+			magasin.stop()
+			prison.hide()
+			var limite_prison_f = prison.get_node_or_null("limiteDeplacement")
+			if limite_prison_f:
+				limite_prison_f.collision_layer = 0
+			foret.show()
+			var static_foret = foret.get_node_or_null("StaticBody2D")
+			if static_foret:
+				static_foret.collision_layer = 4
+			var sortie_foret = foret.get_node_or_null("area2D/sortie")
+			if sortie_foret:
+				sortie_foret.collision_mask = 1
+				sortie_foret.monitoring = true
+				if not sortie_foret.body_entered.is_connected(_on_foret_sortie_entered):
+					sortie_foret.body_entered.connect(_on_foret_sortie_entered)
+			time_aunote.position = foret.get_node("markers2D/apparition").position
+			time_aunote.show()
+			time_aunote.modulate.a = 1.0
+			time_aunote.scale = Vector2(0.8, 0.8)
+			time_aunote.rotation = 0.0
+			can_move = true
+			var col_foret := time_aunote.get_node("collision") as CollisionShape2D
+			col_foret.disabled = false
+			started = true
+			stopped = false
+			_update_objective("Trouver l'assassin dans la forêt")
+			_play_zone_audio("parc")
+			return
+
 		_:
 			time_aunote.position = position_entree_principale
 			if prison:
@@ -415,6 +459,14 @@ func stop() -> void:
 		auberge.stop()
 	if parc:
 		parc.stop()
+	if foret:
+		foret.hide()
+		var static_foret = foret.get_node_or_null("StaticBody2D")
+		if static_foret:
+			static_foret.collision_layer = 0
+		var sortie_foret = foret.get_node_or_null("area2D/sortie")
+		if sortie_foret:
+			sortie_foret.monitoring = false
 	var fond_limites = $fondMoyenAge.get_node_or_null("limitesDeplacements")
 	if fond_limites:
 		fond_limites.collision_layer = 0
@@ -581,7 +633,87 @@ func _on_auberge_all_tables_done() -> void:
 
 
 func _on_femme_friendship_done() -> void:
-	_update_objective("L'assassin est dans la forêt au nord")
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	parc.stop()
+	ville.stop()
+	auberge.stop()
+	magasin.stop()
+	prison.hide()
+	var limite_p = prison.get_node_or_null("limiteDeplacement")
+	if limite_p:
+		limite_p.collision_layer = 0
+
+	foret.show()
+	var static_foret = foret.get_node_or_null("StaticBody2D")
+	if static_foret:
+		static_foret.collision_layer = 4
+	var sortie_foret = foret.get_node_or_null("area2D/sortie")
+	if sortie_foret:
+		sortie_foret.collision_mask = 1
+		sortie_foret.monitoring = true
+		if not sortie_foret.body_entered.is_connected(_on_foret_sortie_entered):
+			sortie_foret.body_entered.connect(_on_foret_sortie_entered)
+
+	time_aunote.global_position = foret.get_node("markers2D/apparition").global_position
+	time_aunote.scale = Vector2(0.8, 0.8)
+
+	var text_label := Label.new()
+	text_label.text = "La femme du parc te guide jusqu'à la forêt…"
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.add_theme_font_size_override("font_size", 28)
+	text_label.add_theme_color_override("font_color", Color.WHITE)
+	text_label.modulate = Color(1, 1, 1, 0)
+	text_label.size = get_viewport_rect().size
+	fade_layer.add_child(text_label)
+
+	var text_tween := create_tween()
+	text_tween.tween_property(text_label, "modulate", Color(1, 1, 1, 1), 0.4)
+	text_tween.tween_interval(1.8)
+	text_tween.tween_property(text_label, "modulate", Color(1, 1, 1, 0), 0.4)
+	await text_tween.finished
+	text_label.queue_free()
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	_update_objective("Trouver l'assassin dans la forêt")
+	_play_zone_audio("parc")
+	can_move = true
+
+
+func _on_foret_sortie_entered(body: Node2D) -> void:
+	if body != time_aunote:
+		return
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	foret.hide()
+	var static_foret = foret.get_node_or_null("StaticBody2D")
+	if static_foret:
+		static_foret.collision_layer = 0
+	var sf = foret.get_node_or_null("area2D/sortie")
+	if sf:
+		sf.monitoring = false
+
+	var main = get_tree().current_scene
+	if main and main.has_method("warp_to_era"):
+		main.warp_to_era("hub", "entree")
+		return
+
 	can_move = true
 
 
