@@ -92,7 +92,7 @@ func _setup_ui() -> void:
 
 	# 3. Close Button (Top-Right)
 	_close_btn = Button.new()
-	_close_btn.text = "✖"
+	_close_btn.text = "X"
 	_close_btn.anchor_left = 1.0
 	_close_btn.anchor_right = 1.0
 	_close_btn.offset_left = -40
@@ -194,6 +194,7 @@ func _setup_ui() -> void:
 	# 1. Affinity Progress Bar with custom style
 	var progress_container = Control.new()
 	progress_container.custom_minimum_size = Vector2(0, 36)
+	progress_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right_vbox.add_child(progress_container)
 
 	var progress_bg = ColorRect.new()
@@ -224,7 +225,7 @@ func _setup_ui() -> void:
 	progress_container.add_child(progress_border)
 
 	_score_label = Label.new()
-	_score_label.text = "❤ Confiance mutuelle : 0%"
+	_score_label.text = "Confiance mutuelle : 0%"
 	_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_score_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_score_label.anchor_right = 1.0
@@ -237,8 +238,9 @@ func _setup_ui() -> void:
 
 	# 2. Chat Log ScrollContainer
 	_scroll_container = ScrollContainer.new()
-	_scroll_container.size_flags_horizontal = Control.SIZE_FILL
+	_scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	
 	var scroll_style = StyleBoxFlat.new()
 	scroll_style.bg_color = Color(0.06, 0.05, 0.04, 0.7)
@@ -259,9 +261,14 @@ func _setup_ui() -> void:
 	right_vbox.add_child(_scroll_container)
 
 	_chat_log = VBoxContainer.new()
-	_chat_log.size_flags_horizontal = Control.SIZE_FILL
+	_chat_log.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chat_log.add_theme_constant_override("separation", 10)
+	_chat_log.custom_minimum_size.x = 500
 	_scroll_container.add_child(_chat_log)
+
+	_scroll_container.resized.connect(func():
+		_chat_log.custom_minimum_size.x = _scroll_container.size.x - 32
+	)
 
 	# 3. Input panel
 	var input_hbox = HBoxContainer.new()
@@ -422,11 +429,11 @@ func _on_ai_response(text: String, affinity_change: int, feeling: String) -> voi
 	
 	# 4. Trigger screen actions
 	if affinity_change >= 15:
-		_spawn_floating_particles(12, "❤", Color(1, 0.35, 0.45))
-		_spawn_floating_particles(8, "✦", Color(1, 0.85, 0.3))
+		_spawn_floating_particles(12, "+", Color(1, 0.35, 0.45))
+		_spawn_floating_particles(8, "*", Color(1, 0.85, 0.3))
 	elif affinity_change <= -10:
 		_trigger_screen_shake(12.0, 0.4)
-		_spawn_floating_particles(8, "💥", Color(1, 0.2, 0.2))
+		_spawn_floating_particles(8, "x", Color(1, 0.2, 0.2))
 
 	# 5. Typewriter response
 	_add_woman_message(text, func():
@@ -467,18 +474,18 @@ func _update_bar() -> void:
 		color = Color(0.8, 0.45, 0.2) # Muted Orange
 	
 	tween.parallel().tween_property(_progress_fill, "color", Color(color, 1.0), 0.4)
-	_score_label.text = "❤ Confiance mutuelle : %d%%" % score
+	_score_label.text = "Confiance mutuelle : %d%%" % score
 	
 	# Update Bond Rank Label
 	var rank_text := "Relation : INCONNUE"
 	if score >= 90:
-		rank_text = "Relation : AMIE PROCHE ❤"
+		rank_text = "Relation : AMIE PROCHE <3"
 	elif score >= 65:
-		rank_text = "Relation : CONFIDENTE ✦"
+		rank_text = "Relation : CONFIDENTE *"
 	elif score >= 40:
-		rank_text = "Relation : AMICALE ♪"
+		rank_text = "Relation : AMICALE ~"
 	elif score >= 20:
-		rank_text = "Relation : INTRIGUÉE ✉"
+		rank_text = "Relation : INTRIGUÉE ?"
 	_rank_label.text = rank_text
 
 
@@ -522,7 +529,7 @@ func _show_floating_feedback(delta: int) -> void:
 	var label = Label.new()
 	var sign_str = "+" if delta >= 0 else ""
 	var color = Color(0.2, 0.8, 0.4) if delta >= 0 else Color(1, 0.25, 0.25)
-	var prefix = "✨ Sympathie " if delta >= 15 else ("✅ Confiance " if delta > 0 else ("➖ Neutre" if delta == 0 else "❌ Malentendu "))
+	var prefix = "Sympathie (+)" if delta >= 15 else ("Confiance (+)" if delta > 0 else ("Neutre (=)" if delta == 0 else "Malentendu (-)"))
 	
 	label.text = "%s (%s%d)" % [prefix, sign_str, delta]
 	label.add_theme_font_size_override("font_size", 18)
@@ -595,7 +602,7 @@ func _add_player_message(text: String) -> void:
 	var label = Label.new()
 	label.text = "> Vous : %s" % text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.size_flags_horizontal = Control.SIZE_FILL
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", Color(0.9, 0.72, 0.42, 1.0)) # Warm Amber
 	_chat_log.add_child(label)
@@ -616,7 +623,7 @@ func _add_woman_message(text: String, callback: Callable = Callable()) -> void:
 	_current_chat_label = Label.new()
 	_current_chat_label.text = ""
 	_current_chat_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_current_chat_label.size_flags_horizontal = Control.SIZE_FILL
+	_current_chat_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_current_chat_label.add_theme_font_size_override("font_size", 14)
 	_current_chat_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.88, 1.0))
 	_chat_log.add_child(_current_chat_label)
@@ -633,7 +640,7 @@ func _add_system_message(text: String) -> void:
 	var label = Label.new()
 	label.text = "[SYSTEM] %s" % text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.size_flags_horizontal = Control.SIZE_FILL
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.add_theme_font_size_override("font_size", 13)
 	label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.25, 0.8))
 	_chat_log.add_child(label)
@@ -719,7 +726,7 @@ func _trigger_win() -> void:
 	# Spawn spectacular stars/hearts all over the victory screen
 	for i in 25:
 		tween.parallel().tween_callback(func():
-			_spawn_floating_particles(1, "❤" if randf() > 0.5 else "✦", Color(randf(), randf() + 0.5, randf() + 0.5))
+			_spawn_floating_particles(1, "+" if randf() > 0.5 else "*", Color(randf(), randf() + 0.5, randf() + 0.5))
 		).set_delay(randf_range(0.1, 2.0))
 
 	tween.chain().tween_interval(3.8)
