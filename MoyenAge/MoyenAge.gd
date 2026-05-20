@@ -350,7 +350,7 @@ func start(spawn_id: String = "entree") -> void:
 			col_parc.disabled = false
 			started = true
 			stopped = false
-			_update_objective("Enquêter dans la forêt au nord")
+			_update_objective("Enquêter dans la forêt")
 			_play_zone_audio("parc")
 			return
 
@@ -628,7 +628,7 @@ func _on_auberge_table_minigame_success() -> void:
 
 func _on_auberge_all_tables_done() -> void:
 	_auberge_tables_done = true
-	_update_objective("Enquêter dans la forêt au nord")
+	_update_objective("Enquêter dans la forêt")
 	can_move = true
 
 
@@ -967,7 +967,7 @@ func _on_ville_to_parc() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
 
-	_update_objective("Enquêter dans la forêt au nord")
+	_update_objective("Enquêter dans la forêt")
 	_play_zone_audio("parc")
 	can_move = true
 

@@ -630,7 +630,7 @@ git commit -m "feat(dialogue): hub JSON migré vers intentions + personality enr
         "knowledge": [
           "il est en train de mourir, poignardé par un assassin inconnu",
           "son royaume se meurt : récoltes qui pourrissent, bêtes malades, conseillers qui complotent",
-          "il a vu des lueurs jaunes étranges dans la chapelle, des murmures sans origine",
+          "il a vu l'assassin s'enfuir vers l'aile est du château",
           "il soupçonne que le passé et le futur se mélangent",
           "il ignore l'identité de son assassin",
           "son assassin s'est enfui après l'attaque"
@@ -663,7 +663,7 @@ git commit -m "feat(dialogue): hub JSON migré vers intentions + personality enr
           "id": "roi_portails",
           "condition": null,
           "trigger": "le joueur demande si le roi connaît les portails temporels ou la distorsion",
-          "example": "Les portails... J'ai vu des lueurs jaunes dans la chapelle, des murmures qui viennent de nulle part. Peut-être que le passé et le futur se mélangent. Tu viens d'ailleurs, n'est-ce pas ?",
+          "example": "Les portails... J'ai vu des lueurs étranges, des murmures qui viennent de nulle part. Peut-être que le passé et le futur se mélangent. Tu viens d'ailleurs, n'est-ce pas ?",
           "action": null
         },
         {

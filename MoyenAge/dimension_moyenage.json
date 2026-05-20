@@ -37,7 +37,7 @@
 		"knowledge": [
 		  "le roi a été poignardé dans sa salle du trône — des avis de recherche sont placardés partout en ville",
 		  "la garde royale soupçonne un étranger venu d'ailleurs, ils arrêtent tous ceux qui ont une allure suspecte",
-		  "la forêt au nord de la ville contient un repère de bandits connus pour comploter contre la couronne",
+		  "la forêt contient un repère de bandits connus pour comploter contre la couronne",
 		  "le joueur doit ABSOLUMENT changer de vêtements s'il ne veut pas finir au cachot",
 		  "une fois déguisé, le joueur pourra se déplacer librement et enquêter sur l'assassin"
 		],
@@ -52,7 +52,7 @@
 		  "knowledge": [
 			"le roi a été poignardé dans sa salle du trône — des avis de recherche sont placardés partout en ville",
 			"la garde royale soupçonne un étranger venu d'ailleurs, ils arrêtent tous ceux qui ont une allure suspecte",
-			"la forêt au nord de la ville contient un repère de bandits connus pour comploter contre la couronne",
+			"la forêt contient un repère de bandits connus pour comploter contre la couronne",
 			"le joueur est maintenant déguisé et peut se déplacer librement sans être suspecté",
 			"la taverne du village est le meilleur endroit pour glaner des rumeurs sur l'assassin"
 		  ]
@@ -155,7 +155,7 @@
 	  "first_message": "Approche… on m'a poignardé dans ma propre salle du trône. Retrouve l'assassin, vite… Moi, je vais appeler mes gardes pour mes derniers instants.",
 	  "personality": {
 		"tone": "noble, solennel, brisé par la douleur. La voix tremble, le souffle est court.",
-		"backstory": "Souverain médiéval usé par les guerres et le poids de la couronne. Il vient de se faire poignarder par un assassin inconnu dans sa propre salle du trône. Il a vu des lueurs étranges dans la chapelle. Il sent la vie le quitter et cherche désespérément de l'aide avant qu'il ne soit trop tard.",
+		"backstory": "Souverain médiéval usé par les guerres et le poids de la couronne. Il vient de se faire poignarder par un assassin inconnu dans sa propre salle du trône. Il sent la vie le quitter et cherche désespérément de l'aide avant qu'il ne soit trop tard.",
 		"emotional_state": "mourant, affaibli, paniqué mais digne. La douleur augmente à chaque message. Au début il tient encore debout, à la fin il s'effondre.",
 		"speech": {
 		  "vouvoiement": true,
@@ -175,7 +175,7 @@
 		  "il est en train de mourir, poignardé par un assassin inconnu dans sa salle du trône",
 		  "son royaume se meurt : récoltes qui pourrissent, bêtes malades, conseillers qui complotent",
 		  "l'assassin s'est enfui vers les quartiers bas du château après l'attaque",
-		  "il a vu des lueurs jaunes étranges dans la chapelle, des murmures sans origine",
+		  "l'assassin a été vu rôdant près des quartiers bas du château avant l'attaque",
 		  "il ignore QUI est l'assassin mais sait qu'il portait une cape sombre et a fui vers l'aile est"
 		],
 		"goals": [
@@ -185,7 +185,7 @@
 		],
 		"conversation_arc": [
 		  {"phase": 1, "until_message": 2, "focus": "le roi vient d'être poignardé. Il explique l'attaque : la salle du trône, une cape sombre, l'assassin a fui vers l'aile est. Le joueur DOIT retrouver l'assassin et venger le royaume."},
-		  {"phase": 2, "until_message": 4, "focus": "le roi faiblit. Il supplie le joueur d'enquêter. Il mentionne les lueurs jaunes dans la chapelle comme un mystère lié à l'attaque. Le temps presse."},
+		  {"phase": 2, "until_message": 4, "focus": "le roi faiblit. Il supplie le joueur d'enquêter. Il répète que l'assassin a fui vers l'aile est. Le temps presse."},
 		  {"phase": 3, "until_message": 5, "focus": "le roi est à l'agonie. Il va appeler ses gardes dans un dernier souffle. Le joueur sera accusé à tort — c'est le destin tragique du roi mourant qui confond son sauveur avec son assassin."}
 		]
 	  },
@@ -215,7 +215,7 @@
 		  "id": "roi_portails",
 		  "condition": null,
 		  "trigger": "le joueur demande si le roi connaît les portails temporels ou la distorsion",
-		  "example": "La chapelle… des lueurs jaunes, des murmures. Peut-être que le temps se déchire ici aussi. Si tu viens d'ailleurs, alors tu es peut-être celui qui peut arranger tout ça.",
+		  "example": "Des lueurs étranges… des murmures. Peut-être que le temps se déchire ici aussi. Si tu viens d'ailleurs, alors tu es peut-être celui qui peut arranger tout ça.",
 		  "action": null
 		},
 		{
@@ -276,7 +276,7 @@
 		],
 		"conversation_arc": [
 		  {"phase": 1, "until_message": 2, "focus": "accueillir le joueur, jauger sa tête, parler du temps qui court, amener la mort du roi"},
-		  {"phase": 2, "until_message": 4, "focus": "partager les rumeurs : l'étranger, la cape sombre, la fuite vers l'est, la forêt au nord"},
+		  {"phase": 2, "until_message": 4, "focus": "partager les rumeurs : l'étranger, la cape sombre, la fuite vers l'est, la forêt"},
 		  {"phase": 3, "until_message": 99, "focus": "encourager le joueur à enquêter, le prévenir des dangers de la forêt, lui proposer un dernier verre avant qu'il parte"}
 		]
 	  },
@@ -299,13 +299,13 @@
 		  "id": "aubergiste_etranger",
 		  "condition": null,
 		  "trigger": "le joueur demande s'il y avait des étrangers en ville",
-		  "example": "Maintenant que t'en parles… y avait un type bizarre, y a deux jours. Capuche, parlait à personne, posait des questions sur la chapelle. Il est reparti vers le nord — dans la forêt. J'ai trouvé ça louche, mais c'est pas mes affaires… enfin, jusqu'à maintenant.",
+		  "example": "Maintenant que t'en parles… y avait un type bizarre, y a deux jours. Capuche, parlait à personne, posait des questions sur le château. Il est reparti vers le nord — dans la forêt. J'ai trouvé ça louche, mais c'est pas mes affaires… enfin, jusqu'à maintenant.",
 		  "action": null
 		},
 		{
 		  "id": "aubergiste_foret",
 		  "condition": null,
-		  "trigger": "le joueur demande ce qu'il y a dans la forêt au nord",
+		  "trigger": "le joueur demande ce qu'il y a dans la forêt",
 		  "example": "Ah, la forêt. Depuis des mois, des bandits y ont installé un camp. Personne y va, sauf les gardes quand ils sont assez nombreux. Si ton type à la capuche est allé par là, soit il est cinglé, soit il est de mèche avec eux. À ta place, je ferais gaffe.",
 		  "action": null
 		},
@@ -336,7 +336,7 @@
 		"insult": "Ho ho ! On se calme, mon gars. J'essaie juste de t'aider. Si t'es pas content, la porte est là, mais t'auras pas de meilleures infos ailleurs.",
 		"timeout": "Eh ben, t'es parti ? Bon, j'ai des verres à essuyer. Reviens quand tu veux causer.",
 		"unknown": "Hein ? Désolé mon gars, j'ai pas tout suivi. Mais si tu veux parler du roi ou de la forêt, j'suis là.",
-		"default_template": "Le roi est mort, la ville est en ébullition, et les gardes arrêtent tout le monde. Si tu veux mon avis, l'assassin s'est enfui vers la forêt au nord. Mais c'est toi qui vois."
+		"default_template": "Le roi est mort, la ville est en ébullition, et les gardes arrêtent tout le monde. Si tu veux mon avis, l'assassin s'est enfui vers la forêt. Mais c'est toi qui vois."
 	  }
 	},
 	{
@@ -346,7 +346,7 @@
 	  "first_message_after": {
 		"quest_id": "quete_piste_assassin",
 		"quest_status": "not_started",
-		"message": "Ah, te voilà ! J'ai entendu des rumeurs… on dit qu'un étranger rôde dans la forêt au nord. Si tu veux en savoir plus… il faudra gagner ma confiance."
+		"message": "Ah, te voilà ! J'ai entendu des rumeurs… on dit qu'un étranger rôde dans la forêt. Si tu veux en savoir plus… il faudra gagner ma confiance."
 	  },
 	  "personality": {
 		"tone": "douce, mystérieuse, chaleureuse mais réservée au début. Elle parle avec poésie et observation. Elle devient progressivement plus enjouée et révélatrice au fil de la discussion.",
@@ -369,7 +369,7 @@
 		},
 		"knowledge": [
 		  "elle voit tout depuis le parc — les allées et venues des villageois, des gardes, des étrangers",
-		  "elle a vu un homme en cape sombre entrer dans la forêt au nord après l'assassinat",
+		  "elle a vu un homme en cape sombre entrer dans la forêt après l'assassinat",
 		  "le parc est le seul endroit calme du village depuis la mort du roi",
 		  "elle se méfie des gens qui ne prennent pas le temps d'être gentils"
 		],
@@ -396,7 +396,7 @@
 		  "id": "femme_assassin",
 		  "condition": {"quest_id": "quete_piste_assassin", "quest_status": "active", "quest_step": "etape_trouver_assassin"},
 		  "trigger": "le joueur demande si elle sait quelque chose sur l'assassin",
-		  "example": "(elle baisse la voix) J'ai vu quelqu'un… une cape sombre, qui se dépêchait vers la forêt au nord. Je n'ai pas bien vu son visage, mais il boitait légèrement. Si tu veux en savoir plus… montre-moi que je peux avoir confiance en toi.",
+		  "example": "(elle baisse la voix) J'ai vu quelqu'un… une cape sombre, qui se dépêchait vers la forêt. Je n'ai pas bien vu son visage, mais il boitait légèrement. Si tu veux en savoir plus… montre-moi que je peux avoir confiance en toi.",
 		  "action": null
 		}
 	  ],
@@ -414,8 +414,8 @@
 		  "off_topic": "Maintenant que tu sais pour l'assassin… qu'as-tu l'intention de faire ?",
 		  "insult": "Après tout ce que je t'ai révélé, c'est ainsi que tu me remercies ?",
 		  "timeout": "Le vent souffle entre les arbres… le temps semble suspendu dans ce parc.",
-		  "unknown": "Je t'ai déjà dit tout ce que je savais. L'assassin est dans la forêt au nord.",
-		  "default_template": "La forêt au nord… souviens-toi. C'est là que tu trouveras des réponses."
+		  "unknown": "Je t'ai déjà dit tout ce que je savais. L'assassin est dans la forêt.",
+		  "default_template": "La forêt… souviens-toi. C'est là que tu trouveras des réponses."
 		}
 	  }
 	}
@@ -457,7 +457,7 @@
 	  "status": "not_started",
 	  "requires_quests": ["quete_deguisement"],
 	  "steps": [
-		{"id": "etape_enqueter_foret", "description": "Enquêter dans la forêt au nord de la ville", "completed": false},
+		{"id": "etape_enqueter_foret", "description": "Enquêter dans la forêt", "completed": false},
 		{"id": "etape_trouver_assassin", "description": "Retrouver l'assassin du roi", "completed": false}
 	  ]
 	}
