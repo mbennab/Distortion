@@ -19,6 +19,7 @@ func _ready() -> void:
 	zone_dialogue = $ZoneDialogue
 	zone_dialogue.body_entered.connect(_on_body_entered)
 	zone_dialogue.body_exited.connect(_on_body_exited)
+	zone_dialogue.monitoring = false
 
 	_setup_bubble()
 
@@ -66,6 +67,8 @@ func _on_bubble_timeout() -> void:
 	hide_bubble()
 
 func _on_body_entered(body: Node2D) -> void:
+	if not is_visible_in_tree():
+		return
 	if body.name == "TimeAunote":
 		player_nearby = true
 		DialogueUI.show_prompt(npc_id, npc_name)

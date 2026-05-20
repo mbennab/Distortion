@@ -668,6 +668,22 @@ func _disable_all_collisions() -> void:
 		var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
 		if zone:
 			zone.monitoring = false
+	var boss = $FondBureau.get_node_or_null("pnj-boss")
+	if boss:
+		boss.hide()
+		var zone = boss.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+	var ssol_pnj = $"SousSol/pnj-futur"
+	if ssol_pnj:
+		var zone = ssol_pnj.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+	var ssol_koiai = $"SousSol/pnj-koiai-2"
+	if ssol_koiai:
+		var zone = ssol_koiai.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
 
 
 func start(spawn_id: String = "entree") -> void:
