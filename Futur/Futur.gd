@@ -39,6 +39,7 @@ func _ready() -> void:
 	pnjkoiai2 = $"SousSol/pnj-koiai-2"
 	_connect_escalier_signals()
 	_connect_metro_sortie_signal()
+	_connect_tour_signals()
 
 
 func _setup_fade_overlay() -> void:
@@ -69,6 +70,36 @@ func _connect_metro_sortie_signal() -> void:
 	if sortie:
 		sortie.collision_mask = 1
 		sortie.body_entered.connect(_on_metro_sortie_entered)
+
+
+func _connect_tour_signals() -> void:
+	var entree_tour = $FondTour/Area2D
+	if entree_tour:
+		entree_tour.body_entered.connect(_on_entree_tour_entered)
+
+
+func _on_entree_tour_entered(body: Node2D) -> void:
+	if body != time_aunote or not can_move:
+		return
+
+	can_move = false
+
+	$FondTour.hide()
+	var tour_limite := $FondTour.get_node_or_null("limite-entree-tour")
+	if tour_limite:
+		tour_limite.collision_layer = 0
+
+	$FondEtage1.show()
+	_set_etage_collisions(true)
+
+	time_aunote.global_position = $FondEtage1/Marker/Entrée.global_position
+	time_aunote.show()
+
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = false
+
+	can_move = true
 
 
 func _on_metro_sortie_entered(body: Node2D) -> void:
@@ -186,6 +217,12 @@ func _set_basement_collisions(enabled: bool) -> void:
 	var limite = $"SousSol/fondSousSol".get_node_or_null("limite-sous-sol")
 	if limite:
 		limite.collision_layer = 64 if enabled else 0
+
+
+func _set_etage_collisions(enabled: bool) -> void:
+	var limite = $FondEtage1.get_node_or_null("Limites-etage-1")
+	if limite:
+		limite.collision_layer = 1024 if enabled else 0
 
 
 func _setup_spawn_particles() -> void:
@@ -516,6 +553,7 @@ func _disable_all_collisions() -> void:
 	$FondSuperette.hide()
 	$FondMetro.hide()
 	$FondTour.hide()
+	$FondEtage1.hide()
 	$"pnj-futur".hide()
 	$"pnj-cheffe".hide()
 	$"SousSol/pnj-futur".hide()
@@ -529,6 +567,7 @@ func _disable_all_collisions() -> void:
 	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
 	if tour_limite:
 		tour_limite.collision_layer = 0
+	_set_etage_collisions(false)
 	if pnjfutur:
 		var zone = pnjfutur.get_node_or_null("ZoneDialogue")
 		if zone:

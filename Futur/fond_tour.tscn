@@ -1,6 +1,9 @@
-[gd_scene format=3 uid="uid://4kq61r1sycwg"]
+[gd_scene format=3 uid="uid://ick26q0aflar"]
 
 [ext_resource type="Texture2D" uid="uid://dn1hon71ty21l" path="res://art/Futur/tour_entree.png" id="1_bdpgl"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cqaf0"]
+size = Vector2(328.5, 113)
 
 [node name="fondTour" type="Node2D" unique_id=849302617]
 
@@ -40,3 +43,9 @@ polygon = PackedVector2Array(640, 1534, 647, 1485, 588, 1468, 588, 1333, 502, 13
 [node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=652076952]
 build_mode = 1
 polygon = PackedVector2Array(1765, 1554, 1769, 1485, 1841, 1496, 1838, 1333, 1928, 1337, 1924, 1468, 2131, 1440, 2197, 1475, 2187, 1565, 1990, 1561)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=2075382359]
+
+[node name="EntreeTour" type="CollisionShape2D" parent="Area2D" unique_id=1876725927]
+position = Vector2(1240, 448)
+shape = SubResource("RectangleShape2D_cqaf0")
