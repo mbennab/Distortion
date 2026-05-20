@@ -502,12 +502,7 @@ func _spawn_chatter_bubble() -> void:
 	tween.tween_property(container, "position:x", end_x, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	tween.tween_property(container, "modulate:a", 1.0, 0.4)
 	tween.tween_property(container, "scale", Vector2(1.0, 1.0), 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-
-	# Auto-dismiss after random duration — longer so players can read
-	var lifetime := randf_range(7.0, 10.0)
-	tween.chain().tween_interval(lifetime)
-	tween.tween_property(container, "modulate:a", 0.0, 0.6)
-	tween.tween_callback(container.queue_free)
+	# Bubble stays visible for the whole minigame; _show_result cleans them up
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -629,8 +624,8 @@ func _show_result(success: bool) -> void:
 	tween.tween_property(panel, "modulate:a", 1.0, 0.4).set_ease(Tween.EASE_OUT)
 	tween.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
-	# Stay visible longer so players can read
-	tween.chain().tween_interval(3.0)
+	# Stay visible for 2 seconds so players can read
+	tween.chain().tween_interval(2.0)
 	tween.tween_property(panel, "modulate:a", 0.0, 0.45)
 	tween.tween_callback(_finish_game.bind(success))
 
