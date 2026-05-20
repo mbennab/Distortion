@@ -385,6 +385,11 @@ func _defeat() -> void:
 		if static_foret:
 			static_foret.collision_layer = 4
 			
+		# Réactiver la zone d'interaction du PNJ assassin pour pouvoir relancer le dialogue
+		var forest_assassin = parent_ma.foret.get_node_or_null("markers2D/assassin/assassin")
+		if forest_assassin and forest_assassin.has_node("ZoneDialogue"):
+			forest_assassin.get_node("ZoneDialogue").monitoring = true
+			
 		# Rendre le joueur à nouveau visible et actif
 		parent_ma.time_aunote.show()
 		parent_ma.time_aunote.modulate.a = 1.0

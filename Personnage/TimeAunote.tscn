@@ -188,6 +188,11 @@ animations = [{
 "name": &"idle_cote_MA",
 "speed": 2.0
 }, {
+"frames": [],
+"loop": true,
+"name": &"idle_cote_present",
+"speed": 2.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_vtba0")
@@ -439,8 +444,7 @@ one_shot = true
 position = Vector2(-1.25, 2.3841858e-07)
 scale = Vector2(0.7, 0.7)
 sprite_frames = SubResource("SpriteFrames_sh265")
-animation = &"marche_face"
-frame_progress = 0.12323049
+animation = &"idle_cote_present"
 
 [node name="collision" type="CollisionShape2D" parent="." unique_id=413316968]
 position = Vector2(0, 86.25)
