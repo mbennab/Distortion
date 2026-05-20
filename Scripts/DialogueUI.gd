@@ -370,6 +370,11 @@ func _on_dialogue_started(npc_id: String, npc_name: String) -> void:
 
 	retro_mode = true
 
+	if npc_id == "npc_femme_parc":
+		normal_panel.visible = false
+		retro_container.visible = false
+		return
+
 	normal_panel.visible = false
 	retro_container.visible = true
 	retro_name_label.text = npc_name

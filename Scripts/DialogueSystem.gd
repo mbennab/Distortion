@@ -11,6 +11,7 @@ signal dialogue_error(message: String)
 signal quest_updated(quest_id: String, status: String, current_step: String)
 signal action_triggered(action: Dictionary)
 signal player_message_submitted(message: String)
+signal friendship_response_received(text: String, affinity_change: int, feeling: String)
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 const MODEL = "mistralai/mistral-small-3.2-24b-instruct"
@@ -298,6 +299,35 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 	# Émettre la réponse texte
 	dialogue_response.emit(npc_name, text)
 
+	if current_npc_id == "npc_femme_parc":
+		var affinity_change := 0
+		var feeling := "neutral"
+		
+		if ai_data.has("affinity_change"):
+			affinity_change = clampi(int(ai_data.get("affinity_change")), -20, 20)
+		else:
+			var player_msg := ""
+			if conversation_history.size() >= 2:
+				player_msg = conversation_history[conversation_history.size() - 2].get("text", "")
+			affinity_change = _fallback_keyword_evaluation(player_msg)
+			
+		if ai_data.has("feeling"):
+			feeling = String(ai_data.get("feeling")).to_lower()
+			if not feeling in ["happy", "sad", "angry", "neutral"]:
+				feeling = "neutral"
+		else:
+			if affinity_change > 0:
+				feeling = "happy"
+			elif affinity_change < -5:
+				feeling = "angry"
+			elif affinity_change < 0:
+				feeling = "sad"
+			else:
+				feeling = "neutral"
+				
+		print("[DialogueSystem] Friendship response: change=%d, feeling=%s" % [affinity_change, feeling])
+		friendship_response_received.emit(text, affinity_change, feeling)
+
 	# Valider et émettre l'action
 	var action_emitted = false
 	var action = ai_data.get("action")
@@ -496,9 +526,12 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 		lines.append("- [%s] %s. Ex: \"%s\"%s" % [iid, trigger, example, action_note])
 
 	# --- RÈGLES ---
-	lines.append("")
 	lines.append("## RÈGLES IMPÉRATIVES")
-	lines.append('- Format de réponse : UNIQUEMENT {"text": "ta réponse", "action": null}')
+	if current_npc_id == "npc_femme_parc":
+		lines.append('- Format de réponse IMPÉRATIF : Tu dois obligatoirement renvoyer un objet JSON contenant les clés supplémentaires "affinity_change" (un entier entre -20 et +20 mesurant l\'impact poli/sincère du message du joueur sur toi) et "feeling" ("happy", "sad", "angry", "neutral" selon ton ressenti actuel).')
+		lines.append('- Exemple : {"text": "ta réponse", "action": null, "affinity_change": 10, "feeling": "happy"}')
+	else:
+		lines.append('- Format de réponse : UNIQUEMENT {"text": "ta réponse", "action": null}')
 	lines.append('- Si la situation correspond à une ACTION, inclus-la : {"text": "...", "action": {"type": "X", "id": "Y"}}')
 	lines.append("- Ne parle QUE de ce que tu sais (voir CE QUE TU SAIS). N'invente RIEN.")
 	lines.append("- Si le joueur est hors-sujet ou insultant, réponds EN RESTANT DANS LE PERSONNAGE.")
@@ -684,3 +717,65 @@ func _read_env_file() -> String:
 			val = val.trim_prefix("'").trim_suffix("'")
 			return val
 	return ""
+
+
+func _fallback_keyword_evaluation(text: String) -> int:
+	var lower := text.to_lower()
+	var pos_count := 0
+	var neg_count := 0
+	var polite := false
+	var has_question := "?" in text
+	var words := text.split(" ", false)
+	var word_count := words.size()
+
+	var pos_mots = [
+		"bonjour", "salut", "merci", "enchanté", "ravi", "gentil",
+		"aimable", "sympa", "charmant", "joli", "super", "génial",
+		"cool", "ami", "amitié", "j'aime", "adore", "plaisir",
+		"content", "heureux", "sourire", "comprend", "écoute",
+		"parler", "confiance", "aide", "aider", "magnifique",
+		"passionnant", "intéressant", "agréable", "douce", "doux",
+		"chaleureux", "merveilleux", "formidable", "excellent",
+		"parfait", "bravo", "stp", "svp", "pardon", "excuse", "désolé"
+	]
+
+	var neg_mots = [
+		"va-t'en", "dégage", "nul", "nulle", "moche", "stupide",
+		"idiot", "idiote", "bête", "méchant", "méchante", "horrible",
+		"laid", "laide", "tais-toi", "ferme-la", "ennuyeux",
+		"ennuyeuse", "fatigant", "déteste", "hais", "haine",
+		"ignoble", "vulgaire"
+	]
+
+	for mot in pos_mots:
+		if mot in lower:
+			pos_count += 1
+
+	for mot in neg_mots:
+		if mot in lower:
+			neg_count += 1
+
+	var polite_mots := ["s'il te plaît", "s'il vous plaît", "merci", "bonjour",
+		"bonsoir", "salut", "pardon", "excuse", "désolé", "stp", "svp"]
+	for mot in polite_mots:
+		if mot in lower:
+			polite = true
+			break
+
+	if neg_count >= 2:
+		return -20
+	elif neg_count == 1:
+		return -10
+	elif pos_count >= 3 and polite and has_question and word_count >= 4:
+		return 20
+	elif pos_count >= 2 or (pos_count >= 1 and polite):
+		return 10
+	elif pos_count == 1:
+		return 5
+	elif pos_count == 0 and neg_count == 0:
+		if word_count <= 2:
+			return -5
+		else:
+			return 0
+	else:
+		return -5
