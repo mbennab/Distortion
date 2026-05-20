@@ -19,7 +19,7 @@ zoom = Vector2(0.422, 0.422)
 position = Vector2(1216, 1530)
 
 [node name="limite-entree-tour" type="StaticBody2D" parent="." unique_id=1294772951]
-collision_layer = 16
+collision_layer = 512
 
 [node name="collision" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=972241374]
 build_mode = 1
