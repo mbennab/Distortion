@@ -1,14 +1,180 @@
-[gd_scene format=3 uid="uid://jobybqofpbv6"]
+[gd_scene load_steps=10 format=3 uid="uid://jobybqofpbv6"]
 
-[ext_resource type="Texture2D" uid="uid://0jtlbyacbne7" path="res://art/MoyenAge/campement.png" id="1_m2726"]
+[ext_resource type="Script" path="res://MoyenAge/campement.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://0jtlbyacbne7" path="res://art/MoyenAge/campement.png" id="2_bg"]
+[ext_resource type="Texture2D" path="res://art/MoyenAge/epee_bouclier.png" id="3_weapon"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.1, 0.1, 0.12, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.2, 0.25, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_player_fill"]
+bg_color = Color(0.2, 0.8, 0.4, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.4, 1.0, 0.6, 0.8)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_assassin_fill"]
+bg_color = Color(0.8, 0.2, 0.2, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(1.0, 0.4, 0.4, 0.8)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="SystemFont" id="SystemFont_mono"]
+font_names = PackedStringArray("Courier New", "monospace")
+subpixel_positioning = 0
 
 [node name="campement" type="Node2D" unique_id=1188731684]
+script = ExtResource("1_script")
 
 [node name="campement" type="Sprite2D" parent="." unique_id=579514667]
 position = Vector2(1213.5, 808)
 scale = Vector2(1.0663445, 1.0744681)
-texture = ExtResource("1_m2726")
+texture = ExtResource("2_bg")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1524111735]
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
+
+[node name="epee_bouclier" type="Sprite2D" parent="." unique_id=987654]
+position = Vector2(1214, 1220)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("3_weapon")
+
+[node name="CombatUI" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Control" type="Control" parent="CombatUI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PlayerHPBar" type="ProgressBar" parent="CombatUI/Control"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 48.0
+offset_right = 320.0
+offset_bottom = 76.0
+theme_override_styles/background = SubResource("StyleBoxFlat_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_player_fill")
+max_value = 5.0
+value = 5.0
+show_percentage = false
+
+[node name="PlayerHPLabel" type="Label" parent="CombatUI/Control"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 18.0
+offset_right = 320.0
+offset_bottom = 44.0
+theme_override_fonts/font = SubResource("SystemFont_mono")
+theme_override_font_sizes/font_size = 18
+text = "Joueur : 5 / 5"
+vertical_alignment = 1
+
+[node name="AssassinHPBar" type="ProgressBar" parent="CombatUI/Control"]
+layout_mode = 0
+offset_left = 704.0
+offset_top = 48.0
+offset_right = 960.0
+offset_bottom = 76.0
+theme_override_styles/background = SubResource("StyleBoxFlat_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_assassin_fill")
+max_value = 5.0
+value = 5.0
+show_percentage = false
+
+[node name="AssassinHPLabel" type="Label" parent="CombatUI/Control"]
+layout_mode = 0
+offset_left = 704.0
+offset_top = 18.0
+offset_right = 960.0
+offset_bottom = 44.0
+theme_override_fonts/font = SubResource("SystemFont_mono")
+theme_override_font_sizes/font_size = 18
+text = "Assassin : 5 / 5"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="CombatUI/Control"]
+layout_mode = 0
+offset_left = 200.0
+offset_top = 96.0
+offset_right = 824.0
+offset_bottom = 176.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = SubResource("SystemFont_mono")
+theme_override_font_sizes/font_size = 20
+text = "Le combat commence !"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="StunLabel" type="Label" parent="CombatUI/Control"]
+visible = false
+layout_mode = 0
+offset_left = 320.0
+offset_top = 240.0
+offset_right = 704.0
+offset_bottom = 300.0
+theme_override_colors/font_color = Color(1, 0.5, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
+theme_override_constants/outline_size = 8
+theme_override_fonts/font = SubResource("SystemFont_mono")
+theme_override_font_sizes/font_size = 32
+text = "ÉTOURDI ! (3s)"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InstructionLabel" type="Label" parent="CombatUI/Control"]
+layout_mode = 1
+anchors_preset = 7
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 200.0
+offset_top = -60.0
+offset_right = -200.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = SubResource("SystemFont_mono")
+theme_override_font_sizes/font_size = 15
+text = "Touches : [A / Q] Lever Bouclier  |  [E] Attaquer"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScreenFlash" type="ColorRect" parent="CombatUI/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0, 0, 0)
