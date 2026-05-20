@@ -1,42 +1,71 @@
 [gd_scene format=3 uid="uid://crctvpgw6b6v2"]
 
+[ext_resource type="Texture2D" uid="uid://jm6oyk7ocsie" path="res://art/MoyenAge/assassin_attaque.png" id="1_h1f8b"]
 [ext_resource type="Texture2D" uid="uid://bpv3phbwrqjcx" path="res://art/MoyenAge/assassin_idle.png" id="1_p7nb6"]
+[ext_resource type="Texture2D" uid="uid://b57oiekof7dpp" path="res://art/MoyenAge/assassin_defense.png" id="3_88oai"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_xrbpe"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_yqnpg"]
+atlas = ExtResource("1_h1f8b")
+region = Rect2(0, 0, 367, 339)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ht6hu"]
+atlas = ExtResource("1_h1f8b")
+region = Rect2(368, 0, 367, 339)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hwvsl"]
 atlas = ExtResource("1_p7nb6")
 region = Rect2(0, 0, 366, 338)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_h1f8b"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_db5in"]
 atlas = ExtResource("1_p7nb6")
 region = Rect2(366, 0, 366, 338)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_88oai"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_txyda"]
+atlas = ExtResource("3_88oai")
+region = Rect2(0, 0, 375, 332)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j7805"]
+atlas = ExtResource("3_88oai")
+region = Rect2(375, 0, 375, 332)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ye74t"]
 animations = [{
-"frames": [],
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yqnpg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ht6hu")
+}],
 "loop": true,
 "name": &"attaque",
-"speed": 5.0
-}, {
-"frames": [],
-"loop": true,
-"name": &"defense",
-"speed": 5.0
+"speed": 1.0
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_xrbpe")
+"texture": SubResource("AtlasTexture_hwvsl")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_h1f8b")
+"texture": SubResource("AtlasTexture_db5in")
 }],
 "loop": true,
-"name": &"idle",
+"name": &"default",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_txyda")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j7805")
+}],
+"loop": true,
+"name": &"defense",
 "speed": 2.0
 }]
 
 [node name="assassin" type="Node2D" unique_id=871506282]
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=681549313]
-sprite_frames = SubResource("SpriteFrames_88oai")
-animation = &"idle"
-frame_progress = 0.07909925
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=936706067]
+sprite_frames = SubResource("SpriteFrames_ye74t")
+frame_progress = 0.42004636
