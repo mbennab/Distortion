@@ -27,6 +27,7 @@ var _glow_tweens: Array[Tween] = []
 var _objective_label: Label
 
 func _ready():
+	process_mode = PROCESS_MODE_DISABLED
 	hide()
 	positionEntreePrincipale = $"fondHubCentral/Markers2D/entreePrincipale".position
 	limites = $"fondHubCentral/limitesDeplacament"
@@ -203,6 +204,7 @@ func _update_objective(text: String) -> void:
 	_objective_label.text = text
 
 func start(spawn_id: String = "entree"):
+	process_mode = PROCESS_MODE_INHERIT
 	TimeAunoteScript.disguised = false
 	show()
 	_objective_label = $ObjectiveHUD/Panel/Objective
@@ -227,6 +229,7 @@ func start(spawn_id: String = "entree"):
 	stopped = false
 
 func stop():
+	process_mode = PROCESS_MODE_DISABLED
 	hide()
 	$ObjectiveHUD.hide()
 	DialogueUI.close_dialogue()

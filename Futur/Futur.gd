@@ -27,6 +27,7 @@ var _combat_boss_instance: Node2D
 
 
 func _ready() -> void:
+	process_mode = PROCESS_MODE_DISABLED
 	position_entree_principale = $"fondFutur/Markers2D/entreePrincipale".position
 	position_entree_escalier = $"fondFutur/Markers2D/entreeEscalier".position
 	hide()
@@ -687,6 +688,7 @@ func _disable_all_collisions() -> void:
 
 
 func start(spawn_id: String = "entree") -> void:
+	process_mode = PROCESS_MODE_INHERIT
 	show()
 	_disable_all_collisions()
 	_objective_label = $ObjectiveHUD/Panel/Objective
@@ -885,6 +887,7 @@ func start_from_escalier() -> void:
 
 
 func stop() -> void:
+	process_mode = PROCESS_MODE_DISABLED
 	hide()
 	$ObjectiveHUD.hide()
 	can_move = false

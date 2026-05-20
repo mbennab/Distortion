@@ -45,15 +45,20 @@ func _setup_bubble() -> void:
 	bubble.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	bubble.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	bubble.add_theme_font_size_override("font_size", 28)
-	bubble.add_theme_color_override("font_color", Color(0.15, 0.1, 0.05))
+	bubble.add_theme_color_override("font_color", Color(0.9, 0.75, 1.0, 1.0))
 	bubble.custom_minimum_size = Vector2(420, 0)
 	var bubble_style = StyleBoxFlat.new()
-	bubble_style.bg_color = Color(1, 1, 1, 0.88)
+	bubble_style.bg_color = Color(0.1, 0.08, 0.18, 0.94)
+	bubble_style.border_width_left = 2
+	bubble_style.border_width_top = 2
+	bubble_style.border_width_right = 2
+	bubble_style.border_width_bottom = 2
+	bubble_style.border_color = Color(0.65, 0.35, 0.9, 0.7)
 	bubble_style.set_content_margin_all(12)
-	bubble_style.corner_radius_top_left = 12
-	bubble_style.corner_radius_top_right = 12
+	bubble_style.corner_radius_top_left = 14
+	bubble_style.corner_radius_top_right = 14
 	bubble_style.corner_radius_bottom_left = 4
-	bubble_style.corner_radius_bottom_right = 12
+	bubble_style.corner_radius_bottom_right = 14
 	bubble.add_theme_stylebox_override("normal", bubble_style)
 	bubble.visible = false
 	bubble.z_index = 100
