@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://df3b7w0b50pea"]
+
+[node name="fondEtage1" type="Node2D" unique_id=60089890]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=10772931]
+position = Vector2(1214, 808.5)
+scale = Vector2(1.8225564, 1.3663281)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=792392337]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="Marker" type="Node2D" parent="." unique_id=152386741]
+
+[node name="Entrée" type="Marker2D" parent="Marker" unique_id=1658406755]
+position = Vector2(1217, 1488)
+
+[node name="garde1" type="Marker2D" parent="Marker" unique_id=906685386]
+position = Vector2(759, 1162)
+
+[node name="garde2" type="Marker2D" parent="Marker" unique_id=1694637018]
+position = Vector2(1626, 1135)
+
+[node name="garde3" type="Marker2D" parent="Marker" unique_id=1607999076]
+position = Vector2(805, 679)
+
+[node name="Limites-etage-1" type="StaticBody2D" parent="." unique_id=1477282438]
+visible = false
+collision_layer = 0
+
+[node name="étage" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=764699042]
+build_mode = 1
+polygon = PackedVector2Array(1011, 1524, 1014, 1490, 1035, 1458, 1027, 1418, 989, 1407, 952, 1414, 942, 1440, 931, 1463, 942, 1481, 961, 1525, 915, 1504, 791, 1506, 791, 1345, 912, 1341, 912, 1500, 964, 1527, 1014, 1530, 1039, 1558, 75, 1561, 79, 783, 575, 780, 573, 1109, 550, 1122, 550, 1168, 646, 1172, 647, 678, 508, 674, 501, 662, 189, 662, 186, 675, 78, 674, 80, 521, 175, 524, 175, 408, 485, 405, 480, 486, 444, 481, 443, 516, 484, 518, 485, 543, 544, 548, 654, 557, 652, 368, 721, 368, 721, 383, 696, 396, 696, 453, 690, 521, 816, 527, 818, 477, 806, 390, 819, 367, 882, 361, 882, 383, 971, 380, 973, 554, 1061, 560, 1066, 464, 1359, 464, 1354, 552, 1446, 559, 1444, 380, 1602, 378, 1602, 518, 1723, 523, 1765, 523, 1768, 557, 1865, 558, 1863, 504, 1840, 503, 1838, 408, 2007, 407, 2006, 433, 1978, 431, 1970, 466, 1979, 488, 2040, 489, 2038, 532, 2075, 532, 2073, 492, 2132, 494, 2143, 468, 2141, 433, 2092, 430, 2091, 406, 2245, 403, 2245, 520, 2225, 556, 2213, 618, 2229, 643, 2227, 661, 1912, 661, 1903, 675, 1763, 676, 1765, 1167, 1833, 1168, 1838, 1318, 1870, 1316, 1872, 1203, 2177, 1209, 2181, 1228, 2276, 1229, 2277, 1212, 2319, 1226, 2346, 1228, 2345, 1396, 2312, 1355, 2284, 1354, 2285, 1374, 2248, 1401, 2219, 1411, 2218, 1436, 2256, 1440, 2283, 1466, 2317, 1471, 2315, 1446, 2345, 1424, 2348, 1562, 2115, 1560, 2107, 1538, 2130, 1529, 2177, 1531, 2167, 1499, 2140, 1503, 2114, 1470, 2103, 1443, 2080, 1446, 2075, 1462, 2036, 1498, 2008, 1498, 2015, 1529, 2055, 1530, 2070, 1531, 2070, 1555, 1384, 1562, 1408, 1523, 1461, 1534, 1505, 1505, 1625, 1510, 1628, 1342, 1507, 1340, 1483, 1453, 1477, 1418, 1408, 1407, 1382, 1442, 1399, 1473, 1355, 1584, 1071, 1564, 1041, 1562)
+
+[node name="statue" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=1140360305]
+build_mode = 1
+polygon = PackedVector2Array(1131, 1081, 1284, 1080, 1284, 979, 1256, 974, 1252, 833, 1165, 875, 1161, 976, 1135, 980)
+
+[node name="canapé1" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=630416684]
+build_mode = 1
+polygon = PackedVector2Array(1482, 1311, 1534, 1312, 1533, 1131, 1502, 1133, 1501, 1120, 1481, 1120)
+
+[node name="Canapé2" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=1498914898]
+build_mode = 1
+polygon = PackedVector2Array(1481, 650, 1500, 649, 1500, 660, 1532, 661, 1533, 850, 1479, 847)
+
+[node name="Canapé3" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=218129272]
+build_mode = 1
+polygon = PackedVector2Array(880, 841, 933, 845, 939, 650, 915, 647, 915, 660, 884, 655)
+
+[node name="Canapé4" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=249600761]
+build_mode = 1
+polygon = PackedVector2Array(938, 1318, 939, 1124, 919, 1124, 917, 1135, 882, 1127, 884, 1311)
+
+[node name="bureau admin" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=119605315]
+build_mode = 1
+polygon = PackedVector2Array(165, 1235, 234, 1232, 231, 855, 164, 855, 160, 960, 116, 953, 126, 988, 155, 986)
+
+[node name="caca admin" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=639847402]
+build_mode = 1
+polygon = PackedVector2Array(284, 1500, 430, 1504, 429, 1317, 301, 1321, 298, 1452, 283, 1449)
+
+[node name="plante admin" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=2052076520]
+build_mode = 1
+polygon = PackedVector2Array(191, 1527, 197, 1479, 222, 1460, 227, 1345, 179, 1321, 135, 1330, 119, 1360, 136, 1397, 134, 1451, 162, 1473, 162, 1530)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=1022354786]
+build_mode = 1
+polygon = PackedVector2Array(156, 644, 192, 643, 193, 629, 228, 628, 225, 557, 181, 544, 149, 552, 139, 590, 153, 607, 162, 614)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=1449767118]
+build_mode = 1
+polygon = PackedVector2Array(2076, 1244, 2105, 1244, 2108, 1266, 2127, 1273, 2137, 1285, 2141, 1302, 2160, 1305, 2169, 1297, 2170, 1311, 2169, 1329, 2160, 1339, 2129, 1330, 2108, 1338, 2110, 1368, 2072, 1368, 2074, 1334, 2052, 1323, 2048, 1335, 2015, 1336, 2012, 1295, 2022, 1302, 2040, 1302, 2043, 1283, 2056, 1278, 2076, 1267)

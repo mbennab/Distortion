@@ -127,7 +127,7 @@ L'aubergiste vous permet d'espionner les conversations des clients pour glaner d
 | **Contrôle** | Maintenir `E` pour se pencher (monter), relâcher pour se redresser (descendre) |
 | **Mécanique** | Zone verte oscillante sur une barre verticale — rester dedans remplit les infos |
 | **Échec** | Reset complet des 3 tables si la jauge de soupçons se remplit |
-| **Victoire** | L'assassin portait une cape sombre et s'est enfui vers la forêt au nord ! |
+| **Victoire** | L'assassin portait une cape sombre et s'est enfui vers la forêt ! |
 
 Résultat : complète l'étape `etape_enqueter_foret` de la quête `quete_piste_assassin`.
 
