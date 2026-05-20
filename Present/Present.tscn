@@ -8,6 +8,8 @@
 [ext_resource type="PackedScene" uid="uid://c0iif60cs45c3" path="res://Present/hall.tscn" id="6_hall"]
 [ext_resource type="PackedScene" path="res://Present/pnj_secretaire.tscn" id="7_secretaire"]
 [ext_resource type="PackedScene" uid="uid://bciogksqf67in" path="res://Present/couloir.tscn" id="8_couloir"]
+[ext_resource type="PackedScene" uid="uid://b37iu2280wk6q" path="res://Present/pc controle.tscn" id="9_pc_controle"]
+[ext_resource type="PackedScene" uid="uid://541im6pqeob3" path="res://Present/vestiaire.tscn" id="10_vestiaire"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_present"]
 bg_color = Color(0.08, 0.08, 0.15, 0.85)
@@ -39,6 +41,12 @@ visible = false
 visible = false
 
 [node name="Couloir" type="Node2D" parent="." instance=ExtResource("8_couloir")]
+visible = false
+
+[node name="PcControle" type="Node2D" parent="." instance=ExtResource("9_pc_controle")]
+visible = false
+
+[node name="Vestiaire" type="Node2D" parent="." instance=ExtResource("10_vestiaire")]
 visible = false
 
 [node name="ObjectiveHUD" type="CanvasLayer" parent="."]
