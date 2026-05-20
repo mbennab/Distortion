@@ -404,13 +404,6 @@ func _spawn_chatter_bubble() -> void:
 	var text: String = CHATTER_LINES[randi() % CHATTER_LINES.size()]
 	var max_width: int = 280
 
-	# Container
-	var container := Control.new()
-	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.z_index = 50
-	add_child(container)
-	_active_bubbles.append(container)
-
 	# Calculate text size (rough estimate)
 	var font_size := 13
 	var char_w := 9.0
@@ -429,9 +422,34 @@ func _spawn_chatter_bubble() -> void:
 		start_x = vp.x + 40
 		end_x = vp.x - margin_x - bubble_w
 
+	# ── Find a Y position that doesn't overlap existing bubbles ──
 	var y_range := vp.y - 260.0
-	var start_y := 120.0 + randf() * y_range
+	var min_gap := bubble_h + 12.0
+	var start_y := 0.0
+	var found := false
+	for _attempt in range(30):
+		var candidate := 120.0 + randf() * y_range
+		var overlaps := false
+		for bub in _active_bubbles:
+			if not is_instance_valid(bub):
+				continue
+			if abs(bub.position.y - candidate) < min_gap:
+				overlaps = true
+				break
+		if not overlaps:
+			start_y = candidate
+			found = true
+			break
+	if not found:
+		start_y = 120.0 + randf() * y_range
+
+	# Container
+	var container := Control.new()
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.z_index = 50
 	container.position = Vector2(start_x, start_y)
+	add_child(container)
+	_active_bubbles.append(container)
 
 	var border_color := Color(0.65, 0.52, 0.32, 0.75) if side == "left" else Color(0.4, 0.55, 0.65, 0.75)
 	var bg_color := Color(0.08, 0.07, 0.06, 0.88)
@@ -619,15 +637,24 @@ func _show_result(success: bool) -> void:
 	# Animate entrance
 	panel.modulate = Color(1, 1, 1, 0)
 	panel.scale = Vector2(0.85, 0.85)
-	var tween := create_tween()
-	tween.set_parallel()
-	tween.tween_property(panel, "modulate:a", 1.0, 0.4).set_ease(Tween.EASE_OUT)
-	tween.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	var enter_tween := create_tween()
+	enter_tween.set_parallel()
+	enter_tween.tween_property(panel, "modulate:a", 1.0, 0.4).set_ease(Tween.EASE_OUT)
+	enter_tween.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
-	# Stay visible for 2 seconds so players can read
-	tween.chain().tween_interval(2.0)
-	tween.tween_property(panel, "modulate:a", 0.0, 0.45)
-	tween.tween_callback(_finish_game.bind(success))
+	# Use a real Timer for exactly 2 seconds of visibility
+	var timer := Timer.new()
+	timer.wait_time = 2.0
+	timer.one_shot = true
+	timer.autostart = true
+	add_child(timer)
+	timer.timeout.connect(
+		func():
+			var exit_tween := create_tween()
+			exit_tween.tween_property(panel, "modulate:a", 0.0, 0.45)
+			exit_tween.tween_callback(_finish_game.bind(success))
+			timer.queue_free()
+	)
 
 
 func _setup_bgm() -> void:
