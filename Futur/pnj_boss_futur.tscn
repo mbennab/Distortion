@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://dc0kr1b2j0bpr"]
+
+[ext_resource type="Texture2D" uid="uid://bw2bo261wm5nl" path="res://art/Futur/boss_futur.png" id="1_boss"]
+
+[ext_resource type="Script" path="res://Futur/pnj_boss_futur.gd" id="2_gd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame1"]
+atlas = ExtResource("1_boss")
+region = Rect2(0, 0, 287, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame2"]
+atlas = ExtResource("1_boss")
+region = Rect2(287, 0, 288, 640)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_boss"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_frame1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_frame2")
+}],
+"loop": true,
+"name": &"idle-boss",
+"speed": 1.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss"]
+radius = 120.0
+
+[node name="pnj-boss-futur" type="Node2D"]
+script = ExtResource("2_gd")
+
+[node name="ZoneDialogue" type="Area2D" parent="."]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue"]
+shape = SubResource("CircleShape2D_boss")
+
+[node name="bossAnimation" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.42, 0.42)
+sprite_frames = SubResource("SpriteFrames_boss")
+animation = &"idle-boss"
