@@ -21,9 +21,9 @@ var boss_atk_buff := 0
 var battle_active := false
 var current_action := Action.NONE
 
-var bg_sprite: Sprite2D
-var boss_sprite: AnimatedSprite2D
-var player_sprite: Sprite2D
+@onready var bg_sprite: Sprite2D = $BackgroundContainer/BG
+@onready var boss_sprite: AnimatedSprite2D = $BossSprite
+@onready var player_sprite: AnimatedSprite2D = $PlayerSprite
 var ui_layer: CanvasLayer
 
 var msg_label: Label
@@ -53,69 +53,17 @@ var prev_player_hp: int
 func _ready() -> void:
 	prev_boss_hp = boss_hp
 	prev_player_hp = player_hp
-	_setup_background()
-	_setup_characters()
 	_setup_ui()
 	_update_hp_bars()
 	battle_active = true
+	var tween := create_tween().set_loops(-1)
+	tween.tween_property(player_sprite, "position:y", player_sprite.position.y - 8, 0.8)
+	tween.tween_property(player_sprite, "position:y", player_sprite.position.y, 0.8)
 	_show_message("Alfredo Sinko Nochez vous attaque !")
 	await get_tree().create_timer(1.5).timeout
 	_start_player_turn()
 
 
-func _setup_background() -> void:
-	bg_sprite = Sprite2D.new()
-	bg_sprite.texture = load("res://art/Futur/combat_boss_futur.png")
-	bg_sprite.centered = false
-	bg_sprite.position = Vector2.ZERO
-	bg_sprite.z_index = -10
-	add_child(bg_sprite)
-
-
-func _setup_characters() -> void:
-	var vp := get_viewport_rect().size
-
-	var atlas0 := AtlasTexture.new()
-	atlas0.atlas = load("res://art/Futur/boss_futur.png")
-	atlas0.region = Rect2(0, 0, 287, 640)
-	var atlas1 := AtlasTexture.new()
-	atlas1.atlas = load("res://art/Futur/boss_futur.png")
-	atlas1.region = Rect2(287, 0, 287, 640)
-
-	var frames := SpriteFrames.new()
-	frames.add_animation("idle")
-	frames.add_frame("idle", atlas0)
-	frames.add_frame("idle", atlas1)
-	frames.set_animation_speed("idle", 0.8)
-	frames.set_animation_loop("idle", true)
-
-	boss_sprite = AnimatedSprite2D.new()
-	boss_sprite.sprite_frames = frames
-	boss_sprite.play("idle")
-	var boss_scale = vp.y / 640.0 * 0.35
-	boss_sprite.scale = Vector2(boss_scale, boss_scale)
-	boss_sprite.position = Vector2(vp.x * 0.68, vp.y * 0.22)
-	add_child(boss_sprite)
-
-	var p_img := Image.create(48, 72, false, Image.FORMAT_RGBA8)
-	p_img.fill(Color(0.15, 0.6, 1.0, 1.0))
-	for y in range(8, 28):
-		for x in range(14, 34):
-			var dx := x - 24.0
-			var dy := y - 18.0
-			if dx * dx + dy * dy <= 10.0 * 10.0:
-				p_img.set_pixel(x, y, Color(1.0, 0.85, 0.6, 1.0))
-
-	player_sprite = Sprite2D.new()
-	player_sprite.texture = ImageTexture.create_from_image(p_img)
-	var player_scale = vp.y / 72.0 * 0.45
-	player_sprite.scale = Vector2(player_scale, player_scale)
-	player_sprite.position = Vector2(vp.x * 0.25, vp.y * 0.65)
-	add_child(player_sprite)
-
-	var tween := create_tween().set_loops(-1)
-	tween.tween_property(player_sprite, "position:y", player_sprite.position.y - 8, 0.8)
-	tween.tween_property(player_sprite, "position:y", player_sprite.position.y, 0.8)
 
 
 func _setup_ui() -> void:

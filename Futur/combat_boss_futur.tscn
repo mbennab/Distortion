@@ -1,6 +1,77 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bqe4du4l0ejyr"]
 
-[ext_resource type="Script" path="res://Scripts/CombatBossFutur.gd" id="1_hc22m"]
+[ext_resource type="Script" uid="uid://c6wth1nkxbt1t" path="res://Scripts/CombatBossFutur.gd" id="1_hc22m"]
+[ext_resource type="Texture2D" uid="uid://beq7dxei7aoyq" path="res://art/Futur/combat_boss_futur.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://cmvnyri3td0ym" path="res://art/Futur/boss_futur_idle.png" id="3_om1k8"]
+[ext_resource type="Texture2D" uid="uid://caek7jr2an2nr" path="res://art/Futur/idle_combat_player.png" id="4_wgsr6"]
 
-[node name="CombatBossFutur" type="Node2D"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_wgsr6"]
+atlas = ExtResource("3_om1k8")
+region = Rect2(0, 0, 482, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bnvva"]
+atlas = ExtResource("3_om1k8")
+region = Rect2(482, 0, 482, 641)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_v8q"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wgsr6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bnvva")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 1.5
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2j1dn"]
+atlas = ExtResource("4_wgsr6")
+region = Rect2(0, 0, 1968, 1785)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_41ji4"]
+atlas = ExtResource("4_wgsr6")
+region = Rect2(1968, 0, 1968, 1785)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_rsnei"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2j1dn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_41ji4")
+}],
+"loop": true,
+"name": &"idle_battle",
+"speed": 2.0
+}]
+
+[node name="CombatBossFutur" type="Node2D" unique_id=337692966]
 script = ExtResource("1_hc22m")
+
+[node name="BackgroundContainer" type="Node2D" parent="." unique_id=1061304882]
+
+[node name="BG" type="Sprite2D" parent="BackgroundContainer" unique_id=1805873573]
+z_index = -10
+scale = Vector2(1.7337239, 1.6855469)
+texture = ExtResource("2_bg")
+centered = false
+
+[node name="BossSprite" type="AnimatedSprite2D" parent="." unique_id=168775412]
+position = Vector2(1935, 623)
+scale = Vector2(0.90535885, 0.88232726)
+sprite_frames = SubResource("SpriteFrames_v8q")
+animation = &"idle"
+autoplay = "idle"
+frame_progress = 0.47258613
+
+[node name="PlayerSprite" type="AnimatedSprite2D" parent="." unique_id=1162584701]
+position = Vector2(378, 1039)
+scale = Vector2(0.3055132, 0.33088237)
+sprite_frames = SubResource("SpriteFrames_rsnei")
+animation = &"idle_battle"
+autoplay = "idle_battle"
+frame_progress = 0.8720098
