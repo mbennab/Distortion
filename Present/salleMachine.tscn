@@ -5,6 +5,9 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qf2w6"]
 size = Vector2(506.25, 158.25)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f2jfc"]
+size = Vector2(1201.5, 557)
+
 [node name="SalleMachine" type="Node2D" unique_id=920027068]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=692671536]
@@ -28,9 +31,13 @@ polygon = PackedVector2Array(1354, 1600, 1034, 1603, 1111, 1511, 247, 1467, 243,
 [node name="zone pop" type="Marker2D" parent="Node2D" unique_id=189963620]
 position = Vector2(1199, 1415)
 
-[node name="couloir" type="Area2D" parent="." unique_id=1961255036]
+[node name="event" type="Area2D" parent="." unique_id=1961255036]
 collision_layer = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="couloir" unique_id=1675863665]
+[node name="couloir" type="CollisionShape2D" parent="event" unique_id=1675863665]
 position = Vector2(1189, 1617)
 shape = SubResource("RectangleShape2D_qf2w6")
+
+[node name="machines a reparer" type="CollisionShape2D" parent="event" unique_id=104876315]
+position = Vector2(1007.25, 603.5)
+shape = SubResource("RectangleShape2D_f2jfc")
