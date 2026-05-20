@@ -371,7 +371,7 @@ func _process(delta: float) -> void:
 	_chatter_timer += delta
 	if _chatter_timer >= _next_chatter:
 		_chatter_timer = 0.0
-		_next_chatter = randf_range(1.2, 3.2)
+		_next_chatter = randf_range(2.5, 5.0)
 		_spawn_chatter_bubble()
 
 	# Clean up dead bubbles
@@ -407,36 +407,49 @@ func _spawn_chatter_bubble() -> void:
 	# Container
 	var container := Control.new()
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.z_index = 50
 	add_child(container)
 	_active_bubbles.append(container)
 
 	# Calculate text size (rough estimate)
-	var lines := 1 + int(text.length() * 8.5 / max_width)
-	var bubble_w := mini(max_width, text.length() * 9 + 24)
-	var bubble_h := maxi(36, lines * 18 + 16)
+	var font_size := 13
+	var char_w := 9.0
+	var line_h := 20.0
+	var lines := 1 + int(text.length() * char_w / max_width)
+	var bubble_w := mini(max_width, text.length() * int(char_w) + 32)
+	var bubble_h := maxi(42, lines * int(line_h) + 20)
 
-	var margin_x := 32.0
+	var margin_x := 36.0
 	var start_x: float
 	var end_x: float
 	if side == "left":
-		start_x = -bubble_w - 20
+		start_x = -bubble_w - 40
 		end_x = margin_x
 	else:
-		start_x = vp.x + 20
+		start_x = vp.x + 40
 		end_x = vp.x - margin_x - bubble_w
 
-	var y_range := vp.y - 220.0
-	var start_y := 100.0 + randf() * y_range
+	var y_range := vp.y - 260.0
+	var start_y := 120.0 + randf() * y_range
 	container.position = Vector2(start_x, start_y)
+
+	var border_color := Color(0.65, 0.52, 0.32, 0.75) if side == "left" else Color(0.4, 0.55, 0.65, 0.75)
+	var bg_color := Color(0.08, 0.07, 0.06, 0.88)
+
+	# Soft shadow / glow behind border
+	var shadow := ColorRect.new()
+	shadow.color = Color(border_color.r, border_color.g, border_color.b, 0.15)
+	shadow.position = Vector2(3, 3)
+	shadow.size = Vector2(bubble_w, bubble_h)
+	container.add_child(shadow)
 
 	# Bubble background
 	var bg := ColorRect.new()
-	bg.color = Color(0.12, 0.11, 0.1, 0.82)
+	bg.color = bg_color
 	bg.size = Vector2(bubble_w, bubble_h)
 	container.add_child(bg)
 
 	# Bubble border
-	var border_color := Color(0.55, 0.42, 0.25, 0.6) if side == "left" else Color(0.35, 0.45, 0.55, 0.6)
 	var border := ColorRect.new()
 	border.color = border_color
 	border.position = Vector2(-2, -2)
@@ -444,19 +457,26 @@ func _spawn_chatter_bubble() -> void:
 	container.add_child(border)
 	container.move_child(border, 0)
 
+	# Inner accent line (top)
+	var accent := ColorRect.new()
+	accent.color = Color(border_color.r, border_color.g, border_color.b, 0.5)
+	accent.position = Vector2(0, 0)
+	accent.size = Vector2(bubble_w, 2)
+	container.add_child(accent)
+
 	# Tiny arrow / tail
 	var tail := Polygon2D.new()
 	if side == "left":
 		tail.polygon = PackedVector2Array([
-			Vector2(bubble_w - 8, bubble_h - 8),
-			Vector2(bubble_w + 6, bubble_h + 4),
-			Vector2(bubble_w - 16, bubble_h - 2)
+			Vector2(bubble_w - 10, bubble_h - 10),
+			Vector2(bubble_w + 8, bubble_h + 6),
+			Vector2(bubble_w - 20, bubble_h - 4)
 		])
 	else:
 		tail.polygon = PackedVector2Array([
-			Vector2(8, bubble_h - 8),
-			Vector2(-6, bubble_h + 4),
-			Vector2(16, bubble_h - 2)
+			Vector2(10, bubble_h - 10),
+			Vector2(-8, bubble_h + 6),
+			Vector2(20, bubble_h - 4)
 		])
 	tail.color = border_color
 	container.add_child(tail)
@@ -468,23 +488,25 @@ func _spawn_chatter_bubble() -> void:
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl.add_theme_font_size_override("font_size", 12)
-	lbl.add_theme_color_override("font_color", Color(0.92, 0.9, 0.85))
-	lbl.position = Vector2(10, 6)
-	lbl.size = Vector2(bubble_w - 20, bubble_h - 12)
+	lbl.add_theme_font_size_override("font_size", font_size)
+	lbl.add_theme_color_override("font_color", Color(0.95, 0.93, 0.88))
+	lbl.position = Vector2(12, 8)
+	lbl.size = Vector2(bubble_w - 24, bubble_h - 16)
 	container.add_child(lbl)
 
 	# Entrance tween (slide + fade)
 	container.modulate = Color(1, 1, 1, 0)
+	container.scale = Vector2(0.92, 0.92)
 	var tween := create_tween()
 	tween.set_parallel()
-	tween.tween_property(container, "position:x", end_x, 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	tween.tween_property(container, "modulate:a", 1.0, 0.35)
+	tween.tween_property(container, "position:x", end_x, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(container, "modulate:a", 1.0, 0.4)
+	tween.tween_property(container, "scale", Vector2(1.0, 1.0), 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
-	# Auto-dismiss after random duration
-	var lifetime := randf_range(2.5, 4.5)
+	# Auto-dismiss after random duration — longer so players can read
+	var lifetime := randf_range(7.0, 10.0)
 	tween.chain().tween_interval(lifetime)
-	tween.tween_property(container, "modulate:a", 0.0, 0.4)
+	tween.tween_property(container, "modulate:a", 0.0, 0.6)
 	tween.tween_callback(container.queue_free)
 
 
@@ -503,48 +525,113 @@ func _show_result(success: bool) -> void:
 	var cx := vp.x / 2.0
 	var cy := vp.y / 2.0
 
-	# Backdrop dim
+	# Backdrop dim (stronger)
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.4)
+	dim.color = Color(0, 0, 0, 0.55)
 	dim.size = vp
 	dim.z_index = 10
 	add_child(dim)
 
-	# Result panel
-	var panel := ColorRect.new()
-	panel.color = Color(0.08, 0.08, 0.1, 0.9)
-	panel.size = Vector2(520, 160)
-	panel.position = Vector2(cx - 260, cy - 80)
+	# ── Result panel ──
+	var panel_w := 560
+	var panel_h := 200
+	var panel := Control.new()
+	panel.position = Vector2(cx - panel_w / 2.0, cy - panel_h / 2.0)
 	panel.z_index = 11
 	add_child(panel)
 
+	# Outer glow / shadow
+	var glow := ColorRect.new()
+	glow.color = Color(0.55, 0.45, 0.25, 0.12) if success else Color(0.55, 0.2, 0.2, 0.12)
+	glow.position = Vector2(-6, -6)
+	glow.size = Vector2(panel_w + 12, panel_h + 12)
+	panel.add_child(glow)
+
+	# Panel background
+	var bg := ColorRect.new()
+	bg.color = Color(0.06, 0.06, 0.08, 0.95)
+	bg.size = Vector2(panel_w, panel_h)
+	panel.add_child(bg)
+
+	# Border
 	var pborder := ColorRect.new()
-	pborder.color = Color(0.45, 0.35, 0.2, 0.5)
+	pborder.color = Color(0.55, 0.45, 0.25, 0.7) if success else Color(0.75, 0.25, 0.25, 0.7)
 	pborder.position = Vector2(-2, -2)
-	pborder.size = Vector2(524, 164)
+	pborder.size = Vector2(panel_w + 4, panel_h + 4)
 	panel.add_child(pborder)
 	panel.move_child(pborder, 0)
 
-	var label := Label.new()
-	if success:
-		label.text = "Informations obtenues !"
-		label.add_theme_color_override("font_color", Color(0.35, 1.0, 0.4))
-	else:
-		label.text = "Tu t'es fait repérer…\nRecommence les écoutes !"
-		label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 26)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.position = Vector2(10, 10)
-	label.size = Vector2(500, 140)
-	panel.add_child(label)
+	# Top accent line
+	var accent := ColorRect.new()
+	accent.color = Color(0.35, 1.0, 0.4, 0.8) if success else Color(1.0, 0.35, 0.35, 0.8)
+	accent.position = Vector2(0, 0)
+	accent.size = Vector2(panel_w, 3)
+	panel.add_child(accent)
 
+	# Icon box (left side symbol)
+	var icon_box := ColorRect.new()
+	icon_box.position = Vector2(30, panel_h / 2.0 - 28)
+	icon_box.size = Vector2(56, 56)
+	panel.add_child(icon_box)
+
+	var icon_border := ColorRect.new()
+	icon_border.color = Color(0.35, 1.0, 0.4, 0.6) if success else Color(1.0, 0.35, 0.35, 0.6)
+	icon_border.position = Vector2(-2, -2)
+	icon_border.size = Vector2(60, 60)
+	icon_box.add_child(icon_border)
+	icon_box.move_child(icon_border, 0)
+
+	var icon_label := Label.new()
+	icon_label.text = "✓" if success else "✕"
+	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon_label.add_theme_font_size_override("font_size", 32)
+	icon_label.add_theme_color_override("font_color", Color(0.35, 1.0, 0.4) if success else Color(1.0, 0.35, 0.35))
+	icon_label.position = Vector2(0, 0)
+	icon_label.size = Vector2(56, 56)
+	icon_box.add_child(icon_label)
+
+	# Title
+	var title := Label.new()
+	if success:
+		title.text = "Informations obtenues !"
+		title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.4))
+	else:
+		title.text = "Tu t'es fait repérer…"
+		title.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.position = Vector2(110, 40)
+	title.size = Vector2(420, 44)
+	panel.add_child(title)
+
+	# Subtitle
+	var subtitle := Label.new()
+	if success:
+		subtitle.text = "Les rumeurs de la taverne t'ont révélé des indices précieux."
+	else:
+		subtitle.text = "Recommence les écoutes et reste discret cette fois."
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	subtitle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	subtitle.add_theme_font_size_override("font_size", 15)
+	subtitle.add_theme_color_override("font_color", Color(0.75, 0.75, 0.8))
+	subtitle.position = Vector2(110, 90)
+	subtitle.size = Vector2(420, 70)
+	panel.add_child(subtitle)
+
+	# Animate entrance
 	panel.modulate = Color(1, 1, 1, 0)
+	panel.scale = Vector2(0.85, 0.85)
 	var tween := create_tween()
-	tween.tween_property(panel, "modulate:a", 1.0, 0.35)
-	tween.tween_interval(1.6)
-	tween.tween_property(panel, "modulate:a", 0.0, 0.35)
+	tween.set_parallel()
+	tween.tween_property(panel, "modulate:a", 1.0, 0.4).set_ease(Tween.EASE_OUT)
+	tween.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+	# Stay visible longer so players can read
+	tween.chain().tween_interval(3.0)
+	tween.tween_property(panel, "modulate:a", 0.0, 0.45)
 	tween.tween_callback(_finish_game.bind(success))
 
 
