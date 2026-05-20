@@ -23,6 +23,7 @@ var _car_prompt: Label
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
 var _objective_label: Label
+var _combat_boss_instance: Node2D
 
 
 func _ready() -> void:
@@ -310,6 +311,128 @@ func _start_cheffe_post_tourelle_dialogue() -> void:
 	DialogueSystem.start_dialogue("npc_cheffe_futur")
 
 
+func _auto_start_boss_dialogue() -> void:
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	if DialogueSystem.is_active:
+		return
+	DialogueSystem._spoken_to.erase("npc_boss_futur")
+	DialogueSystem.start_dialogue("npc_boss_futur")
+
+
+func _on_boss_action_triggered(action: Dictionary) -> void:
+	if action.get("type") == "trigger" and action.get("id") == "combat":
+		if DialogueSystem.action_triggered.is_connected(_on_boss_action_triggered):
+			DialogueSystem.action_triggered.disconnect(_on_boss_action_triggered)
+		DialogueSystem.stop_dialogue()
+		_start_combat_boss()
+
+
+func _start_combat_boss() -> void:
+	if _combat_boss_instance:
+		return
+
+	$FondBureau.hide()
+	_set_bureau_collisions(false)
+	time_aunote.hide()
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = true
+	can_move = false
+
+	var CombatScene = preload("res://Futur/combat_boss_futur.tscn")
+	_combat_boss_instance = CombatScene.instantiate()
+	add_child(_combat_boss_instance)
+	_combat_boss_instance.battle_won.connect(_on_combat_boss_won)
+	_combat_boss_instance.battle_lost.connect(_on_combat_boss_lost)
+
+
+func _on_combat_boss_won() -> void:
+	if _combat_boss_instance:
+		_combat_boss_instance.queue_free()
+		_combat_boss_instance = null
+
+	DialogueUI.hide_all()
+	_show_combat_victory_message()
+
+
+func _show_combat_victory_message() -> void:
+	var vp := get_viewport().get_visible_rect().size
+	var text_label := Label.new()
+	text_label.text = "Alfredo Sinko Nochez est vaincu ! La ville de Kadath est libérée !"
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.add_theme_font_size_override("font_size", 28)
+	text_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	text_label.add_theme_constant_override("outline_size", 2)
+	text_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_label.custom_minimum_size = Vector2(700, 0)
+	text_label.position = Vector2(vp.x / 2.0 - 350, vp.y / 2.0 - 80)
+	text_label.size = Vector2(700, 160)
+	fade_layer.add_child(text_label)
+
+	await get_tree().create_timer(4.0).timeout
+
+	if is_instance_valid(text_label):
+		text_label.queue_free()
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 1.0)
+	await tween_fade.finished
+
+	var main = get_tree().current_scene
+	if main and main.has_method("warp_to_era"):
+		main.warp_to_era("hub", "entree")
+
+
+func _on_combat_boss_lost() -> void:
+	if _combat_boss_instance:
+		_combat_boss_instance.queue_free()
+		_combat_boss_instance = null
+
+	DialogueUI.hide_all()
+	_show_combat_defeat_message()
+
+
+func _show_combat_defeat_message() -> void:
+	var vp := get_viewport().get_visible_rect().size
+	var text_label := Label.new()
+	text_label.text = "Vous avez succombé... Mais vous pouvez réessayer."
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.add_theme_font_size_override("font_size", 24)
+	text_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+	text_label.add_theme_constant_override("outline_size", 2)
+	text_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_label.custom_minimum_size = Vector2(600, 0)
+	text_label.position = Vector2(vp.x / 2.0 - 300, vp.y / 2.0 - 60)
+	text_label.size = Vector2(600, 120)
+	fade_layer.add_child(text_label)
+
+	await get_tree().create_timer(3.0).timeout
+
+	if is_instance_valid(text_label):
+		text_label.queue_free()
+
+	var retry_label := Label.new()
+	retry_label.text = "Appuyez sur Espace pour réessayer"
+	retry_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	retry_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	retry_label.add_theme_font_size_override("font_size", 20)
+	retry_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
+	retry_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	retry_label.position = Vector2(vp.x / 2.0 - 200, vp.y / 2.0 + 20)
+	retry_label.size = Vector2(400, 50)
+	fade_layer.add_child(retry_label)
+
+	await get_tree().create_timer(1.0).timeout
+
+	_start_combat_boss()
+
+
 func _on_superette_dialogue_ended() -> void:
 	if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
 		DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
@@ -510,12 +633,19 @@ func _update_objective(text: String) -> void:
 	if _objective_label:
 		_objective_label.text = text
 
+func _set_bureau_collisions(enabled: bool) -> void:
+	var limite = $FondBureau.get_node_or_null("limite-bureau")
+	if limite:
+		limite.collision_layer = 1024 if enabled else 0
+
+
 func _disable_all_collisions() -> void:
 	$fondFutur.hide()
 	$SousSol.hide()
 	$FondSuperette.hide()
 	$FondMetro.hide()
 	$FondTour.hide()
+	$FondBureau.hide()
 	$"pnj-futur".hide()
 	$"pnj-cheffe".hide()
 	$"SousSol/pnj-futur".hide()
@@ -529,6 +659,7 @@ func _disable_all_collisions() -> void:
 	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
 	if tour_limite:
 		tour_limite.collision_layer = 0
+	_set_bureau_collisions(false)
 	if pnjfutur:
 		var zone = pnjfutur.get_node_or_null("ZoneDialogue")
 		if zone:
@@ -546,7 +677,7 @@ func start(spawn_id: String = "entree") -> void:
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://Futur/dimension_futur.json")
 	time_aunote = $TimeAunote
-	time_aunote.collision_mask = 992
+	time_aunote.collision_mask = 2016
 	pnjfutur = $"pnj-futur"
 	pnjcheffe = $"pnj-cheffe"
 
@@ -638,6 +769,31 @@ func start(spawn_id: String = "entree") -> void:
 		_update_objective("Entrer dans la tour d'Alfredo Sinko Nochez")
 		return
 
+	if spawn_id == "bureau":
+		$FondBureau.show()
+		_set_bureau_collisions(true)
+		DialogueSystem.load_dimension("res://Futur/dimension_futur.json")
+		var boss = $FondBureau.get_node("pnj-boss")
+		if boss:
+			boss.apparition($FondBureau/Marker/bossPos.position)
+			boss.get_node("ZoneDialogue").monitoring = true
+		time_aunote.global_position = $FondBureau/Marker/Entrée.global_position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(0.8, 0.8)
+		time_aunote.rotation = 0.0
+		var collision_node_bureau := time_aunote.get_node("collision") as CollisionShape2D
+		collision_node_bureau.disabled = false
+		can_move = false
+		started = true
+		stopped = false
+		$ObjectiveHUD.show()
+		_update_objective("Explorer le bureau")
+		if not DialogueSystem.action_triggered.is_connected(_on_boss_action_triggered):
+			DialogueSystem.action_triggered.connect(_on_boss_action_triggered)
+		_auto_start_boss_dialogue()
+		return
+
 	if spawn_id == "entree":
 		$fondFutur.show()
 		_set_upper_collisions(true)
@@ -697,7 +853,7 @@ func start_from_escalier() -> void:
 	_set_upper_collisions(true)
 	_set_basement_collisions(false)
 	time_aunote = $TimeAunote
-	time_aunote.collision_mask = 992
+	time_aunote.collision_mask = 2016
 	pnjfutur = $"pnj-futur"
 	pnjfutur.apparition(pnjfuturPos)
 	pnjfutur.get_node("ZoneDialogue").monitoring = true
@@ -731,6 +887,8 @@ func stop() -> void:
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
+	if DialogueSystem.action_triggered.is_connected(_on_boss_action_triggered):
+		DialogueSystem.action_triggered.disconnect(_on_boss_action_triggered)
 	if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
 		DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
 	var minijeu = $FondSuperette/MiniJeuTourelles
@@ -738,6 +896,9 @@ func stop() -> void:
 		if minijeu.finished.is_connected(_on_tourelle_minigame_done):
 			minijeu.finished.disconnect(_on_tourelle_minigame_done)
 		minijeu.stop_game()
+	if _combat_boss_instance:
+		_combat_boss_instance.queue_free()
+		_combat_boss_instance = null
 
 
 func _setup_car_minigame() -> void:

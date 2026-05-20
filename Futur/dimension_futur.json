@@ -305,6 +305,42 @@
 		"unknown": "J'ai pas compris brochacho. Respire et reformule.",
 		"default_template": "Vukovi te regarde avec un calme professionnel. Son regard s'attarde un instant sur toi."
 	  }
+	},
+	{
+	  "id": "npc_boss_futur",
+	  "name": "Alfredo Sinko Nochez",
+	  "first_message": "Je vous attendais, mais mon plan est innarêtable vous ne pouvez rien faire, mourrez comme des êtres misérables !",
+	  "personality": {
+		"tone": "méprisant, arrogant, sadique",
+		"backstory": "Le grand méchant de Kadath, un génie du mal qui cherche à plonger la ville dans le chaos.",
+		"emotional_state": "confiant, moqueur",
+		"speech": {
+		  "vouvoiement": true,
+		  "vocatif": "misérables créatures",
+		  "phrases": "grandiloquentes et menaçantes",
+		  "expressions": ["rit de manière malveillante", "toise le joueur du regard"],
+		  "interdits": ["ne montre PAS de faiblesse", "ne répond PAS aux questions"]
+		},
+		"knowledge": ["connaît le plan pour détruire Kadath", "sait que le voyageur est un adversaire"],
+		"goals": ["éliminer le voyageur", "poursuivre son plan maléfique"]
+	  },
+	  "intentions": [
+		{
+		  "id": "boss_accueil",
+		  "action": {
+			"type": "trigger",
+			"id": "combat",
+			"description": "Le combat commence"
+		  }
+		}
+	  ],
+	  "fallbacks": {
+		"off_topic": "Vous croyez pouvoir me distraire ?",
+		"insult": "Pathétique.",
+		"timeout": "Vous vous rendez compte que vous parlez à votre mort ?",
+		"unknown": "Je n'ai que faire de vos paroles.",
+		"default_template": "Alfredo Sinko Nochez vous regarde avec un sourire cruel."
+	  }
 	}
   ],
   "quests": [],

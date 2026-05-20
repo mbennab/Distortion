@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://ce03ipdncafi2"]
+
+[ext_resource type="Texture2D" uid="uid://x3vxh2f12cuq" path="res://art/Futur/bureau_futur.png" id="1_bureau"]
+[ext_resource type="PackedScene" path="res://Futur/pnj_boss_futur.tscn" id="2_boss"]
+
+[node name="fondBureau" type="Node2D" unique_id=450775289]
+
+[node name="image" type="Sprite2D" parent="." unique_id=1778443707]
+scale = Vector2(2.3544922, 2.3665688)
+texture = ExtResource("1_bureau")
+centered = false
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1498412190]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="Marker" type="Node2D" parent="." unique_id=2121001319]
+
+[node name="Entrée" type="Marker2D" parent="Marker" unique_id=545302575]
+position = Vector2(1201, 1210)
+
+[node name="bossPos" type="Marker2D" parent="Marker" unique_id=1112053208]
+position = Vector2(1200, 800)
+
+[node name="limite-bureau" type="StaticBody2D" parent="." unique_id=1047355694]
+collision_layer = 1024
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limite-bureau" unique_id=1953799583]
+build_mode = 1
+polygon = PackedVector2Array(871, 1303, 813, 1354, 665, 1352, 684, 1290, 688, 1230, 650, 1170, 654, 1091, 648, 726, 656, 587, 749, 478, 1083, 478, 1139, 452, 1263, 454, 1349, 484, 1597, 482, 1692, 520, 1743, 574, 1756, 758, 1750, 1106, 1752, 1324, 1711, 1363, 1554, 1365, 1552, 1318, 1479, 1320, 1439, 1350, 1237, 1354, 924, 1352)
+
+[node name="pnj-boss" parent="." unique_id=343707138 instance=ExtResource("2_boss")]
+position = Vector2(1189, 756)
