@@ -135,6 +135,7 @@ func _on_player_message(message: String) -> void:
 
 	if score >= WIN_SCORE:
 		_won = true
+		DialogueUI.close_dialogue()
 		_trigger_win()
 
 

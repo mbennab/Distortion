@@ -61,6 +61,8 @@ func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
 
 
 func _on_dialogue_ended() -> void:
+	if _mg_instance and is_instance_valid(_mg_instance) and _mg_instance._won:
+		return
 	_cleanup_minigame()
 
 
