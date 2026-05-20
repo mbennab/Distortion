@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://0ikfmd4vo8v0"]
+
+[ext_resource type="Texture2D" uid="uid://cll21ea7xnmko" path="res://art/Futur/fondEtage3.png" id="1_mxtm0"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mxtm0"]
+size = Vector2(171.75, 82)
+
+[node name="fond_etage_3" type="Node2D" unique_id=1696476237]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=620419272]
+position = Vector2(1213.4999, 808)
+scale = Vector2(1.8234408, 1.3671741)
+texture = ExtResource("1_mxtm0")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=426840379]
+anchor_mode = 0
+zoom = Vector2(0.422, 0.422)
+
+[node name="Marker" type="Node2D" parent="." unique_id=616265992]
+
+[node name="entreeEtage3" type="Marker2D" parent="Marker" unique_id=1958568779]
+
+[node name="garde33" type="Marker2D" parent="Marker" unique_id=1719305883]
+position = Vector2(1388, 469)
+
+[node name="garde32" type="Marker2D" parent="Marker" unique_id=938129415]
+position = Vector2(1388, 1217)
+
+[node name="garde31" type="Marker2D" parent="Marker" unique_id=484039087]
+position = Vector2(976, 861)
+
+[node name="LimiteEtage3" type="StaticBody2D" parent="." unique_id=1310533930]
+visible = false
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="LimiteEtage3" unique_id=499092292]
+build_mode = 1
+polygon = PackedVector2Array(1114, 1584, 1108, 1501, 1075, 1497, 1036, 1508, 1033, 1465, 1052, 1451, 1056, 1410, 1044, 1385, 984, 1384, 1002, 1362, 1000, 1325, 1007, 1310, 1020, 1309, 1024, 1120, 920, 1116, 919, 1077, 868, 1077, 861, 744, 786, 746, 787, 668, 827, 667, 829, 689, 941, 692, 942, 782, 992, 787, 994, 707, 974, 704, 980, 635, 1057, 635, 1057, 651, 1114, 650, 1116, 557, 1091, 557, 1091, 543, 1060, 544, 1060, 567, 976, 567, 970, 495, 1010, 499, 1014, 443, 969, 443, 972, 308, 1011, 307, 1015, 241, 1111, 246, 1116, 308, 1087, 282, 1070, 282, 1072, 302, 1056, 301, 1057, 345, 1132, 342, 1139, 196, 1288, 193, 1290, 333, 1293, 343, 1364, 347, 1369, 309, 1356, 283, 1346, 285, 1342, 305, 1316, 302, 1313, 245, 1412, 248, 1413, 307, 1455, 307, 1457, 446, 1413, 446, 1410, 498, 1461, 499, 1459, 563, 1376, 568, 1376, 543, 1345, 544, 1341, 560, 1314, 558, 1312, 642, 1372, 648, 1369, 634, 1457, 634, 1459, 700, 1432, 700, 1433, 784, 1438, 792, 1482, 785, 1486, 689, 1590, 691, 1593, 663, 1638, 664, 1638, 744, 1567, 747, 1559, 1095, 1504, 1106, 1501, 1084, 1457, 1079, 1457, 1119, 1404, 1120, 1399, 1308, 1416, 1310, 1416, 1359, 1416, 1379, 1376, 1384, 1369, 1438, 1392, 1458, 1390, 1493, 1388, 1524, 1349, 1522, 1349, 1495, 1330, 1493, 1321, 1506, 1319, 1601)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="LimiteEtage3" unique_id=245207293]
+build_mode = 1
+polygon = PackedVector2Array(1058, 1015, 1118, 1016, 1119, 917, 1089, 918, 1089, 912, 1059, 911)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="LimiteEtage3" unique_id=395647900]
+build_mode = 1
+polygon = PackedVector2Array(1312, 1017, 1368, 1017, 1369, 914, 1341, 911, 1339, 916, 1308, 917)
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1082236830]
+visible = false
+
+[node name="SortieEtage3" type="CollisionShape2D" parent="Area2D" unique_id=1448707430]
+position = Vector2(1218, 239)
+shape = SubResource("RectangleShape2D_mxtm0")
