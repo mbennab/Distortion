@@ -37,6 +37,7 @@ var _bg_default_pos := Vector2(1213.5, 808)
 @onready var assassin_hp_bar: ProgressBar = $CombatUI/Control/AssassinHPBar
 @onready var assassin_hp_label: Label = $CombatUI/Control/AssassinHPLabel
 @onready var screen_flash: ColorRect = $CombatUI/Control/ScreenFlash
+@onready var etourdi_sprite: AnimatedSprite2D = $etourdi
 
 # Assassin instancié
 var pnj_assassin: Node2D = null
@@ -46,6 +47,8 @@ func _ready() -> void:
 	combat_ui.hide()
 	screen_flash.modulate.a = 0.0
 	stun_label.visible = false
+	etourdi_sprite.hide()
+	etourdi_sprite.stop()
 
 func start_combat() -> void:
 	# Initialisation
@@ -59,6 +62,8 @@ func start_combat() -> void:
 	attack_evaluated = false
 	assassin_stunned = false
 	assassin_stun_timer = 0.0
+	etourdi_sprite.hide()
+	etourdi_sprite.stop()
 	
 	# Instancier ou récupérer l'assassin
 	if not pnj_assassin:
@@ -66,13 +71,13 @@ func start_combat() -> void:
 		pnj_assassin = assassin_scene.instantiate()
 		pnj_assassin.name = "AssassinCombat"
 		add_child(pnj_assassin)
-		# Placer l'assassin au second plan au centre du campement
-		pnj_assassin.position = Vector2(1214, 850)
-		pnj_assassin.scale = Vector2(1.8, 1.8)
 		# S'assurer qu'il n'a pas la logique de dialogue dans ce mode
 		if pnj_assassin.has_node("ZoneDialogue"):
 			pnj_assassin.get_node("ZoneDialogue").queue_free()
 	
+	# Placer et mettre à l'échelle l'assassin (plus grand et plus bas)
+	pnj_assassin.position = Vector2(1214, 915)
+	pnj_assassin.scale = Vector2(2.5, 2.5)
 	pnj_assassin.show()
 	var animated_sprite = pnj_assassin.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	animated_sprite.play("default")
@@ -115,13 +120,22 @@ func _process(delta: float) -> void:
 			
 	# Gérer l'étourdissement de l'assassin
 	if assassin_stunned:
+		etourdi_sprite.show()
+		if pnj_assassin:
+			etourdi_sprite.position = pnj_assassin.position - Vector2(0, 140)
+		if not etourdi_sprite.is_playing():
+			etourdi_sprite.play()
 		assassin_stun_timer -= delta
 		if assassin_stun_timer <= 0.0:
 			assassin_stunned = false
-			status_label.text = "L'assassin a récupéré de l'étourdissement !"
-			status_label.add_theme_color_override("font_color", Color.WHITE)
+			etourdi_sprite.hide()
+			etourdi_sprite.stop()
+			status_label.text = ""
 		else:
 			pass # Le timer continue, l'assassin reste étourdi
+	else:
+		etourdi_sprite.hide()
+		etourdi_sprite.stop()
 
 	# Gérer l'étourdissement du joueur
 	if is_player_stunned:
@@ -129,8 +143,7 @@ func _process(delta: float) -> void:
 		if stun_timer <= 0.0:
 			is_player_stunned = false
 			stun_label.visible = false
-			status_label.text = "Vous avez récupéré de l'étourdissement !"
-			status_label.add_theme_color_override("font_color", Color.WHITE)
+			status_label.text = ""
 		else:
 			stun_label.visible = true
 			stun_label.text = "ÉTOURDI ! (%d s)" % clampi(ceil(stun_timer), 1, 3)
@@ -171,8 +184,7 @@ func _handle_assassin_logic(delta: float) -> void:
 				_play_sound("res://audio/combat/sword_clash.1.ogg")
 				_flash_screen(Color(1.0, 1.0, 1.0, 0.3))
 				_shake_screen(8.0)
-				status_label.text = "Coup paré ! L'assassin est étourdi ! (3s)"
-				status_label.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
+				status_label.text = ""
 				# L'assassin est étourdi : il n'attaque pas pendant 3s
 				assassin_stunned = true
 				assassin_stun_timer = 3.0
@@ -222,30 +234,17 @@ func _change_assassin_posture(new_posture: String) -> void:
 	match assassin_posture:
 		"idle":
 			animated_sprite.play("default")
-			if assassin_hp < 50:
-				status_label.text = "L'assassin baisse sa garde ! VITE, ATTAQUEZ SPAM !"
-				status_label.add_theme_color_override("font_color", Color(0.2, 1.0, 0.5))
-			else:
-				status_label.text = "L'assassin baisse sa garde ! Attaquez !"
-				status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+			status_label.text = ""
 		"defense":
 			animated_sprite.play("defense")
-			if assassin_hp < 50:
-				status_label.text = "RAGE : L'assassin est en posture défensive !"
-				status_label.add_theme_color_override("font_color", Color(1.0, 0.7, 0.2))
-			else:
-				status_label.text = "L'assassin lève sa garde ! Ne l'attaquez pas !"
-				status_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.3))
+			status_label.text = ""
 		"attack":
 			animated_sprite.play("attaque")
 			animated_sprite.frame = 0
+			status_label.text = ""
 			if assassin_hp < 50:
-				status_label.text = "⚠️ RAGE ! COUP FOUDROYANT ! (0.5s)"
-				status_label.add_theme_color_override("font_color", Color(1.0, 0.1, 0.1))
 				attack_timer = 0.5 # Attaque deux fois plus rapide en mode rage !
 			else:
-				status_label.text = "ATTENTION ! L'assassin va attaquer !"
-				status_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
 				attack_timer = 1.0
 			attack_evaluated = false
 			# Un petit flash rouge d'avertissement
@@ -277,8 +276,7 @@ func _damage_assassin() -> void:
 	if assassin_hp <= 0:
 		_victory()
 	else:
-		status_label.text = "Vous touchez l'assassin ! (-1 PV)"
-		status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+		status_label.text = ""
 
 func _damage_player() -> void:
 	player_hp -= 1
@@ -290,8 +288,7 @@ func _damage_player() -> void:
 	if player_hp <= 0:
 		_defeat()
 	else:
-		status_label.text = "L'assassin vous frappe ! (-1 PV)"
-		status_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+		status_label.text = ""
 
 func _stun_player() -> void:
 	is_player_stunned = true
@@ -301,8 +298,7 @@ func _stun_player() -> void:
 	_shake_screen(15.0)
 	_flash_screen(Color(1.0, 0.5, 0.0, 0.35)) # Flash orange
 	_update_hp_ui()
-	status_label.text = "PARÉ ! L'assassin bloque votre coup et vous étourdit !"
-	status_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.0))
+	status_label.text = ""
 
 func _set_weapon_sprite(state: String) -> void:
 	match state:
