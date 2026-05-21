@@ -5,12 +5,12 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bbw7r"]
 size = Vector2(401.5, 150.5)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gja17"]
+size = Vector2(1113, 754.5)
+
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gja17"]
 radius = 161.0
 height = 488.0
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_gja17"]
-size = Vector2(1113, 754.5)
 
 [node name="Vestiaire" type="Node2D" unique_id=368032887]
 
@@ -41,18 +41,20 @@ position = Vector2(1208, 1480)
 [node name="event" type="Area2D" parent="." unique_id=853454452]
 collision_layer = 0
 
-[node name="ordi" type="CollisionShape2D" parent="event" unique_id=2040575599]
-position = Vector2(1714, 1278)
-shape = SubResource("CapsuleShape2D_gja17")
+[node name="couloir" type="CollisionShape2D" parent="event" unique_id=144237464]
+position = Vector2(1211.25, 1633)
+shape = SubResource("RectangleShape2D_bbw7r")
 
-[node name="vetements" type="CollisionShape2D" parent="event" unique_id=369063820]
+[node name="event2" type="Area2D" parent="." unique_id=1622753156]
+collision_layer = 0
+
+[node name="vetements" type="CollisionShape2D" parent="event2" unique_id=1085526378]
 position = Vector2(580, 771.75)
 shape = SubResource("RectangleShape2D_gja17")
 
-[node name="zone_couloir" type="Area2D" parent="."]
+[node name="event3" type="Area2D" parent="." unique_id=627504907]
 collision_layer = 0
-collision_mask = 1
 
-[node name="couloir" type="CollisionShape2D" parent="zone_couloir" unique_id=144237464]
-position = Vector2(1211.25, 1633)
-shape = SubResource("RectangleShape2D_bbw7r")
+[node name="ordi" type="CollisionShape2D" parent="event3" unique_id=123629071]
+position = Vector2(1714, 1278)
+shape = SubResource("CapsuleShape2D_gja17")
