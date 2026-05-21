@@ -46,14 +46,19 @@ func _setup_bubble() -> void:
 	_bubble.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_bubble.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_bubble.add_theme_font_size_override("font_size", 28)
-	_bubble.add_theme_color_override("font_color", Color(0.15, 0.1, 0.05))
+	_bubble.add_theme_color_override("font_color", Color(0.9, 0.75, 1.0, 1.0))
 
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(1, 1, 1, 0.88)
-	style.corner_radius_top_left = 12
-	style.corner_radius_top_right = 12
+	style.bg_color = Color(0.1, 0.08, 0.18, 0.94)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0.65, 0.35, 0.9, 0.7)
+	style.corner_radius_top_left = 14
+	style.corner_radius_top_right = 14
 	style.corner_radius_bottom_left = 4
-	style.corner_radius_bottom_right = 12
+	style.corner_radius_bottom_right = 14
 	style.set_content_margin_all(12)
 	_bubble.add_theme_stylebox_override("normal", style)
 

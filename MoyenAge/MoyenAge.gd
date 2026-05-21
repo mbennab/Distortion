@@ -37,6 +37,7 @@ var _audio_buffers: Dictionary = {}
 
 
 func _ready() -> void:
+	process_mode = PROCESS_MODE_DISABLED
 	position_entree_principale = $"fondMoyenAge/Markers2D/entreePrincipale".position
 	roi_pos = $"fondMoyenAge/Markers2D/roiPos".position
 	hide()
@@ -216,6 +217,7 @@ func _update_objective(text: String) -> void:
 		_objective_label.text = text
 
 func start(spawn_id: String = "entree") -> void:
+	process_mode = PROCESS_MODE_INHERIT
 	show()
 	_objective_label = $ObjectiveHUD/Panel/Objective
 	$ObjectiveHUD.show()
@@ -435,8 +437,10 @@ func _play_spawn_animation() -> void:
 	stopped = false
 
 func stop() -> void:
+	process_mode = PROCESS_MODE_DISABLED
 	hide()
 	$ObjectiveHUD.hide()
+	DialogueUI.hide_prompt()
 	DialogueUI.close_dialogue()
 	can_move = false
 	started = false
@@ -1018,6 +1022,7 @@ func _cleanup_knights() -> void:
 
 func _start_assassin_combat() -> void:
 	can_move = false
+	DialogueUI.hide_prompt()
 	DialogueUI.close_dialogue()
 	_stop_ambient()
 	
@@ -1033,6 +1038,11 @@ func _start_assassin_combat() -> void:
 	var static_foret = foret.get_node_or_null("StaticBody2D")
 	if static_foret:
 		static_foret.collision_layer = 0
+		
+	# Désactiver la zone d'interaction du PNJ assassin pendant le combat
+	var forest_assassin = foret.get_node_or_null("markers2D/assassin/assassin")
+	if forest_assassin and forest_assassin.has_node("ZoneDialogue"):
+		forest_assassin.get_node("ZoneDialogue").monitoring = false
 		
 	time_aunote.hide()
 	var col_node := time_aunote.get_node("collision") as CollisionShape2D

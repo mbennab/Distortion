@@ -266,6 +266,11 @@ animations = [{
 "name": &"idle_cote_MA",
 "speed": 2.0
 }, {
+"frames": [],
+"loop": true,
+"name": &"idle_cote_present",
+"speed": 2.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_glqxa")

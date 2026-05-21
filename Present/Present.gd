@@ -46,6 +46,7 @@ var _last_dialogue_npc_id: String = ""
 
 
 func _ready() -> void:
+	process_mode = PROCESS_MODE_DISABLED
 	position_entree_principale = $"fondPresent/Markers2D/entreePrincipale".position
 	secu_pos = $"fondPresent/Markers2D/secuPos".position
 	hide()
@@ -887,6 +888,7 @@ func _update_objective(text: String) -> void:
 
 
 func start(spawn_id: String = "entree") -> void:
+	process_mode = PROCESS_MODE_INHERIT
 	_hall_transition_started = false
 	show()
 	_objective_label = $ObjectiveHUD/Panel/Objective
@@ -1032,6 +1034,7 @@ func _on_parking_minigame_won() -> void:
 
 
 func stop() -> void:
+	process_mode = PROCESS_MODE_DISABLED
 	hide()
 	$ObjectiveHUD.hide()
 	can_move = false
