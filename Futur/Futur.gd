@@ -19,6 +19,8 @@ var _car_minigame: Node2D
 var _was_in_basement := false
 var _player_near_car := false
 var _car_prompt: Label
+var _player_near_etage1_sortie := false
+var _etage1_prompt: Label
 
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
@@ -42,6 +44,9 @@ func _ready() -> void:
 	_connect_escalier_signals()
 	_connect_metro_sortie_signal()
 	_connect_sortie_fond_signal()
+	_connect_etage1_sortie_signal()
+	_connect_etage2_sortie_signal()
+	_connect_etage3_sortie_signal()
 
 
 func _setup_fade_overlay() -> void:
@@ -201,6 +206,34 @@ func _set_etage1_collisions(enabled: bool) -> void:
 	var limite = $FondEtage1.get_node_or_null("Limites-etage-1")
 	if limite:
 		limite.collision_layer = 2048 if enabled else 0
+	
+	var sortie = $FondEtage1.get_node_or_null("SortieEtage1")
+	if not (sortie is Area2D):
+		sortie = $FondEtage1.get_node_or_null("Sortie2Etage")
+	if not (sortie is Area2D):
+		sortie = $FondEtage1.get_node_or_null("SortieEtage1")
+	if sortie and (sortie is Area2D):
+		sortie.monitoring = enabled
+
+
+func _set_etage2_collisions(enabled: bool) -> void:
+	var limite = $FondEtage2.get_node_or_null("LimitesEtage2")
+	if limite:
+		limite.collision_layer = 2048 if enabled else 0
+	
+	var sortie = $FondEtage2.get_node_or_null("SortieEtage2")
+	if sortie and (sortie is Area2D):
+		sortie.monitoring = enabled
+
+
+func _set_etage3_collisions(enabled: bool) -> void:
+	var limite = $FondEtage3.get_node_or_null("LimiteEtage3")
+	if limite:
+		limite.collision_layer = 2048 if enabled else 0
+	
+	var sortie = $FondEtage3.get_node_or_null("SortieEtage3")
+	if sortie and (sortie is Area2D):
+		sortie.monitoring = enabled
 
 
 func _setup_spawn_particles() -> void:
@@ -609,6 +642,229 @@ func _on_sortie_fond_entered(body: Node2D) -> void:
 	can_move = true
 
 
+func _connect_etage1_sortie_signal() -> void:
+	var sortie = $FondEtage1.get_node_or_null("SortieEtage1")
+	if not (sortie is Area2D):
+		sortie = $FondEtage1.get_node_or_null("SortieEtage2")
+	if not (sortie is Area2D):
+		sortie = $FondEtage1.get_node_or_null("Sortie2Etage")
+	
+	if sortie and (sortie is Area2D):
+		sortie.collision_mask = 1
+		if not sortie.body_entered.is_connected(_on_etage1_sortie_entered):
+			sortie.body_entered.connect(_on_etage1_sortie_entered)
+		if not sortie.body_exited.is_connected(_on_etage1_sortie_exited):
+			sortie.body_exited.connect(_on_etage1_sortie_exited)
+	
+	_setup_etage1_prompt()
+
+
+func _setup_etage1_prompt() -> void:
+	var prompt_layer = get_node_or_null("PromptLayer")
+	if not prompt_layer:
+		prompt_layer = CanvasLayer.new()
+		prompt_layer.name = "PromptLayer"
+		prompt_layer.layer = 100
+		add_child(prompt_layer)
+
+	_etage1_prompt = Label.new()
+	_etage1_prompt.text = "[E] Monter à l'étage"
+	_etage1_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_etage1_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_etage1_prompt.add_theme_font_size_override("font_size", 14)
+	_etage1_prompt.add_theme_color_override("font_color", Color.CYAN)
+	_etage1_prompt.visible = false
+	_etage1_prompt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_etage1_prompt.position = Vector2(342, 600)
+	_etage1_prompt.size = Vector2(340, 40)
+	prompt_layer.add_child(_etage1_prompt)
+
+
+func _on_etage1_sortie_entered(body: Node2D) -> void:
+	if body == time_aunote and $FondEtage1.visible:
+		_player_near_etage1_sortie = true
+		if _etage1_prompt:
+			_etage1_prompt.visible = true
+
+
+func _on_etage1_sortie_exited(body: Node2D) -> void:
+	if body == time_aunote:
+		_player_near_etage1_sortie = false
+		if _etage1_prompt:
+			_etage1_prompt.visible = false
+
+
+func _trigger_etage1_sortie() -> void:
+	if not can_move:
+		return
+
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+
+	$FondEtage1.hide()
+	_set_etage1_collisions(false)
+
+	$FondEtage2.show()
+	_set_etage2_collisions(true)
+
+	var marker = $FondEtage2.get_node_or_null("Marker/entreeEtage2")
+	if not marker:
+		marker = $FondEtage2.get_node_or_null("Marker/EntreeEtage2")
+	if not marker:
+		marker = $FondEtage2.get_node_or_null("Marker/entree_etage_2")
+
+	if marker:
+		time_aunote.global_position = marker.global_position
+	else:
+		time_aunote.global_position = Vector2(1149, 1522)
+
+	time_aunote.scale = Vector2(0.35, 0.35)
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = false
+
+	$ObjectiveHUD.show()
+	_update_objective("Explorer le deuxième étage de la tour")
+
+	var tween_fade_out := create_tween()
+	tween_fade_out.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade_out.finished
+
+	can_move = true
+
+
+func _connect_etage2_sortie_signal() -> void:
+	var sortie = $FondEtage2.get_node_or_null("SortieEtage2")
+	if not (sortie is Area2D):
+		sortie = $FondEtage2.get_node_or_null("SortieEtage3")
+	if not (sortie is Area2D):
+		sortie = $FondEtage2.get_node_or_null("Sortie2Etage")
+	
+	if sortie and (sortie is Area2D):
+		sortie.collision_mask = 1
+		if not sortie.body_entered.is_connected(_on_etage2_sortie_entered):
+			sortie.body_entered.connect(_on_etage2_sortie_entered)
+
+
+func _on_etage2_sortie_entered(body: Node2D) -> void:
+	if body == time_aunote and can_move:
+		_trigger_etage2_sortie()
+
+
+func _trigger_etage2_sortie() -> void:
+	if not can_move:
+		return
+
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+
+	$FondEtage2.hide()
+	_set_etage2_collisions(false)
+
+	$FondEtage3.show()
+	_set_etage3_collisions(true)
+
+	var marker = $FondEtage3.get_node_or_null("Marker/entreeEtage3")
+	if not marker:
+		marker = $FondEtage3.get_node_or_null("Marker/EntreeEtage3")
+	if not marker:
+		marker = $FondEtage3.get_node_or_null("Marker/entree_etage_3")
+
+	if marker:
+		time_aunote.global_position = marker.global_position
+	else:
+		time_aunote.global_position = Vector2(1149, 1522)
+
+	time_aunote.scale = Vector2(0.35, 0.35)
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = false
+
+	$ObjectiveHUD.show()
+	_update_objective("Explorer le troisième étage de la tour")
+
+	var tween_fade_out := create_tween()
+	tween_fade_out.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade_out.finished
+
+	can_move = true
+
+
+func _connect_etage3_sortie_signal() -> void:
+	var sortie = $FondEtage3.get_node_or_null("SortieEtage3")
+	if not (sortie is Area2D):
+		sortie = $FondEtage3.get_node_or_null("SortieEtage4")
+	if not (sortie is Area2D):
+		sortie = $FondEtage3.get_node_or_null("Sortie3Etage")
+	
+	if sortie and (sortie is Area2D):
+		sortie.collision_mask = 1
+		if not sortie.body_entered.is_connected(_on_etage3_sortie_entered):
+			sortie.body_entered.connect(_on_etage3_sortie_entered)
+
+
+func _on_etage3_sortie_entered(body: Node2D) -> void:
+	if body == time_aunote and can_move:
+		_trigger_etage3_sortie()
+
+
+func _trigger_etage3_sortie() -> void:
+	if not can_move:
+		return
+
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+
+	$FondEtage3.hide()
+	_set_etage3_collisions(false)
+
+	$FondBureau.show()
+	_set_bureau_collisions(true)
+
+	DialogueSystem.load_dimension("res://Futur/dimension_futur.json")
+	var boss = $FondBureau.get_node_or_null("pnj-boss")
+	if boss:
+		boss.apparition($FondBureau/Marker/bossPos.position)
+		var zone = boss.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = true
+
+	var marker = $FondBureau.get_node_or_null("Marker/Entrée")
+	if not marker:
+		marker = $FondBureau.get_node_or_null("Marker/Entree")
+	if not marker:
+		marker = $FondBureau.get_node_or_null("Marker/entree")
+
+	if marker:
+		time_aunote.global_position = marker.global_position
+	else:
+		time_aunote.global_position = Vector2(120, 300)
+
+	time_aunote.scale = Vector2(0.8, 0.8)
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = false
+
+	$ObjectiveHUD.show()
+	_update_objective("Explorer le bureau")
+
+	var tween_fade_out := create_tween()
+	tween_fade_out.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade_out.finished
+
+	can_move = true
+	_auto_start_boss_dialogue()
+
+
 func _play_cinematique_futur() -> void:
 	var video_layer := CanvasLayer.new()
 	video_layer.layer = 200
@@ -706,6 +962,10 @@ func _disable_all_collisions() -> void:
 	$FondMetro.hide()
 	$FondTour.hide()
 	$FondEtage1.hide()
+	if has_node("FondEtage2"):
+		$FondEtage2.hide()
+	if has_node("FondEtage3"):
+		$FondEtage3.hide()
 	$FondBureau.hide()
 	$"pnj-futur".hide()
 	$"pnj-cheffe".hide()
@@ -721,6 +981,8 @@ func _disable_all_collisions() -> void:
 	if tour_limite:
 		tour_limite.collision_layer = 0
 	_set_etage1_collisions(false)
+	_set_etage2_collisions(false)
+	_set_etage3_collisions(false)
 	_set_bureau_collisions(false)
 	if pnjfutur:
 		var zone = pnjfutur.get_node_or_null("ZoneDialogue")
@@ -1043,6 +1305,11 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("interagir") and _player_near_car and $fondFutur.visible:
 		get_viewport().set_input_as_handled()
 		_start_car_minigame()
+	elif event.is_action_pressed("interagir") and _player_near_etage1_sortie and $FondEtage1.visible:
+		get_viewport().set_input_as_handled()
+		if _etage1_prompt:
+			_etage1_prompt.visible = false
+		_trigger_etage1_sortie()
 
 
 func _start_car_minigame() -> void:
