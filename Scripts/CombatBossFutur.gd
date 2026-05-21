@@ -68,6 +68,22 @@ var _phase2_active := false
 var _fade_rect: ColorRect
 var _player_original_y: float
 
+var attack_count := 0
+var qte_active := false
+var qte_keys := []
+var qte_current_index := 0
+var qte_time_remaining := 3.0
+var qte_critical := false
+var qte_key_labels := []
+var qte_panel: Panel
+var qte_prompt: Label
+var qte_timer_bar: Panel
+var qte_timer_fill: Panel
+var qte_timer_fill_style: StyleBoxFlat
+var qte_result_label: Label
+var qte_time_limit := 3.0
+var parry_qte_success := false
+
 
 func _ready() -> void:
 	prev_boss_hp = boss_hp
@@ -352,6 +368,82 @@ func _setup_ui() -> void:
 	btn_defend = btn_container.get_child(1)
 	btn_heal = btn_container.get_child(2)
 
+	qte_timer_fill_style = StyleBoxFlat.new()
+	qte_timer_fill_style.bg_color = Color(0.2, 0.9, 0.2, 1.0)
+
+	qte_panel = Panel.new()
+	var qte_style := StyleBoxFlat.new()
+	qte_style.bg_color = Color(0, 0, 0, 0.85)
+	qte_style.border_width_left = 2
+	qte_style.border_width_right = 2
+	qte_style.border_width_top = 2
+	qte_style.border_width_bottom = 2
+	qte_style.border_color = Color(0.9, 0.8, 0.1, 0.8)
+	qte_style.corner_radius_top_left = 8
+	qte_style.corner_radius_top_right = 8
+	qte_style.corner_radius_bottom_left = 8
+	qte_style.corner_radius_bottom_right = 8
+	qte_panel.add_theme_stylebox_override("panel", qte_style)
+	qte_panel.position = Vector2(vp.x / 2.0 - 200, vp.y / 2.0 - 60)
+	qte_panel.size = Vector2(400, 120)
+	qte_panel.visible = false
+	ui_layer.add_child(qte_panel)
+
+	qte_prompt = Label.new()
+	qte_prompt.text = "QTE ! Appuyez sur les touches dans l'ordre !"
+	qte_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qte_prompt.add_theme_font_size_override("font_size", 16)
+	qte_prompt.add_theme_color_override("font_color", Color(0.9, 0.8, 0.1, 1))
+	qte_prompt.position = Vector2(vp.x / 2.0 - 180, vp.y / 2.0 - 50)
+	qte_prompt.size = Vector2(360, 30)
+	qte_prompt.visible = false
+	ui_layer.add_child(qte_prompt)
+
+	qte_key_labels = []
+	var key_start_x := vp.x / 2.0 - 80
+	for i in 3:
+		var label := Label.new()
+		label.text = "?"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.add_theme_font_size_override("font_size", 32)
+		label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+		label.add_theme_constant_override("outline_size", 2)
+		label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		label.position = Vector2(key_start_x + i * 80, vp.y / 2.0 - 10)
+		label.size = Vector2(60, 50)
+		label.visible = false
+		ui_layer.add_child(label)
+		qte_key_labels.append(label)
+
+	qte_timer_bar = Panel.new()
+	qte_timer_bar.position = Vector2(vp.x / 2.0 - 180, vp.y / 2.0 + 45)
+	qte_timer_bar.size = Vector2(360, 8)
+	var timer_bg_style := StyleBoxFlat.new()
+	timer_bg_style.bg_color = Color(0.2, 0.2, 0.2, 0.8)
+	qte_timer_bar.add_theme_stylebox_override("panel", timer_bg_style)
+	qte_timer_bar.visible = false
+	ui_layer.add_child(qte_timer_bar)
+
+	qte_timer_fill = Panel.new()
+	qte_timer_fill.position = Vector2(vp.x / 2.0 - 180, vp.y / 2.0 + 45)
+	qte_timer_fill.size = Vector2(360, 8)
+	qte_timer_fill.add_theme_stylebox_override("panel", qte_timer_fill_style)
+	qte_timer_fill.visible = false
+	ui_layer.add_child(qte_timer_fill)
+
+	qte_result_label = Label.new()
+	qte_result_label.text = ""
+	qte_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qte_result_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	qte_result_label.add_theme_font_size_override("font_size", 44)
+	qte_result_label.add_theme_constant_override("outline_size", 4)
+	qte_result_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	qte_result_label.position = Vector2(vp.x / 2.0 - 250, vp.y / 2.0 - 130)
+	qte_result_label.size = Vector2(500, 70)
+	qte_result_label.visible = false
+	ui_layer.add_child(qte_result_label)
+
 
 func _set_hp_fill(fill: Panel, damage: Panel, current: int, max_hp: int, prev: int) -> void:
 	var bar_w := 258.0
@@ -590,8 +682,8 @@ func _trigger_phase2() -> void:
 		text_label.queue_free()
 
 	_phase2_active = true
-	boss_hp = 150
-	boss_max_hp = 150
+	boss_hp = 250
+	boss_max_hp = 250
 	boss_atk = 15
 	boss_atk_buff = 0
 	intankables_hp = mini(250, player_hp + intankables_hp)
@@ -614,6 +706,7 @@ func _trigger_phase2() -> void:
 
 func _start_player_turn() -> void:
 	player_defending = false
+	parry_qte_success = false
 	current_action = Action.NONE
 	_enable_actions(true)
 	_show_message("Que voulez-vous faire ?")
@@ -635,9 +728,24 @@ func _on_action_pressed(action: Action) -> void:
 
 
 func _do_player_attack() -> void:
+	attack_count += 1
+	var is_critical := false
+	if attack_count % 5 == 0:
+		_start_qte(3, 3.0)
+		while qte_active:
+			await get_tree().process_frame
+		is_critical = qte_critical
+
 	var dmg = maxi(5, player_atk - boss_def / 2 + randi() % 7 - 3)
-	boss_hp = maxi(0, boss_hp - dmg)
-	_show_message("Vous attaquez et infligez %d dégâts !" % dmg)
+	if _phase2_active:
+		dmg = ceili(dmg * 1.07)
+	if is_critical:
+		dmg *= 2
+		boss_hp = maxi(0, boss_hp - dmg)
+		_show_message("Coup critique ! Vous infligez %d dégâts !" % dmg)
+	else:
+		boss_hp = maxi(0, boss_hp - dmg)
+		_show_message("Vous attaquez et infligez %d dégâts !" % dmg)
 	_update_hp_bars()
 	await _animate_hp_change(true)
 	await get_tree().create_timer(1.0).timeout
@@ -653,7 +761,15 @@ func _do_player_attack() -> void:
 
 func _do_player_defend() -> void:
 	player_defending = true
-	_show_message("Vous vous préparez à parer l'attaque !")
+	parry_qte_success = false
+	_start_qte(2, 2.0)
+	while qte_active:
+		await get_tree().process_frame
+	parry_qte_success = qte_critical
+	if parry_qte_success:
+		_show_message("Parade parfaite ! Vous vous préparez à contrer l'attaque !")
+	else:
+		_show_message("Vous vous préparez à parer l'attaque !")
 	await get_tree().create_timer(1.0).timeout
 	await _boss_turn()
 
@@ -686,18 +802,23 @@ func _boss_turn() -> void:
 
 	var roll := randi() % 10
 	var phase2_dmg_bonus := 7 if _phase2_active else 0
-	var dmg_mult := 1.10 if _phase2_active else 1.05
+	var dmg_mult := 1.50 if _phase2_active else 1.05
 	if roll < 7:
-		var effective_def := player_def * 2 if player_defending else player_def
-		var dmg = maxi(5, ceili((boss_atk + boss_atk_buff + phase2_dmg_bonus - effective_def / 2 + randi() % 6 - 2) * dmg_mult))
-		if _phase2_active:
-			intankables_hp = maxi(0, intankables_hp - dmg)
+		if randf() < 0.1:
+			_show_message("Alfredo charge, mais trébuche et rate complètement son attaque !")
+		elif player_defending and parry_qte_success:
+			_show_message("Parade parfaite ! Vous neutralisez l'attaque d'Alfredo !\nAucun dégât subi !")
 		else:
-			player_hp = maxi(0, player_hp - dmg)
-		if player_defending:
-			_show_message("Alfredo attaque violemment, mais vous parez en partie !\nVous subissez %d dégâts." % dmg)
-		else:
-			_show_message("Alfredo vous frappe de toutes ses forces !\nVous subissez %d dégâts !" % dmg)
+			var effective_def := player_def * 2 if player_defending else player_def
+			var dmg = maxi(5, ceili((boss_atk + boss_atk_buff + phase2_dmg_bonus - effective_def / 2 + randi() % 6 - 2) * dmg_mult))
+			if _phase2_active:
+				intankables_hp = maxi(0, intankables_hp - dmg)
+			else:
+				player_hp = maxi(0, player_hp - dmg)
+			if player_defending:
+				_show_message("Alfredo attaque violemment, mais vous parez en partie !\nVous subissez %d dégâts." % dmg)
+			else:
+				_show_message("Alfredo vous frappe de toutes ses forces !\nVous subissez %d dégâts !" % dmg)
 	elif roll < 9:
 		boss_atk_buff += 3
 		if _phase2_active:
@@ -729,6 +850,90 @@ func _boss_turn() -> void:
 	_start_player_turn()
 
 
+func _process(delta: float) -> void:
+	if not qte_active:
+		return
+	qte_time_remaining -= delta
+	var ratio := clampf(qte_time_remaining / qte_time_limit, 0.0, 1.0)
+	qte_timer_fill.size.x = 360.0 * ratio
+	if ratio > 0.5:
+		qte_timer_fill_style.bg_color = Color(0.2, 0.9, 0.2, 1.0)
+	elif ratio > 0.25:
+		qte_timer_fill_style.bg_color = Color(0.9, 0.85, 0.1, 1.0)
+	else:
+		qte_timer_fill_style.bg_color = Color(0.9, 0.15, 0.15, 1.0)
+	if qte_time_remaining <= 0:
+		_complete_qte(false)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not qte_active:
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == qte_keys[qte_current_index]:
+			qte_key_labels[qte_current_index].add_theme_color_override("font_color", Color(0, 1, 0, 1))
+			qte_current_index += 1
+			if qte_current_index >= qte_keys.size():
+				_complete_qte(true)
+		else:
+			_complete_qte(false)
+
+
+func _generate_qte_keys(count: int = 3) -> Array:
+	var pool := [KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F, KEY_G, KEY_H, KEY_J, KEY_K, KEY_L, KEY_M, KEY_N, KEY_P, KEY_Q, KEY_R, KEY_S, KEY_T, KEY_U, KEY_V, KEY_W, KEY_X, KEY_Y, KEY_Z]
+	pool.shuffle()
+	return pool.slice(0, count)
+
+
+func _start_qte(key_count: int = 3, time_limit: float = 3.0) -> void:
+	qte_active = true
+	qte_critical = false
+	qte_current_index = 0
+	qte_time_limit = time_limit
+	qte_time_remaining = time_limit
+	qte_keys = _generate_qte_keys(key_count)
+
+	for i in 3:
+		qte_key_labels[i].visible = i < key_count
+		if i < key_count:
+			qte_key_labels[i].text = OS.get_keycode_string(qte_keys[i])
+			qte_key_labels[i].add_theme_color_override("font_color", Color(1, 1, 1, 1))
+
+	qte_panel.visible = true
+	qte_prompt.visible = true
+	qte_timer_bar.visible = true
+	qte_timer_fill.visible = true
+	qte_timer_fill.size.x = 360.0
+	qte_result_label.visible = false
+
+	_enable_actions(false)
+	_show_message("QTE ! Appuyez sur les touches dans l'ordre !")
+
+
+func _complete_qte(success: bool) -> void:
+	qte_active = false
+	qte_critical = success
+
+	for label in qte_key_labels:
+		label.visible = false
+
+	qte_panel.visible = false
+	qte_prompt.visible = false
+	qte_timer_bar.visible = false
+	qte_timer_fill.visible = false
+
+	if success:
+		qte_result_label.text = "COUP CRITIQUE !"
+		qte_result_label.add_theme_color_override("font_color", Color(1, 0.8, 0, 1))
+	else:
+		qte_result_label.text = "ÉCHEC..."
+		qte_result_label.add_theme_color_override("font_color", Color(1, 0, 0, 1))
+	qte_result_label.visible = true
+	await get_tree().create_timer(1.5).timeout
+	if is_instance_valid(qte_result_label):
+		qte_result_label.visible = false
+
+
 func _on_victory() -> void:
 	battle_active = false
 	_music_player.stop()
@@ -748,7 +953,83 @@ func _on_victory() -> void:
 		tween.parallel().tween_property(boss_sprite, "position:y", boss_sprite.position.y + 40, 1.5)
 	await tween.finished
 
-	await get_tree().create_timer(1.0).timeout
+	msg_panel.visible = false
+	msg_label.visible = false
+	btn_container.visible = false
+	player_name_label.visible = false
+	player_hp_bar.visible = false
+	player_hp_dmg.visible = false
+	player_hp_fill.visible = false
+	player_hp_text.visible = false
+	boss_name_label.visible = false
+	boss_hp_bar.visible = false
+	boss_hp_dmg.visible = false
+	boss_hp_fill.visible = false
+	boss_hp_text.visible = false
+	if _phase2_active:
+		intankables_name_label.visible = false
+		intankables_hp_bar.visible = false
+		intankables_hp_dmg.visible = false
+		intankables_hp_fill.visible = false
+		intankables_hp_text.visible = false
+
+	var vp := get_viewport_rect().size
+
+	var tween2 := create_tween()
+	tween2.tween_property(_fade_rect, "color", Color(0, 0, 0, 1), 1.0)
+	await tween2.finished
+
+	var victory_layer := CanvasLayer.new()
+	victory_layer.layer = 25
+	add_child(victory_layer)
+
+	var victory_sprite := Sprite2D.new()
+	victory_sprite.texture = load("res://art/Futur/victoire_futur1.png")
+	victory_sprite.centered = false
+	var tex_size := victory_sprite.texture.get_size()
+	var s := maxf(vp.x / tex_size.x, vp.y / tex_size.y)
+	victory_sprite.scale = Vector2(s, s)
+	victory_sprite.position = Vector2.ZERO
+	victory_layer.add_child(victory_sprite)
+
+	var text_panel := Panel.new()
+	var text_style := StyleBoxFlat.new()
+	text_style.bg_color = Color(0, 0, 0, 0.75)
+	text_style.border_width_left = 2
+	text_style.border_width_right = 2
+	text_style.border_width_top = 2
+	text_style.border_width_bottom = 2
+	text_style.border_color = Color(1, 1, 1, 0.4)
+	text_style.corner_radius_top_left = 6
+	text_style.corner_radius_top_right = 6
+	text_style.corner_radius_bottom_left = 6
+	text_style.corner_radius_bottom_right = 6
+	text_panel.add_theme_stylebox_override("panel", text_style)
+	text_panel.position = Vector2(vp.x * 0.1, vp.y * 0.8)
+	text_panel.size = Vector2(vp.x * 0.8, 80)
+	victory_layer.add_child(text_panel)
+
+	var text_label := Label.new()
+	text_label.text = "Après ce combat rude, la distortion du futur est réglée, une belle victoire pour l'équipe !"
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_label.add_theme_font_size_override("font_size", 16)
+	text_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	text_label.add_theme_constant_override("outline_size", 1)
+	text_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	text_label.position = Vector2(vp.x * 0.1 + 10, vp.y * 0.8 + 5)
+	text_label.size = Vector2(vp.x * 0.8 - 20, 70)
+	victory_layer.add_child(text_label)
+
+	var tween3 := create_tween()
+	tween3.tween_property(_fade_rect, "color:a", 0.0, 0.8)
+	await tween3.finished
+
+	var slide_tween := create_tween()
+	slide_tween.tween_property(victory_sprite, "position:x", -50, 5.0)
+
+	await get_tree().create_timer(5.0).timeout
 	battle_won.emit()
 
 

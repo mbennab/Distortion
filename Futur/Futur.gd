@@ -426,17 +426,6 @@ func _show_combat_defeat_message() -> void:
 	if is_instance_valid(text_label):
 		text_label.queue_free()
 
-	var retry_label := Label.new()
-	retry_label.text = "Appuyez sur Espace pour réessayer"
-	retry_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	retry_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	retry_label.add_theme_font_size_override("font_size", 20)
-	retry_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
-	retry_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	retry_label.position = Vector2(vp.x / 2.0 - 200, vp.y / 2.0 + 20)
-	retry_label.size = Vector2(400, 50)
-	fade_layer.add_child(retry_label)
-
 	await get_tree().create_timer(1.0).timeout
 
 	_start_combat_boss()
