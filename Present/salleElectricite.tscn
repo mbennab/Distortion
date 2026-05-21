@@ -2,6 +2,9 @@
 
 [ext_resource type="Texture2D" uid="uid://wwecl47fyrnv" path="res://art/Present/salle_electricite.png" id="1_ykaun"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_retour"]
+size = Vector2(400, 150)
+
 [node name="SalleElectricite" type="Node2D" unique_id=64388136]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=503600982]
@@ -10,3 +13,16 @@ texture = ExtResource("1_ykaun")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=2127351509]
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
+
+[node name="Node2D" type="Node2D" parent="."]
+
+[node name="zone pop" type="Marker2D" parent="Node2D"]
+position = Vector2(1200, 1400)
+
+[node name="retour_couloir" type="Area2D" parent="."]
+collision_layer = 0
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="retour_couloir"]
+position = Vector2(1200, 1600)
+shape = SubResource("RectangleShape2D_retour")
