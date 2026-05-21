@@ -27,8 +27,10 @@
 ## GDScript Gotchas & Règles de Typage Strict
 - **Inférence de Type avec `:=`** : L'utilisation de `:=` requiert des types statiques stricts.
   - `clamp()` retourne un type générique `Variant` sous Godot, ce qui provoque des erreurs de parsing lors d'une assignation stricte `:=`. Utilisez obligatoirement **`clampf()`** ou **`clampi()`** selon le type numérique.
+  - `StyleBoxFlat.duplicate()` retourne `Variant`. Utilisez un type explicite : `var h: StyleBoxFlat = s.duplicate()`.
   - L'accès à un tableau non typé (`arr[i]`) retourne également un type `Variant`. Il faut effectuer un transtypage explicite, par exemple : `var p: Dictionary = arr[i]`.
 - **Ressources Scènes (`.tscn`)** : Les scripts attachés aux nœuds des scènes doivent comporter une référence explicite `ext_resource type="GDScript"`. Évitez l'usage de chaînes UID fictives générées de manière aléatoire (`uid://...`), privilégiez les chemins relatifs (`path="..."`).
+- **Noms de nœuds dans les `.tscn`** : Le code GDScript recherche fréquemment des nœuds par `get_node_or_null()`. Si vous renommez un nœud dans un `.tscn`, vous **devez** mettre à jour toutes les références dans les scripts associés. Exemple : `salleElectricite.tscn` a un Area2D nommé `"event3"` qui est référencé dans `Present.gd`.
 
 ---
 
@@ -110,7 +112,12 @@ L'appel API demande obligatoirement un retour au format JSON :
 	- `Phase.LOOKING_AT` : Le technicien observe. Si le joueur bouge après la période de grâce de 0.1s, il subit une pénalité.
   - **Pénalité (Strike)** : Le joueur subit un recul (Knockback) de **200 pixels** vers la droite et un étourdissement de 1.2s. Au bout de 3 strikes, le jeu se solde par un échec.
   - **Victoire** : Atteindre une distance de rapprochement inférieure à **55 pixels** du technicien.
-- **Hall &PC de contrôle** : En présentant le badge dérobé à l'Agent Moreau, le joueur est autorisé à entrer. Il parle à la secrétaire Sophie (`npc_secretaire_present`) qui le charge de préparer la centrale (déclenchant `quete_preparation`). Le joueur doit se rendre aux vestiaires, enfiler la tenue de technicien de maintenance (`joueur_deguise_maintenance.tscn`), ce qui lui donne les droits d'interaction pour opérer le PC de contrôle et les disjoncteurs électriques.
+- **Salle des Machines & Salle Électrique (Présent)** :
+  - Après le mini-jeu tuyau (`MiniJeuTuyau`), un court-circuit se déclenche (overlay d'obscurité pulsant rouge). Le joueur doit parler à Sophie (`npc_secretaire_present_courtcircuit`) qui l'engueule et l'envoie à la salle électrique.
+  - **Mini-jeu de Câblage (`MiniJeuCablage.gd`)** : Remplace l'ancien `MiniJeuDisjoncteur`. Le joueur connecte des sources, portes logiques (AND/OR/NOT), et cibles via des câbles avec un budget limité. 3 niveaux progressifs avec câbles pré-posés et sources en panne au niveau 3. Lors du lancement du mini-jeu, le voile d'obscurité est retiré temporairement (le joueur voit l'armoire) ; si échec/ESC, le voile revient ; si succès, le voile est supprimé définitivement.
+  - **Accès conditionnel** : La zone `event3` de la salle électrique n'est interactive que si `_salle_machine_done == true` (court-circuit déclenché). Avant cela, un message "L'armoire électrique fonctionne normalement" s'affiche.
+- **Voile d'obscurité (darkness overlay)** : Géré par `_show_darkness_overlay()` / `_remove_darkness_overlay()` dans `Present.gd`. CanvasLayer layer 200, pulse rouge entre `Color(0.35, 0.02, 0.02, 0.55)` et `Color(0.08, 0.01, 0.01, 0.65)`. Ne jamais oublier de retirer le voile dans la callback de succès du mini-jeu électrique.
+- **Bug pattern — Prompts persistants** : Après un mini-jeu, `time_aunote.show()` déclenche le signal `body_entered` sur les Area2D de la zone, ce qui réaffiche les prompts d'interaction. Toujours ajouter `not _salle_machine_done` dans les checks `_on_*_entered` et cacher le prompt dans la callback `_on_*_minigame_done`.
 
 ### 4. Futur (Technologique)
 #### Enchaînement narratif :
