@@ -218,9 +218,6 @@ func _on_game_timeout() -> void:
 	game_active = false
 	$obstacle_timer.stop()
 	_clear_obstacles()
-	collision_label.text = "Fin du mini-jeu !"
-	collision_label.show()
-
 	await get_tree().create_timer(1.5).timeout
 
 	if not is_inside_tree():

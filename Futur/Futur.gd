@@ -968,7 +968,7 @@ func _on_car_zone_exited(body: Node2D) -> void:
 func _input(event: InputEvent) -> void:
 	if not can_move or not started or _car_minigame_active:
 		return
-	if event.is_action_pressed("interagir") and _player_near_car:
+	if event.is_action_pressed("interagir") and _player_near_car and $fondFutur.visible:
 		get_viewport().set_input_as_handled()
 		_start_car_minigame()
 

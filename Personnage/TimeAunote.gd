@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 static var disguised := false
+static var disguised_present := false
 
 var timeAunoteAnimation
 var timeAunoteCollision
@@ -23,7 +24,11 @@ func _process(_delta):
 	pass
 
 func _anim_name(base: String) -> String:
-	return base + "_MA" if disguised else base
+	if disguised_present:
+		return base + "_P"
+	if disguised:
+		return base + "_MA"
+	return base
 
 func apparition(pos):
 	modulate.a = 1.0
@@ -38,6 +43,14 @@ func apply_disguise() -> void:
 
 func remove_disguise() -> void:
 	disguised = false
+	animation(Vector2.ZERO)
+
+func apply_disguise_present() -> void:
+	disguised_present = true
+	animation(Vector2.ZERO)
+
+func remove_disguise_present() -> void:
+	disguised_present = false
 	animation(Vector2.ZERO)
 
 func fade_out():
