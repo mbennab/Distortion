@@ -101,6 +101,75 @@ func init_game_state() -> void:
 			"current_step": current,
 			"completed_steps": completed,
 		}
+	
+	# Apply debug overrides from WarpSystem if available
+	if has_node("/root/WarpSystem"):
+		var ws = get_node("/root/WarpSystem")
+		if ws and "minigames_status" in ws:
+			_apply_warp_system_overrides(ws)
+
+
+func _apply_warp_system_overrides(ws: Node) -> void:
+	var status_dict: Dictionary = ws.minigames_status
+	
+	# Crochetage -> quete_evasion, etape_crocheter
+	if status_dict.get("crochetage", false):
+		_force_complete_step("quete_evasion", "etape_crocheter")
+		
+	# Marchandage -> quete_deguisement, etape_marchander
+	if status_dict.get("marchandage", false):
+		_force_complete_step("quete_deguisement", "etape_parler_marchand")
+		_force_complete_step("quete_deguisement", "etape_marchander")
+		
+	# Écoute Tables -> quete_piste_assassin, etape_enqueter_foret
+	if status_dict.get("ecoute_tables", false):
+		_force_complete_step("quete_piste_assassin", "etape_enqueter_foret")
+		
+	# Combat Assassin -> quete_piste_assassin, etape_trouver_assassin
+	if status_dict.get("combat_assassin", false):
+		_force_complete_step("quete_piste_assassin", "etape_enqueter_foret")
+		_force_complete_step("quete_piste_assassin", "etape_trouver_assassin")
+		
+	# Infiltration -> quete_acces_centrale, etape_chercher_carte
+	if status_dict.get("infiltration", false):
+		_force_complete_step("quete_acces_centrale", "etape_parler_gardien")
+		_force_complete_step("quete_acces_centrale", "etape_chercher_carte")
+		
+	# Tuyaux -> quete_preparation, etape_reparer_machines
+	if status_dict.get("tuyaux", false):
+		_force_complete_step("quete_preparation", "etape_parler_secretaire")
+		_force_complete_step("quete_preparation", "etape_aller_vestiaires")
+		_force_complete_step("quete_preparation", "etape_reparer_machines")
+		
+	# Câblage -> quete_preparation, etape_reparer_electricite
+	if status_dict.get("cablage", false):
+		_force_complete_step("quete_preparation", "etape_parler_secretaire")
+		_force_complete_step("quete_preparation", "etape_aller_vestiaires")
+		_force_complete_step("quete_preparation", "etape_reparer_machines")
+		_force_complete_step("quete_preparation", "etape_reparer_electricite")
+
+
+func _force_complete_step(quest_id: String, step_id: String) -> void:
+	var qs = game_state.get(quest_id)
+	if qs == null:
+		return
+	var completed: Array = qs.get("completed_steps", [])
+	if step_id not in completed:
+		completed.append(step_id)
+		qs["completed_steps"] = completed
+	
+	var quest = _find_quest(quest_id)
+	var next_step = ""
+	if not quest.is_empty():
+		for s in quest.get("steps", []):
+			if s.get("id", "") not in completed:
+				next_step = s.get("id", "")
+				break
+	qs["current_step"] = next_step
+	if next_step == "":
+		qs["status"] = "done"
+	else:
+		qs["status"] = "active"
 
 
 func start_dialogue(npc_id: String) -> void:
