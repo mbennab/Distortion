@@ -333,9 +333,26 @@ func _shake_screen(amount: float) -> void:
 	_shake_amount = amount
 
 func _play_sound(path: String) -> void:
-	if ResourceLoader.exists(path):
+	var target_path := path
+	if not ResourceLoader.exists(target_path):
+		# Fallbacks malins basés sur les fichiers audio existants dans le projet
+		match path:
+			"res://audio/combat/sword_swing_1.ogg":
+				target_path = "res://audio/crochetage/tick/tick01.mp3" # Clic léger pour le swing
+			"res://audio/combat/sword_swing_3.ogg":
+				target_path = "res://audio/crochetage/success/success_click.mp3" # Clic clair pour le coup réussi
+			"res://audio/combat/sword_clash.1.ogg":
+				target_path = "res://audio/marchandage/catch/catch03.mp3" # Impact agréable pour la parade réussie
+			"res://audio/combat/sword_clash.3.ogg":
+				target_path = "res://audio/crochetage/failure/failure01.mp3" # Bruit d'erreur lourd pour les dégâts reçus
+			"res://audio/combat/sword_clash.5.ogg":
+				target_path = "res://audio/marchandage/decoy/decoy_error.mp3" # Buzz de désorientation pour l'étourdissement joueur
+			"res://audio/combat/victory_fanfare.ogg":
+				target_path = "res://audio/crochetage/final/final_unlock.mp3" # Fanfare de déblocage pour la victoire
+
+	if ResourceLoader.exists(target_path):
 		var player := AudioStreamPlayer.new()
-		player.stream = load(path)
+		player.stream = load(target_path)
 		player.bus = "Master"
 		player.volume_db = -6.0
 		add_child(player)
@@ -349,11 +366,15 @@ func _victory() -> void:
 	_play_sound("res://audio/combat/victory_fanfare.ogg")
 	
 	# Terminer la quête
+	var quest_state = DialogueSystem.game_state.get("quete_piste_assassin")
+	if quest_state:
+		if quest_state.get("current_step", "") == "etape_enqueter_foret":
+			DialogueSystem.complete_step("quete_piste_assassin", "etape_enqueter_foret")
 	DialogueSystem.complete_step("quete_piste_assassin", "etape_trouver_assassin")
 	
 	# Animation de fondu noir et retour au hub
 	var parent_ma = get_parent()
-	if parent_ma and parent_ma.has_node("fade_layer"):
+	if parent_ma and parent_ma.fade_layer and parent_ma.fade_rect:
 		# Utiliser le fade de MoyenAge
 		var fade_rect_node = parent_ma.fade_rect
 		var tween := create_tween()
@@ -362,7 +383,7 @@ func _victory() -> void:
 		
 		# Afficher le message sur l'écran noir
 		var label := Label.new()
-		label.text = "la distorsion semble plus stable..."
+		label.text = "La distorsion semble plus stable..."
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		label.add_theme_font_override("font", SystemFont.new())
@@ -372,15 +393,21 @@ func _victory() -> void:
 		parent_ma.fade_layer.add_child(label)
 		
 		await get_tree().create_timer(2.0).timeout
-		label.queue_free()
+		if is_inside_tree():
+			label.queue_free()
 		
-		# Arrêter le combat et retourner au hub
-		parent_ma.stop()
+		# Remettre le fade à 0 pour le prochain chargement de l'ère
+		fade_rect_node.modulate.a = 0.0
+		
+		# Retourner au hub
 		var main = get_tree().current_scene
 		if main and main.has_method("warp_to_era"):
 			main.warp_to_era("hub", "entree")
-			# Remettre le fade à 0
-			create_tween().tween_property(fade_rect_node, "modulate:a", 0.0, 1.0)
+	else:
+		# Fallback de sécurité si le fade layer n'est pas dispo
+		var main = get_tree().current_scene
+		if main and main.has_method("warp_to_era"):
+			main.warp_to_era("hub", "entree")
 
 func _defeat() -> void:
 	is_combat_active = false
