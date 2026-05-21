@@ -884,7 +884,15 @@ func _handle_movement(delta: float) -> void:
 
 func _update_objective(text: String) -> void:
 	if _objective_label:
+		_objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_objective_label.custom_minimum_size = Vector2(240.0, 0.0)
 		_objective_label.text = text
+		_objective_label.reset_size()
+		
+		var panel = _objective_label.get_parent() as Panel
+		if panel:
+			panel.size.y = maxf(80.0, 36.0 + _objective_label.size.y + 16.0)
+
 
 
 func start(spawn_id: String = "entree") -> void:
