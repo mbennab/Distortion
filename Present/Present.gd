@@ -2,6 +2,7 @@ extends Node2D
 
 const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
 const MiniJeuTuyauScene = preload("res://Scripts/MiniJeuTuyau.tscn")
+const MiniJeuDisjoncteurScene = preload("res://Scripts/MiniJeuDisjoncteur.tscn")
 
 var time_aunote: CharacterBody2D
 var pnj_secu
@@ -57,6 +58,15 @@ var _last_dialogue_npc_id: String = ""
 var _player_at_machines_repair: bool = false
 var _salle_machine_minigame: Node = null
 var _machines_repair_prompt: Label
+var _salle_machine_done: bool = false
+var _darkness_layer: CanvasLayer
+var _darkness_rect: ColorRect
+var _darkness_active: bool = false
+
+var _player_at_disjoncteur: bool = false
+var _disjoncteur_minigame: Node = null
+var _disjoncteur_done: bool = false
+var _disjoncteur_prompt: Label
 
 
 func _ready() -> void:
@@ -66,6 +76,7 @@ func _ready() -> void:
 	hide()
 	_setup_spawn_particles()
 	_setup_fade_overlay()
+	_setup_darkness_overlay()
 	pnj_secu = $"PnjSecurité"
 	pnj_secretaire = $"PnjSecretaire"
 	_connect_parking_signals()
@@ -99,6 +110,50 @@ func _setup_fade_overlay() -> void:
 	fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	fade_rect.size = get_viewport_rect().size
 	fade_layer.add_child(fade_rect)
+
+
+func _setup_darkness_overlay() -> void:
+	_darkness_layer = CanvasLayer.new()
+	_darkness_layer.layer = 200
+	add_child(_darkness_layer)
+
+	_darkness_rect = ColorRect.new()
+	_darkness_rect.color = Color(0, 0, 0, 0)
+	_darkness_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_darkness_rect.size = get_viewport_rect().size
+	_darkness_layer.add_child(_darkness_rect)
+	_darkness_layer.hide()
+
+
+func _show_darkness_overlay() -> void:
+	if _darkness_active:
+		return
+	_darkness_active = true
+	_darkness_layer.show()
+	var tween := create_tween()
+	tween.tween_property(_darkness_rect, "color:a", 0.55, 1.5).set_trans(Tween.TRANS_SINE)
+	tween.tween_callback(_start_darkness_pulse)
+
+
+func _start_darkness_pulse() -> void:
+	if not _darkness_active or not is_instance_valid(_darkness_rect):
+		return
+	var tween := create_tween()
+	tween.set_loops()
+	tween.tween_property(_darkness_rect, "color", Color(0.35, 0.02, 0.02, 0.55), 2.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(_darkness_rect, "color", Color(0.08, 0.01, 0.01, 0.65), 2.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _remove_darkness_overlay() -> void:
+	if not _darkness_active:
+		return
+	_darkness_active = false
+	var tween := create_tween()
+	tween.tween_property(_darkness_rect, "color", Color(0, 0, 0, 0), 2.0).set_trans(Tween.TRANS_SINE)
+	tween.tween_callback(func():
+		if is_instance_valid(_darkness_layer):
+			_darkness_layer.hide()
+	)
 
 
 func _connect_parking_signals() -> void:
@@ -412,9 +467,18 @@ func _setup_subroom_retours() -> void:
 		event2.body_entered.connect(_on_salle_machine_repair_entered)
 		event2.body_exited.connect(_on_salle_machine_repair_exited)
 
+	var event3 = salle_electricite.get_node_or_null("event3")
+	if event3:
+		event3.body_entered.connect(_on_disjoncteur_entered)
+		event3.body_exited.connect(_on_disjoncteur_exited)
+
 	_machines_repair_prompt = _create_portal_prompt("Appuyez sur E pour inspecter les machines")
 	_machines_repair_prompt.visible = false
 	_subroom_retour_prompt_layer.add_child(_machines_repair_prompt)
+
+	_disjoncteur_prompt = _create_portal_prompt("Appuyez sur E pour reenclencher les disjoncteurs")
+	_disjoncteur_prompt.visible = false
+	_subroom_retour_prompt_layer.add_child(_disjoncteur_prompt)
 
 
 func _on_pc_controle_retour_entered(body: Node2D) -> void:
@@ -467,6 +531,19 @@ func _on_salle_machine_repair_exited(body: Node2D) -> void:
 	if body == time_aunote:
 		_player_at_machines_repair = false
 		_machines_repair_prompt.visible = false
+
+
+func _on_disjoncteur_entered(body: Node2D) -> void:
+	if body == time_aunote and salle_electricite.visible and not _disjoncteur_done:
+		_player_at_disjoncteur = true
+		_disjoncteur_prompt.visible = true
+		_update_portal_prompt_position(_disjoncteur_prompt)
+
+
+func _on_disjoncteur_exited(body: Node2D) -> void:
+	if body == time_aunote:
+		_player_at_disjoncteur = false
+		_disjoncteur_prompt.visible = false
 
 
 func _go_to_couloir() -> void:
@@ -674,6 +751,8 @@ func _return_from_vestiaire() -> void:
 		return
 
 	can_move = true
+	if TimeAunoteScript.disguised_present and pnj_secretaire:
+		pnj_secretaire.npc_id = "npc_secretaire_present_change"
 
 
 func _go_to_salle_machine() -> void:
@@ -774,6 +853,8 @@ func _return_from_salle_electricite() -> void:
 		return
 	can_move = false
 	_salle_electricite_retour_prompt.visible = false
+	_disjoncteur_prompt.visible = false
+	_player_at_disjoncteur = false
 
 	var tween_fade := create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
@@ -828,6 +909,9 @@ func _set_salle_electricite_collisions(enabled: bool) -> void:
 	var limites = salle_electricite.get_node_or_null("limites")
 	if limites:
 		limites.collision_layer = 8 if enabled else 0
+	var event3 = salle_electricite.get_node_or_null("event3")
+	if event3:
+		event3.monitoring = enabled
 
 
 func _set_couloir_collisions(enabled: bool) -> void:
@@ -882,9 +966,12 @@ func _input(event: InputEvent) -> void:
 	elif _player_at_machines_repair and salle_machine.visible:
 		get_viewport().set_input_as_handled()
 		_start_salle_machine_minigame()
-	elif _player_at_salle_electricite_retour and salle_electricite.visible:
+	elif _player_at_salle_electricite_retour and salle_electricite.visible and _disjoncteur_minigame == null:
 		get_viewport().set_input_as_handled()
 		_return_from_salle_electricite()
+	elif _player_at_disjoncteur and salle_electricite.visible:
+		get_viewport().set_input_as_handled()
+		_start_disjoncteur_minigame()
 
 
 func _on_parking_entered(body: Node2D) -> void:
@@ -1352,7 +1439,7 @@ func _on_parking_minigame_won() -> void:
 
 
 func _start_salle_machine_minigame() -> void:
-	if _salle_machine_minigame != null:
+	if _salle_machine_minigame != null or _salle_machine_done:
 		return
 	can_move = false
 	time_aunote.hide()
@@ -1364,11 +1451,41 @@ func _start_salle_machine_minigame() -> void:
 
 func _on_salle_machine_minigame_done(success: bool) -> void:
 	_salle_machine_minigame = null
+	_salle_machine_done = true
 	time_aunote.show()
 	can_move = true
 	if success:
 		DialogueSystem.complete_step("quete_preparation", "etape_reparer_machines")
+		_show_darkness_overlay()
+		if pnj_secretaire:
+			pnj_secretaire.npc_id = "npc_secretaire_present_courtcircuit"
 		_update_objective("Court-circuit ! Remettez l'electricite en marche...")
+
+
+func _start_disjoncteur_minigame() -> void:
+	if _disjoncteur_minigame != null or _disjoncteur_done:
+		return
+	can_move = false
+	time_aunote.hide()
+	_disjoncteur_prompt.visible = false
+	_disjoncteur_minigame = MiniJeuDisjoncteurScene.instantiate()
+	_disjoncteur_minigame.done.connect(_on_disjoncteur_minigame_done)
+	get_tree().root.add_child(_disjoncteur_minigame)
+
+
+func _on_disjoncteur_minigame_done(success: bool) -> void:
+	_disjoncteur_minigame = null
+	_disjoncteur_done = true
+	time_aunote.show()
+	can_move = true
+	_player_at_disjoncteur = false
+	_disjoncteur_prompt.visible = false
+	if success:
+		DialogueSystem.complete_step("quete_preparation", "etape_reparer_electricite")
+		_remove_darkness_overlay()
+		if pnj_secretaire:
+			pnj_secretaire.npc_id = "npc_secretaire_present_change"
+		_update_objective("Electricite retablie ! Retournez voir Sophie...")
 
 
 func stop() -> void:
@@ -1417,27 +1534,17 @@ func stop() -> void:
 	_player_at_salle_machine_retour = false
 	_player_at_salle_electricite_retour = false
 	_hall_transition_started = false
-	if _couloir_prompt:
-		_couloir_prompt.visible = false
-	if _retour_hall_prompt:
-		_retour_hall_prompt.visible = false
-	if _porte_pc_prompt:
-		_porte_pc_prompt.visible = false
-	if _porte_vestiaires_prompt:
-		_porte_vestiaires_prompt.visible = false
-	if _porte_machines_prompt:
-		_porte_machines_prompt.visible = false
-	if _porte_electricite_prompt:
-		_porte_electricite_prompt.visible = false
-	if _pc_controle_retour_prompt:
-		_pc_controle_retour_prompt.visible = false
-	if _salle_machine_retour_prompt:
-		_salle_machine_retour_prompt.visible = false
-	if _salle_electricite_retour_prompt:
-		_salle_electricite_retour_prompt.visible = false
 	_player_at_machines_repair = false
+	_player_at_disjoncteur = false
 	if _machines_repair_prompt:
 		_machines_repair_prompt.visible = false
+	if _disjoncteur_prompt:
+		_disjoncteur_prompt.visible = false
 	if _salle_machine_minigame and is_instance_valid(_salle_machine_minigame):
 		_salle_machine_minigame.queue_free()
 		_salle_machine_minigame = null
+	if _disjoncteur_minigame and is_instance_valid(_disjoncteur_minigame):
+		_disjoncteur_minigame.queue_free()
+		_disjoncteur_minigame = null
+	if _darkness_layer:
+		_darkness_layer.hide()
