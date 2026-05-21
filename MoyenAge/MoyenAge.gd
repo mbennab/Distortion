@@ -215,7 +215,15 @@ func _handle_movement(delta: float) -> void:
 
 func _update_objective(text: String) -> void:
 	if _objective_label:
+		_objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_objective_label.custom_minimum_size = Vector2(240.0, 0.0)
 		_objective_label.text = text
+		_objective_label.reset_size()
+		
+		var panel = _objective_label.get_parent() as Panel
+		if panel:
+			panel.size.y = maxf(80.0, 36.0 + _objective_label.size.y + 16.0)
+
 
 func start(spawn_id: String = "entree") -> void:
 	process_mode = PROCESS_MODE_INHERIT
@@ -397,7 +405,7 @@ func start(spawn_id: String = "entree") -> void:
 			started = true
 			stopped = false
 			_update_objective("Trouver l'assassin dans la forêt")
-			_play_zone_audio("parc")
+			_play_zone_audio("foret")
 			return
 
 		_:
@@ -707,7 +715,7 @@ func _on_femme_friendship_done() -> void:
 	await tween_fade.finished
 
 	_update_objective("Trouver l'assassin dans la forêt")
-	_play_zone_audio("parc")
+	_play_zone_audio("foret")
 	can_move = true
 
 
@@ -1057,7 +1065,8 @@ func _start_assassin_combat() -> void:
 		
 	# Display and trigger combat at the campement
 	campement.start_combat()
-	
+	_play_zone_audio("campement")
+
 	# Fade back in
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)

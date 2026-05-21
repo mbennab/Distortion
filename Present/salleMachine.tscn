@@ -38,6 +38,9 @@ collision_layer = 0
 position = Vector2(1189, 1617)
 shape = SubResource("RectangleShape2D_qf2w6")
 
-[node name="machines a reparer" type="CollisionShape2D" parent="event" unique_id=104876315]
+[node name="event2" type="Area2D" parent="." unique_id=1167161317]
+collision_layer = 0
+
+[node name="machines a reparer" type="CollisionShape2D" parent="event2" unique_id=1587451015]
 position = Vector2(1007.25, 603.5)
 shape = SubResource("RectangleShape2D_f2jfc")

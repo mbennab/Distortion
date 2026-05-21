@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" uid="uid://bciogksqf67in" path="res://Present/couloir.tscn" id="8_couloir"]
 [ext_resource type="PackedScene" uid="uid://b37iu2280wk6q" path="res://Present/pc controle.tscn" id="9_pc_controle"]
 [ext_resource type="PackedScene" uid="uid://541im6pqeob3" path="res://Present/vestiaire.tscn" id="10_vestiaire"]
+[ext_resource type="PackedScene" uid="uid://b2ww35f38sjae" path="res://Present/salleMachine.tscn" id="11_salle_machine"]
+[ext_resource type="PackedScene" uid="uid://rv8rd4lpod17" path="res://Present/salleElectricite.tscn" id="12_salle_electricite"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_present"]
 bg_color = Color(0.08, 0.08, 0.15, 0.85)
@@ -47,6 +49,12 @@ visible = false
 visible = false
 
 [node name="Vestiaire" type="Node2D" parent="." instance=ExtResource("10_vestiaire")]
+visible = false
+
+[node name="SalleMachine" type="Node2D" parent="." instance=ExtResource("11_salle_machine")]
+visible = false
+
+[node name="SalleElectricite" type="Node2D" parent="." instance=ExtResource("12_salle_electricite")]
 visible = false
 
 [node name="ObjectiveHUD" type="CanvasLayer" parent="."]
