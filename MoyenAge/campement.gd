@@ -72,10 +72,15 @@ func start_combat() -> void:
 	var animated_sprite = pnj_assassin.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	animated_sprite.play("default")
 	
+	# Cacher la fenêtre d'objectifs du parent
+	var parent_ma_start = get_parent()
+	if parent_ma_start and parent_ma_start.has_node("ObjectiveHUD"):
+		parent_ma_start.get_node("ObjectiveHUD").hide()
+
 	# Configurer les sprites de premier plan (grand z-index et grande taille pour occuper l'écran)
 	epee_bouclier_sprite.z_index = 10
-	epee_bouclier_sprite.position = Vector2(1214, 900)
-	epee_bouclier_sprite.scale = Vector2(4.0, 4.0)
+	epee_bouclier_sprite.position = Vector2(1213.5, 808)
+	epee_bouclier_sprite.scale = Vector2(4.4, 4.4)
 	_set_weapon_sprite("idle")
 	epee_bouclier_sprite.show()
 	
@@ -402,6 +407,8 @@ func _defeat() -> void:
 		parent_ma.time_aunote.global_position = parent_ma.foret.get_node("markers2D/apparition").global_position
 		parent_ma.can_move = true
 		parent_ma._play_zone_audio("parc")
+		if parent_ma.has_node("ObjectiveHUD"):
+			parent_ma.get_node("ObjectiveHUD").show()
 		parent_ma._update_objective("Trouver l'assassin dans la forêt")
 		
 		# Fondu de retour
