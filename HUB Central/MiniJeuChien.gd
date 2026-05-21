@@ -17,6 +17,7 @@ var player_amplitude: float = 30.0
 var wave_phase: float = 0.0
 
 # UI Controls
+var root_control: Control
 var background_panel: Panel
 var scope_control: Control
 var slider_freq: HSlider
@@ -64,10 +65,18 @@ func _setup_audio() -> void:
 		dir.list_dir_end()
 
 func _setup_ui() -> void:
+	# Root full screen Control to ensure exact centering
+	root_control = Control.new()
+	root_control.name = "RootControl"
+	root_control.anchors_preset = Control.PRESET_FULL_RECT
+	root_control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE)
+	add_child(root_control)
+
 	background_panel = Panel.new()
+	background_panel.name = "BackgroundPanel"
+	background_panel.custom_minimum_size = Vector2(640, 560)
+	background_panel.anchors_preset = Control.PRESET_CENTER
 	background_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
-	background_panel.custom_minimum_size = Vector2(640, 500)
-	background_panel.position = Vector2(1024 / 2.0 - 320, 682 / 2.0 - 250)
 	
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.06, 0.04, 0.11, 0.96)
@@ -81,7 +90,7 @@ func _setup_ui() -> void:
 	style.corner_radius_bottom_left = 8
 	style.corner_radius_bottom_right = 8
 	background_panel.add_theme_stylebox_override("panel", style)
-	add_child(background_panel)
+	root_control.add_child(background_panel)
 
 	# Title Bar
 	var label_title := Label.new()
@@ -109,9 +118,37 @@ func _setup_ui() -> void:
 	label_best.add_theme_color_override("font_color", Color(0.6, 0.5, 0.7, 1.0))
 	background_panel.add_child(label_best)
 
+	# Instruction Banner Box
+	var panel_instr := Panel.new()
+	panel_instr.position = Vector2(20, 70)
+	panel_instr.size = Vector2(600, 50)
+	var instr_style := StyleBoxFlat.new()
+	instr_style.bg_color = Color(0.12, 0.08, 0.22, 0.6)
+	instr_style.border_width_left = 1
+	instr_style.border_width_top = 1
+	instr_style.border_width_right = 1
+	instr_style.border_width_bottom = 1
+	instr_style.border_color = Color(0.24, 0.95, 0.79, 0.3)
+	instr_style.corner_radius_top_left = 4
+	instr_style.corner_radius_top_right = 4
+	instr_style.corner_radius_bottom_left = 4
+	instr_style.corner_radius_bottom_right = 4
+	panel_instr.add_theme_stylebox_override("panel", instr_style)
+	background_panel.add_child(panel_instr)
+
+	var label_instr := Label.new()
+	label_instr.text = "🎯 BUT : Alignez l'onde CYAN (la vôtre) sur l'onde ROUGE (cible du chien) !\n⌨️ Clavier : Q/D ou Flèches (Fréquence) • Z/S ou Flèches (Tension) | 🖱️ Souris : Glissez"
+	label_instr.position = Vector2(10, 8)
+	label_instr.size = Vector2(580, 34)
+	label_instr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label_instr.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label_instr.add_theme_font_size_override("font_size", 12)
+	label_instr.add_theme_color_override("font_color", Color(0.9, 0.85, 1.0, 1.0))
+	panel_instr.add_child(label_instr)
+
 	# Oscilloscope Screen
 	scope_control = Control.new()
-	scope_control.position = Vector2(20, 70)
+	scope_control.position = Vector2(20, 130)
 	scope_control.custom_minimum_size = Vector2(600, 180)
 	scope_control.draw.connect(_on_scope_draw)
 	background_panel.add_child(scope_control)
@@ -119,14 +156,14 @@ func _setup_ui() -> void:
 	# Status Label below Screen
 	label_status = Label.new()
 	label_status.text = "⚠️ SIGNAL CORRUPT - ALIGN FREQUENCIES"
-	label_status.position = Vector2(20, 260)
+	label_status.position = Vector2(20, 320)
 	label_status.add_theme_font_size_override("font_size", 12)
 	label_status.add_theme_color_override("font_color", Color(1.0, 0.2, 0.4, 1.0))
 	background_panel.add_child(label_status)
 
 	# Stabilization Progress Bar
 	progress_bar = ProgressBar.new()
-	progress_bar.position = Vector2(20, 285)
+	progress_bar.position = Vector2(20, 345)
 	progress_bar.size = Vector2(600, 14)
 	progress_bar.show_percentage = false
 	var style_bg := StyleBoxFlat.new()
@@ -148,46 +185,49 @@ func _setup_ui() -> void:
 	# Frequency Slider Label
 	var label_freq_title := Label.new()
 	label_freq_title.text = "🎚️ FRÉQUENCE (PITCH / VITESSE)"
-	label_freq_title.position = Vector2(20, 315)
+	label_freq_title.position = Vector2(20, 375)
 	label_freq_title.add_theme_font_size_override("font_size", 14)
 	label_freq_title.add_theme_color_override("font_color", Color(0.8, 0.5, 1.0, 1.0))
 	background_panel.add_child(label_freq_title)
 
 	# Frequency Slider
 	slider_freq = HSlider.new()
-	slider_freq.position = Vector2(20, 340)
+	slider_freq.position = Vector2(20, 400)
 	slider_freq.size = Vector2(600, 20)
 	slider_freq.min_value = 0.005
 	slider_freq.max_value = 0.05
 	slider_freq.step = 0.0001
 	slider_freq.value = player_frequency
+	slider_freq.focus_mode = Control.FOCUS_NONE
 	slider_freq.value_changed.connect(_on_freq_changed)
 	background_panel.add_child(slider_freq)
 
 	# Amplitude/Tension Slider Label
 	var label_amp_title := Label.new()
 	label_amp_title.text = "⚡ TENSION (AMPLITUDE)"
-	label_amp_title.position = Vector2(20, 375)
+	label_amp_title.position = Vector2(20, 435)
 	label_amp_title.add_theme_font_size_override("font_size", 14)
 	label_amp_title.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
 	background_panel.add_child(label_amp_title)
 
 	# Amplitude/Tension Slider
 	slider_amp = HSlider.new()
-	slider_amp.position = Vector2(20, 400)
+	slider_amp.position = Vector2(20, 460)
 	slider_amp.size = Vector2(600, 20)
 	slider_amp.min_value = 10.0
 	slider_amp.max_value = 80.0
 	slider_amp.step = 0.5
 	slider_amp.value = player_amplitude
+	slider_amp.focus_mode = Control.FOCUS_NONE
 	slider_amp.value_changed.connect(_on_amp_changed)
 	background_panel.add_child(slider_amp)
 
 	# Quit Button
 	btn_quit = Button.new()
 	btn_quit.text = "[ ÉCHAP ] FERMER L'INTERACTION"
-	btn_quit.position = Vector2(170, 445)
+	btn_quit.position = Vector2(170, 505)
 	btn_quit.size = Vector2(300, 36)
+	btn_quit.focus_mode = Control.FOCUS_NONE
 	btn_quit.pressed.connect(close_game)
 	background_panel.add_child(btn_quit)
 
