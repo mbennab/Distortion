@@ -144,11 +144,11 @@ Exploration de la base de la résistance ➔ Dialogue avec Vukovi et Koiai au so
   - **Intelligence Artificielle du Boss (Roll random sur 10)** :
     - `roll < 7` (70% de chance) : Alfredo assène une attaque puissante. Dégâts subis : `boss_atk + boss_atk_buff - (effective_def / 2) + randi() % 6 - 2` (minimum 5).
     - `roll < 9` (20% de chance) : Alfredo se concentre et accumule de la puissance physique (`boss_atk_buff += 3`).
-    - `roll == 9` (10% de chance) : Alfredo ricane et nargue le joueur ("Vous croyez pouvoir me vaincre, misérable créature ?").
+	- `roll == 9` (10% de chance) : Alfredo ricane et nargue le joueur ("Vous croyez pouvoir me vaincre, misérable créature ?").
   - **Phase 2 — Les Intankables (Alliés)** :
     - Quand le boss P1 (Alfredo) tombe à 0 PV, transition vers boss P2 (150 PV, ATK+7). Les Intankables (sprite `cheffe_combat`) deviennent **alliés** du joueur.
     - Le joueur est déplacé plus haut (`_player_original_y - 200`) pour faire de la place.
-    - **Barre de vie fusionnée** : `intankables_hp = player_hp + intankables_hp` (max 300 PV). La barre du joueur disparaît, remplacée par la barre "Voyageur + Intankables" au même emplacement (haut-gauche).
+	- **Barre de vie fusionnée** : `intankables_hp = player_hp + intankables_hp` (max 300 PV). La barre du joueur disparaît, remplacée par la barre "Voyageur + Intankables" au même emplacement (haut-gauche).
 	- **Ciblage** : L'attaque du joueur cible directement le boss P2 (plus d'attaque sur Intankables).
     - **Dégâts du boss** : En phase 2, le boss endommage la barre combinée (`intankables_hp`). Défaite si elle atteint 0.
     - **Soin** : Le soin du joueur restaure la barre combinée.
