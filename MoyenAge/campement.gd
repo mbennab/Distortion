@@ -345,6 +345,20 @@ func _victory() -> void:
 		tween.tween_property(fade_rect_node, "modulate:a", 1.0, 1.5)
 		await tween.finished
 		
+		# Afficher le message sur l'écran noir
+		var label := Label.new()
+		label.text = "la distorsion semble plus stable..."
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.add_theme_font_override("font", SystemFont.new())
+		label.add_theme_font_size_override("font_size", 28)
+		label.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
+		label.size = get_viewport_rect().size
+		parent_ma.fade_layer.add_child(label)
+		
+		await get_tree().create_timer(2.0).timeout
+		label.queue_free()
+		
 		# Arrêter le combat et retourner au hub
 		parent_ma.stop()
 		var main = get_tree().current_scene
