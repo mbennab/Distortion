@@ -74,15 +74,21 @@ func _setup_ui() -> void:
 	# Root full screen Control to ensure exact centering
 	root_control = Control.new()
 	root_control.name = "RootControl"
-	root_control.anchors_preset = Control.PRESET_FULL_RECT
-	root_control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE)
+	root_control.anchor_right = 1.0
+	root_control.anchor_bottom = 1.0
 	add_child(root_control)
 
 	background_panel = Panel.new()
 	background_panel.name = "BackgroundPanel"
 	background_panel.custom_minimum_size = Vector2(640, 500)
-	background_panel.anchors_preset = Control.PRESET_CENTER
-	background_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	background_panel.anchor_left = 0.5
+	background_panel.anchor_right = 0.5
+	background_panel.anchor_top = 0.5
+	background_panel.anchor_bottom = 0.5
+	background_panel.offset_left = -320
+	background_panel.offset_right = 320
+	background_panel.offset_top = -250
+	background_panel.offset_bottom = 250
 	
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.06, 0.04, 0.11, 0.96)
