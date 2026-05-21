@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://cu7q7uj8tomk5"]
+[gd_scene format=3 uid="uid://dgsqsaobgw7xy"]
 
 [ext_resource type="Texture2D" uid="uid://ypw7uurou3eb" path="res://art/Futur/fondEtage1.png" id="1_20x1l"]
 
@@ -7,7 +7,7 @@ size = Vector2(283, 107)
 
 [node name="FondEtage1" type="Node2D" unique_id=234740505]
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=203833330]
+[node name="image_etage_1" type="Sprite2D" parent="." unique_id=203833330]
 position = Vector2(1214, 808.5)
 scale = Vector2(1.8225564, 1.3663281)
 texture = ExtResource("1_20x1l")

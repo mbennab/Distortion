@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bse66rfwusfao" path="res://art/MoyenAge/magasin_moyen-age.png" id="1_e470e"]
 [ext_resource type="PackedScene" uid="uid://c7o3vpx5sl57s" path="res://MoyenAge/pnj_marchand.tscn" id="2_marchand"]
 [ext_resource type="Script" uid="uid://8olk22vrtlxf" path="res://MoyenAge/pnj_marchand.gd" id="3_marchand_gd"]
+[ext_resource type="Texture2D" uid="uid://bhntmpl1o6p8b" path="res://art/bulle.webp" id="4_bul_mag"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_e470e"]
 radius = 345.20862
@@ -45,6 +46,13 @@ position = Vector2(842, 574)
 
 [node name="apparition" type="Marker2D" parent="Markers2D" unique_id=1650090964]
 position = Vector2(1213, 1386)
+
+[node name="bulle" type="Marker2D" parent="Markers2D" unique_id=543313388]
+position = Vector2(841, 337)
+
+[node name="spr_bulle" type="Sprite2D" parent="Markers2D/bulle" unique_id=543313389]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("4_bul_mag")
 
 [node name="areas2D" type="Node2D" parent="." unique_id=1082903381]
 

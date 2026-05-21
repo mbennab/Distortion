@@ -4,6 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://beq7dxei7aoyq" path="res://art/Futur/combat_boss_futur.png" id="2_bg"]
 [ext_resource type="Texture2D" uid="uid://cmvnyri3td0ym" path="res://art/Futur/boss_futur_idle.png" id="3_om1k8"]
 [ext_resource type="Texture2D" uid="uid://caek7jr2an2nr" path="res://art/Futur/idle_combat_player.png" id="4_wgsr6"]
+[ext_resource type="Texture2D" uid="uid://cxi24wskr3k5v" path="res://art/Futur/idle_bossp2.png" id="5_bnvva"]
+[ext_resource type="Texture2D" uid="uid://fayjcmdg71gs" path="res://art/Futur/cheffe_combat.png" id="6_2j1dn"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wgsr6"]
 atlas = ExtResource("3_om1k8")
@@ -49,6 +51,50 @@ animations = [{
 "speed": 2.0
 }]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_rsnei"]
+atlas = ExtResource("5_bnvva")
+region = Rect2(0, 0, 1377, 2011)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ondtw"]
+atlas = ExtResource("5_bnvva")
+region = Rect2(2177, 0, 1377, 2011)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_d4wr1"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rsnei")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ondtw")
+}],
+"loop": true,
+"name": &"default",
+"speed": 2.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d4wr1"]
+atlas = ExtResource("6_2j1dn")
+region = Rect2(30, 0, 290, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3n77h"]
+atlas = ExtResource("6_2j1dn")
+region = Rect2(350, 0, 290, 641)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_7llkx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d4wr1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3n77h")
+}],
+"loop": true,
+"name": &"default",
+"speed": 1.5
+}]
+
 [node name="CombatBossFutur" type="Node2D" unique_id=337692966]
 script = ExtResource("1_hc22m")
 
@@ -75,3 +121,17 @@ sprite_frames = SubResource("SpriteFrames_rsnei")
 animation = &"idle_battle"
 autoplay = "idle_battle"
 frame_progress = 0.8720098
+
+[node name="boss_p2" type="AnimatedSprite2D" parent="." unique_id=1204793768]
+position = Vector2(1941.6875, 651.31244)
+scale = Vector2(0.3708242, 0.3881775)
+sprite_frames = SubResource("SpriteFrames_d4wr1")
+autoplay = "default"
+frame_progress = 0.5439802
+
+[node name="cheffe_combat" type="AnimatedSprite2D" parent="." unique_id=546635417]
+position = Vector2(574, 1463.9999)
+scale = Vector2(1.4457628, 1.4453979)
+sprite_frames = SubResource("SpriteFrames_7llkx")
+autoplay = "default"
+frame_progress = 0.20262614

@@ -1,39 +1,48 @@
 [gd_scene format=3 uid="uid://rv8rd4lpod17"]
 
-[ext_resource type="Texture2D" uid="uid://wwecl47fyrnv" path="res://art/Present/salle_electricite.png" id="1_ykaun"]
+[ext_resource type="Texture2D" uid="uid://b8y4on34bwjbk" path="res://art/Present/salle_electricite.jpeg" id="1_ykaun"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_retour"]
 size = Vector2(400, 150)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_event3"]
-size = Vector2(120, 160)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6llv3"]
+size = Vector2(1495, 552)
 
 [node name="SalleElectricite" type="Node2D" unique_id=64388136]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=503600982]
+position = Vector2(1210.5001, 804.50006)
+scale = Vector2(1.5131252, 1.9211113)
 texture = ExtResource("1_ykaun")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=2127351509]
 anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
 
-[node name="Node2D" type="Node2D" parent="."]
+[node name="Node2D" type="Node2D" parent="." unique_id=442785197]
 
-[node name="zone pop" type="Marker2D" parent="Node2D"]
+[node name="zone pop" type="Marker2D" parent="Node2D" unique_id=1611417778]
 position = Vector2(1200, 1400)
 
-[node name="retour_couloir" type="Area2D" parent="."]
+[node name="retour_couloir" type="Area2D" parent="." unique_id=815680864]
 collision_layer = 0
 monitorable = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="retour_couloir"]
-position = Vector2(1200, 1600)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="retour_couloir" unique_id=338897390]
+position = Vector2(1212, 1576)
 shape = SubResource("RectangleShape2D_retour")
 
-[node name="event3" type="Area2D" parent="."]
+[node name="armoire electrique" type="Area2D" parent="." unique_id=1277092153]
 collision_layer = 0
 monitorable = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="event3"]
-position = Vector2(600, 800)
-shape = SubResource("RectangleShape2D_event3")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="armoire electrique" unique_id=875102195]
+position = Vector2(956, 590)
+shape = SubResource("RectangleShape2D_6llv3")
+
+[node name="limites" type="StaticBody2D" parent="." unique_id=1479991306]
+collision_layer = 0
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limites" unique_id=670517943]
+build_mode = 1
+polygon = PackedVector2Array(672, 1116, 158, 1136, 118, 1468, 276, 1492, 304, 1318, 320, 1306, 352, 1221, 449, 1209, 474, 1298, 466, 1492, 1068, 1488, 1096, 1646, 1286, 1638, 1290, 1500, 1570, 1492, 1570, 1323, 1533, 1314, 1517, 1052, 1557, 1043, 1561, 979, 1610, 938, 1549, 914, 1533, 793, 1570, 760, 1570, 639, 1432, 615, 1432, 724, 955, 724, 935, 595, 644, 615, 603, 587, 409, 583, 413, 684, 676, 688)

@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://bk1ygcs1v5s80" path="res://Futur/fond_metro.tscn" id="11_metro"]
 [ext_resource type="PackedScene" path="res://Futur/fond_tour.tscn" id="12_tour"]
 [ext_resource type="PackedScene" uid="uid://cxf4p2kptiqy2" path="res://Futur/fond_bureau.tscn" id="13_bureau"]
+[ext_resource type="PackedScene" uid="uid://df3b7w0b50pea" path="res://Futur/fond_etage_1.tscn" id="14_etage1"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_punk"]
 radius = 120.0
@@ -163,6 +164,10 @@ visible = false
 z_index = -1
 
 [node name="FondTour" parent="." instance=ExtResource("12_tour")]
+visible = false
+z_index = -1
+
+[node name="FondEtage1" parent="." instance=ExtResource("14_etage1")]
 visible = false
 z_index = -1
 

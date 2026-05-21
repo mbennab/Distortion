@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://cwslxj2dvam3i"]
 
 [ext_resource type="Texture2D" uid="uid://dfqlh2pjdika0" path="res://art/MoyenAge/parc.png" id="1_hm5t4"]
-[ext_resource type="Script" path="res://MoyenAge/parc_moyen_age.gd" id="2_parc_gd"]
-[ext_resource type="PackedScene" path="res://MoyenAge/pnj_femme.tscn" id="3_femme"]
+[ext_resource type="Script" uid="uid://bxbp456pvdoog" path="res://MoyenAge/parc_moyen_age.gd" id="2_parc_gd"]
+[ext_resource type="PackedScene" uid="uid://c3n5doqtonal7" path="res://MoyenAge/pnj_femme.tscn" id="3_femme"]
+[ext_resource type="Texture2D" uid="uid://bhntmpl1o6p8b" path="res://art/bulle.webp" id="4_bul_parc"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hm5t4"]
 size = Vector2(59, 179)
@@ -37,6 +38,13 @@ position = Vector2(1081, 529)
 [node name="apparition" type="Marker2D" parent="markers2D" unique_id=1401229623]
 position = Vector2(154, 857)
 
+[node name="bulle" type="Marker2D" parent="markers2D" unique_id=1489102161]
+position = Vector2(1084, 274)
+
+[node name="spr_bulle" type="Sprite2D" parent="markers2D/bulle" unique_id=1489102162]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("4_bul_parc")
+
 [node name="areas2D" type="Node2D" parent="." unique_id=225490167]
 
 [node name="sortieGauche" type="Area2D" parent="areas2D" unique_id=305287707]
@@ -46,4 +54,4 @@ position = Vector2(77, 950)
 position = Vector2(-47.5, -32.5)
 shape = SubResource("RectangleShape2D_hm5t4")
 
-[node name="femme" parent="." instance=ExtResource("3_femme")]
+[node name="femme" parent="." unique_id=1591429039 instance=ExtResource("3_femme")]

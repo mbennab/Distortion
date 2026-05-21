@@ -41,6 +41,7 @@ func _ready() -> void:
 	pnjkoiai2 = $"SousSol/pnj-koiai-2"
 	_connect_escalier_signals()
 	_connect_metro_sortie_signal()
+	_connect_sortie_fond_signal()
 
 
 func _setup_fade_overlay() -> void:
@@ -190,6 +191,18 @@ func _set_basement_collisions(enabled: bool) -> void:
 		limite.collision_layer = 64 if enabled else 0
 
 
+func _set_tour_collisions(enabled: bool) -> void:
+	var limite = $FondTour.get_node_or_null("limite-entree-tour")
+	if limite:
+		limite.collision_layer = 512 if enabled else 0
+
+
+func _set_etage1_collisions(enabled: bool) -> void:
+	var limite = $FondEtage1.get_node_or_null("Limites-etage-1")
+	if limite:
+		limite.collision_layer = 2048 if enabled else 0
+
+
 func _setup_spawn_particles() -> void:
 	spawn_particles = CPUParticles2D.new()
 	spawn_particles.emitting = false
@@ -321,6 +334,13 @@ func _auto_start_boss_dialogue() -> void:
 	DialogueSystem._spoken_to.erase("npc_boss_futur")
 	DialogueSystem.start_dialogue("npc_boss_futur")
 
+	# Attendre la fin de l'effet machine à écrire, puis lancer le combat
+	await get_tree().create_timer(4.0).timeout
+	if not is_inside_tree() or not DialogueSystem.is_active:
+		return
+	DialogueSystem.stop_dialogue()
+	_start_combat_boss()
+
 
 func _on_boss_action_triggered(action: Dictionary) -> void:
 	if action.get("type") == "trigger" and action.get("id") == "combat":
@@ -335,6 +355,7 @@ func _start_combat_boss() -> void:
 		return
 
 	$FondBureau.hide()
+	$ObjectiveHUD.hide()
 	_set_bureau_collisions(false)
 	time_aunote.hide()
 	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
@@ -560,6 +581,45 @@ func _transition_to_metro() -> void:
 	can_move = true
 
 
+func _connect_sortie_fond_signal() -> void:
+	var sortie = $FondTour/sortie
+	if sortie:
+		sortie.collision_mask = 1
+		sortie.body_entered.connect(_on_sortie_fond_entered)
+
+
+func _on_sortie_fond_entered(body: Node2D) -> void:
+	if body != time_aunote or not can_move:
+		return
+
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+
+	$FondTour.hide()
+	_set_tour_collisions(false)
+
+	$FondEtage1.show()
+	_set_etage1_collisions(true)
+
+	time_aunote.global_position = $FondEtage1/Marker/Entrée.global_position
+	time_aunote.scale = Vector2(0.35, 0.35)
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = false
+
+	$ObjectiveHUD.show()
+	_update_objective("Explorer le premier étage de la tour")
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	can_move = true
+
+
 func _play_cinematique_futur() -> void:
 	var video_layer := CanvasLayer.new()
 	video_layer.layer = 200
@@ -595,6 +655,8 @@ func _transition_to_tower() -> void:
 
 	$FondMetro.hide()
 	$FondTour.show()
+	$FondEtage1.hide()
+	_set_etage1_collisions(false)
 	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
 	if tour_limite:
 		tour_limite.collision_layer = 512
@@ -654,6 +716,7 @@ func _disable_all_collisions() -> void:
 	$FondSuperette.hide()
 	$FondMetro.hide()
 	$FondTour.hide()
+	$FondEtage1.hide()
 	$FondBureau.hide()
 	$"pnj-futur".hide()
 	$"pnj-cheffe".hide()
@@ -668,6 +731,7 @@ func _disable_all_collisions() -> void:
 	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
 	if tour_limite:
 		tour_limite.collision_layer = 0
+	_set_etage1_collisions(false)
 	_set_bureau_collisions(false)
 	if pnjfutur:
 		var zone = pnjfutur.get_node_or_null("ZoneDialogue")
@@ -703,7 +767,7 @@ func start(spawn_id: String = "entree") -> void:
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://Futur/dimension_futur.json")
 	time_aunote = $TimeAunote
-	time_aunote.collision_mask = 2016
+	time_aunote.collision_mask = 4064
 	pnjfutur = $"pnj-futur"
 	pnjcheffe = $"pnj-cheffe"
 
@@ -778,6 +842,8 @@ func start(spawn_id: String = "entree") -> void:
 		if zone_escalier:
 			zone_escalier.monitoring = false
 		$FondTour.show()
+		$FondEtage1.hide()
+		_set_etage1_collisions(false)
 		var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
 		if tour_limite:
 			tour_limite.collision_layer = 512
@@ -815,8 +881,6 @@ func start(spawn_id: String = "entree") -> void:
 		stopped = false
 		$ObjectiveHUD.show()
 		_update_objective("Explorer le bureau")
-		if not DialogueSystem.action_triggered.is_connected(_on_boss_action_triggered):
-			DialogueSystem.action_triggered.connect(_on_boss_action_triggered)
 		_auto_start_boss_dialogue()
 		return
 
@@ -879,7 +943,7 @@ func start_from_escalier() -> void:
 	_set_upper_collisions(true)
 	_set_basement_collisions(false)
 	time_aunote = $TimeAunote
-	time_aunote.collision_mask = 2016
+	time_aunote.collision_mask = 4064
 	pnjfutur = $"pnj-futur"
 	pnjfutur.apparition(pnjfuturPos)
 	pnjfutur.get_node("ZoneDialogue").monitoring = true
@@ -914,8 +978,6 @@ func stop() -> void:
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
-	if DialogueSystem.action_triggered.is_connected(_on_boss_action_triggered):
-		DialogueSystem.action_triggered.disconnect(_on_boss_action_triggered)
 	if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
 		DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
 	var minijeu = $FondSuperette/MiniJeuTourelles
@@ -952,12 +1014,25 @@ func _setup_car_prompt() -> void:
 	_car_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_car_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_car_prompt.add_theme_font_size_override("font_size", 18)
-	_car_prompt.add_theme_color_override("font_color", Color.WHITE)
+	_car_prompt.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
 	_car_prompt.modulate = Color(1, 1, 1, 0.85)
 	_car_prompt.visible = false
+	var pstyle_car := StyleBoxFlat.new()
+	pstyle_car.bg_color = Color(0.08, 0.08, 0.12, 0.85)
+	pstyle_car.border_color = Color(0.6, 0.55, 0.3, 0.7)
+	pstyle_car.border_width_top = 2
+	pstyle_car.border_width_bottom = 2
+	pstyle_car.border_width_left = 2
+	pstyle_car.border_width_right = 2
+	pstyle_car.corner_radius_top_left = 8
+	pstyle_car.corner_radius_top_right = 8
+	pstyle_car.corner_radius_bottom_left = 8
+	pstyle_car.corner_radius_bottom_right = 8
+	_car_prompt.add_theme_stylebox_override("normal", pstyle_car)
+	_car_prompt.custom_minimum_size = Vector2(340, 40)
 	var vp := get_viewport().get_visible_rect().size
-	_car_prompt.position = Vector2(vp.x / 2.0 - 200, vp.y - 100)
-	_car_prompt.size = Vector2(400, 50)
+	_car_prompt.position = Vector2(vp.x / 2.0 - 170, vp.y - 100)
+	_car_prompt.size = Vector2(340, 40)
 	prompt_layer.add_child(_car_prompt)
 
 
