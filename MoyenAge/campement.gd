@@ -19,6 +19,9 @@ var attack_timer := 0.0
 var attack_evaluated := false
 var posture_timer := 0.0
 
+var assassin_stunned := false
+var assassin_stun_timer := 0.0
+
 # Secousse de l'écran
 var _shake_amount := 0.0
 var _bg_default_pos := Vector2(1213.5, 808)
@@ -34,6 +37,7 @@ var _bg_default_pos := Vector2(1213.5, 808)
 @onready var assassin_hp_bar: ProgressBar = $CombatUI/Control/AssassinHPBar
 @onready var assassin_hp_label: Label = $CombatUI/Control/AssassinHPLabel
 @onready var screen_flash: ColorRect = $CombatUI/Control/ScreenFlash
+@onready var etourdi_sprite: AnimatedSprite2D = $etourdi
 
 # Assassin instancié
 var pnj_assassin: Node2D = null
@@ -43,6 +47,8 @@ func _ready() -> void:
 	combat_ui.hide()
 	screen_flash.modulate.a = 0.0
 	stun_label.visible = false
+	etourdi_sprite.hide()
+	etourdi_sprite.stop()
 
 func start_combat() -> void:
 	# Initialisation
@@ -54,6 +60,10 @@ func start_combat() -> void:
 	attack_cooldown = 0.0
 	_shake_amount = 0.0
 	attack_evaluated = false
+	assassin_stunned = false
+	assassin_stun_timer = 0.0
+	etourdi_sprite.hide()
+	etourdi_sprite.stop()
 	
 	# Instancier ou récupérer l'assassin
 	if not pnj_assassin:
@@ -61,13 +71,13 @@ func start_combat() -> void:
 		pnj_assassin = assassin_scene.instantiate()
 		pnj_assassin.name = "AssassinCombat"
 		add_child(pnj_assassin)
-		# Placer l'assassin au second plan au centre du campement
-		pnj_assassin.position = Vector2(1214, 850)
-		pnj_assassin.scale = Vector2(1.8, 1.8)
 		# S'assurer qu'il n'a pas la logique de dialogue dans ce mode
 		if pnj_assassin.has_node("ZoneDialogue"):
 			pnj_assassin.get_node("ZoneDialogue").queue_free()
 	
+	# Placer et mettre à l'échelle l'assassin (plus grand et plus bas)
+	pnj_assassin.position = Vector2(1214, 915)
+	pnj_assassin.scale = Vector2(2.5, 2.5)
 	pnj_assassin.show()
 	var animated_sprite = pnj_assassin.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	animated_sprite.play("default")
@@ -108,14 +118,32 @@ func _process(delta: float) -> void:
 		if _shake_amount <= 0.0:
 			campement_sprite.position = _bg_default_pos
 			
+	# Gérer l'étourdissement de l'assassin
+	if assassin_stunned:
+		etourdi_sprite.show()
+		if pnj_assassin:
+			etourdi_sprite.position = pnj_assassin.position - Vector2(0, 140)
+		if not etourdi_sprite.is_playing():
+			etourdi_sprite.play()
+		assassin_stun_timer -= delta
+		if assassin_stun_timer <= 0.0:
+			assassin_stunned = false
+			etourdi_sprite.hide()
+			etourdi_sprite.stop()
+			status_label.text = ""
+		else:
+			pass # Le timer continue, l'assassin reste étourdi
+	else:
+		etourdi_sprite.hide()
+		etourdi_sprite.stop()
+
 	# Gérer l'étourdissement du joueur
 	if is_player_stunned:
 		stun_timer -= delta
 		if stun_timer <= 0.0:
 			is_player_stunned = false
 			stun_label.visible = false
-			status_label.text = "Vous avez récupéré de l'étourdissement !"
-			status_label.add_theme_color_override("font_color", Color.WHITE)
+			status_label.text = ""
 		else:
 			stun_label.visible = true
 			stun_label.text = "ÉTOURDI ! (%d s)" % clampi(ceil(stun_timer), 1, 3)
@@ -156,18 +184,20 @@ func _handle_assassin_logic(delta: float) -> void:
 				_play_sound("res://audio/combat/sword_clash.1.ogg")
 				_flash_screen(Color(1.0, 1.0, 1.0, 0.3))
 				_shake_screen(8.0)
-				status_label.text = "Coup paré ! Vous bloquez l'assassin !"
-				status_label.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
-				# L'assassin retourne direct en idle après avoir été paré
+				status_label.text = ""
+				# L'assassin est étourdi : il n'attaque pas pendant 3s
+				assassin_stunned = true
+				assassin_stun_timer = 3.0
 				_change_assassin_posture("idle")
 			else:
 				_damage_player()
 				_change_assassin_posture("idle")
 				
-	# Gérer le changement de posture
-	posture_timer -= delta
-	if posture_timer <= 0.0:
-		_choose_random_posture()
+	# Gérer le changement de posture (l'assassin étourdi ne change pas)
+	if not assassin_stunned:
+		posture_timer -= delta
+		if posture_timer <= 0.0:
+			_choose_random_posture()
 
 func _choose_random_posture() -> void:
 	var rand := randf()
@@ -204,30 +234,17 @@ func _change_assassin_posture(new_posture: String) -> void:
 	match assassin_posture:
 		"idle":
 			animated_sprite.play("default")
-			if assassin_hp < 50:
-				status_label.text = "L'assassin baisse sa garde ! VITE, ATTAQUEZ SPAM !"
-				status_label.add_theme_color_override("font_color", Color(0.2, 1.0, 0.5))
-			else:
-				status_label.text = "L'assassin baisse sa garde ! Attaquez !"
-				status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+			status_label.text = ""
 		"defense":
 			animated_sprite.play("defense")
-			if assassin_hp < 50:
-				status_label.text = "RAGE : L'assassin est en posture défensive !"
-				status_label.add_theme_color_override("font_color", Color(1.0, 0.7, 0.2))
-			else:
-				status_label.text = "L'assassin lève sa garde ! Ne l'attaquez pas !"
-				status_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.3))
+			status_label.text = ""
 		"attack":
 			animated_sprite.play("attaque")
 			animated_sprite.frame = 0
+			status_label.text = ""
 			if assassin_hp < 50:
-				status_label.text = "⚠️ RAGE ! COUP FOUDROYANT ! (0.5s)"
-				status_label.add_theme_color_override("font_color", Color(1.0, 0.1, 0.1))
 				attack_timer = 0.5 # Attaque deux fois plus rapide en mode rage !
 			else:
-				status_label.text = "ATTENTION ! L'assassin va attaquer !"
-				status_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
 				attack_timer = 1.0
 			attack_evaluated = false
 			# Un petit flash rouge d'avertissement
@@ -249,7 +266,8 @@ func _perform_attack() -> void:
 			_damage_assassin()
 
 func _damage_assassin() -> void:
-	assassin_hp -= 1
+	var dmg := 1
+	assassin_hp -= dmg
 	_play_sound("res://audio/combat/sword_swing_3.ogg")
 	_shake_screen(12.0)
 	_flash_node(pnj_assassin, Color(1.5, 0.3, 0.3)) # Flash rouge
@@ -258,8 +276,7 @@ func _damage_assassin() -> void:
 	if assassin_hp <= 0:
 		_victory()
 	else:
-		status_label.text = "Vous touchez l'assassin ! (-1 PV)"
-		status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+		status_label.text = ""
 
 func _damage_player() -> void:
 	player_hp -= 1
@@ -271,8 +288,7 @@ func _damage_player() -> void:
 	if player_hp <= 0:
 		_defeat()
 	else:
-		status_label.text = "L'assassin vous frappe ! (-1 PV)"
-		status_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+		status_label.text = ""
 
 func _stun_player() -> void:
 	is_player_stunned = true
@@ -282,8 +298,7 @@ func _stun_player() -> void:
 	_shake_screen(15.0)
 	_flash_screen(Color(1.0, 0.5, 0.0, 0.35)) # Flash orange
 	_update_hp_ui()
-	status_label.text = "PARÉ ! L'assassin bloque votre coup et vous étourdit !"
-	status_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.0))
+	status_label.text = ""
 
 func _set_weapon_sprite(state: String) -> void:
 	match state:
@@ -318,9 +333,26 @@ func _shake_screen(amount: float) -> void:
 	_shake_amount = amount
 
 func _play_sound(path: String) -> void:
-	if ResourceLoader.exists(path):
+	var target_path := path
+	if not ResourceLoader.exists(target_path):
+		# Fallbacks malins basés sur les fichiers audio existants dans le projet
+		match path:
+			"res://audio/combat/sword_swing_1.ogg":
+				target_path = "res://audio/crochetage/tick/tick01.mp3" # Clic léger pour le swing
+			"res://audio/combat/sword_swing_3.ogg":
+				target_path = "res://audio/crochetage/success/success_click.mp3" # Clic clair pour le coup réussi
+			"res://audio/combat/sword_clash.1.ogg":
+				target_path = "res://audio/marchandage/catch/catch03.mp3" # Impact agréable pour la parade réussie
+			"res://audio/combat/sword_clash.3.ogg":
+				target_path = "res://audio/crochetage/failure/failure01.mp3" # Bruit d'erreur lourd pour les dégâts reçus
+			"res://audio/combat/sword_clash.5.ogg":
+				target_path = "res://audio/marchandage/decoy/decoy_error.mp3" # Buzz de désorientation pour l'étourdissement joueur
+			"res://audio/combat/victory_fanfare.ogg":
+				target_path = "res://audio/crochetage/final/final_unlock.mp3" # Fanfare de déblocage pour la victoire
+
+	if ResourceLoader.exists(target_path):
 		var player := AudioStreamPlayer.new()
-		player.stream = load(path)
+		player.stream = load(target_path)
 		player.bus = "Master"
 		player.volume_db = -6.0
 		add_child(player)
@@ -334,11 +366,15 @@ func _victory() -> void:
 	_play_sound("res://audio/combat/victory_fanfare.ogg")
 	
 	# Terminer la quête
+	var quest_state = DialogueSystem.game_state.get("quete_piste_assassin")
+	if quest_state:
+		if quest_state.get("current_step", "") == "etape_enqueter_foret":
+			DialogueSystem.complete_step("quete_piste_assassin", "etape_enqueter_foret")
 	DialogueSystem.complete_step("quete_piste_assassin", "etape_trouver_assassin")
 	
 	# Animation de fondu noir et retour au hub
 	var parent_ma = get_parent()
-	if parent_ma and parent_ma.has_node("fade_layer"):
+	if parent_ma and parent_ma.fade_layer and parent_ma.fade_rect:
 		# Utiliser le fade de MoyenAge
 		var fade_rect_node = parent_ma.fade_rect
 		var tween := create_tween()
@@ -347,7 +383,7 @@ func _victory() -> void:
 		
 		# Afficher le message sur l'écran noir
 		var label := Label.new()
-		label.text = "la distorsion semble plus stable..."
+		label.text = "La distorsion semble plus stable..."
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		label.add_theme_font_override("font", SystemFont.new())
@@ -357,15 +393,21 @@ func _victory() -> void:
 		parent_ma.fade_layer.add_child(label)
 		
 		await get_tree().create_timer(2.0).timeout
-		label.queue_free()
+		if is_inside_tree():
+			label.queue_free()
 		
-		# Arrêter le combat et retourner au hub
-		parent_ma.stop()
+		# Remettre le fade à 0 pour le prochain chargement de l'ère
+		fade_rect_node.modulate.a = 0.0
+		
+		# Retourner au hub
 		var main = get_tree().current_scene
 		if main and main.has_method("warp_to_era"):
 			main.warp_to_era("hub", "entree")
-			# Remettre le fade à 0
-			create_tween().tween_property(fade_rect_node, "modulate:a", 0.0, 1.0)
+	else:
+		# Fallback de sécurité si le fade layer n'est pas dispo
+		var main = get_tree().current_scene
+		if main and main.has_method("warp_to_era"):
+			main.warp_to_era("hub", "entree")
 
 func _defeat() -> void:
 	is_combat_active = false
@@ -396,36 +438,8 @@ func _defeat() -> void:
 		
 		label.queue_free()
 		
-		# Cacher l'arène de combat et restaurer la forêt
-		hide()
-		combat_ui.hide()
-		
-		# Réinitialiser la forêt et replacer le joueur
-		parent_ma.foret.show()
-		var static_foret = parent_ma.foret.get_node_or_null("StaticBody2D")
-		if static_foret:
-			static_foret.collision_layer = 4
-			
-		# Réactiver la zone d'interaction du PNJ assassin pour pouvoir relancer le dialogue
-		var forest_assassin = parent_ma.foret.get_node_or_null("markers2D/assassin/assassin")
-		if forest_assassin and forest_assassin.has_node("ZoneDialogue"):
-			forest_assassin.get_node("ZoneDialogue").monitoring = true
-			
-		# Rendre le joueur à nouveau visible et actif
-		parent_ma.time_aunote.show()
-		parent_ma.time_aunote.modulate.a = 1.0
-		parent_ma.time_aunote.scale = Vector2(0.8, 0.8)
-		parent_ma.time_aunote.rotation = 0.0
-		var col_node := parent_ma.time_aunote.get_node("collision") as CollisionShape2D
-		if col_node:
-			col_node.disabled = false
-			
-		parent_ma.time_aunote.global_position = parent_ma.foret.get_node("markers2D/apparition").global_position
-		parent_ma.can_move = true
-		parent_ma._play_zone_audio("parc")
-		if parent_ma.has_node("ObjectiveHUD"):
-			parent_ma.get_node("ObjectiveHUD").show()
-		parent_ma._update_objective("Trouver l'assassin dans la forêt")
+		# Recommencer le combat directement de zéro (pv au max)
+		start_combat()
 		
 		# Fondu de retour
 		var tween_back := create_tween()

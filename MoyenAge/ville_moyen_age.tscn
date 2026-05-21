@@ -20,8 +20,8 @@ size = Vector2(55.5, 125)
 script = ExtResource("3_ville_gd")
 
 [node name="ville" type="Sprite2D" parent="." unique_id=94942509]
-position = Vector2(1215, 808.00006)
-scale = Vector2(0.86282873, 1.0520833)
+position = Vector2(1214.5001, 807.9999)
+scale = Vector2(1.8072917, 2.1956522)
 texture = ExtResource("1_a8t86")
 
 [node name="charette" type="Sprite2D" parent="." unique_id=1781838702]
@@ -37,26 +37,26 @@ zoom = Vector2(0.422, 0.422)
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=905785278]
 build_mode = 1
-polygon = PackedVector2Array(447, 1204, 446, 1410, 304, 1407, 378, 1615, 1013, 1616, 1013, 1558, 1035, 1558, 1035, 1616, 1335, 1616, 1328, 1513, 1339, 1504, 1368, 1505, 1378, 1563, 1519, 1399, 1540, 1398, 1543, 1416, 1653, 1555, 1699, 1552, 1698, 1440, 1758, 1438, 1754, 1553, 1862, 1552, 1864, 1616, 1924, 1616, 1924, 1546, 2045, 1396, 2068, 1395, 2187, 1543, 2188, 1616, 2249, 1616, 2249, 1535, 2372, 1382, 2392, 1381, 2425, 1432, 2426, 1212, 2342, 1208, 2340, 1235, 2370, 1235, 2372, 1299, 2361, 1308, 2339, 1307, 2281, 1303, 2279, 1254, 2160, 1251, 2155, 1125, 2082, 1123, 2083.1963, 1253.9999, 2009, 1254, 2008, 1298, 1887, 1295, 1881, 1254, 1626, 1256, 1623, 1208, 1596, 1207, 1598, 1095, 1524, 1095, 1525, 1208, 1494.8768, 1207.7832, 1494, 1258, 1340, 1257, 1339, 1211, 1318.4106, 1210.7382, 1317, 1158, 1264.0143, 1160.9823, 1262, 934, 1182, 956, 1116, 934, 1112, 960, 1035, 961, 1034, 1416, 968, 1404, 921, 1456, 844, 1453, 795, 1408, 552, 1412, 553, 1201, 556, 1133, 451, 1131)
+polygon = PackedVector2Array(458, 1205, 455, 1410, 304, 1407, 378, 1615, 1013, 1616, 1013, 1558, 1035, 1558, 1035, 1616, 1335, 1616, 1328, 1513, 1339, 1504, 1368, 1505, 1378, 1563, 1519, 1399, 1540, 1398, 1543, 1416, 1653, 1555, 1699, 1552, 1698, 1440, 1758, 1438, 1754, 1553, 1862, 1552, 1864, 1616, 1924, 1616, 1924, 1546, 2045, 1396, 2068, 1395, 2187, 1543, 2188, 1616, 2249, 1616, 2249, 1535, 2372, 1382, 2392, 1381, 2425, 1432, 2426, 1212, 2342, 1208, 2340, 1235, 2370, 1235, 2372, 1299, 2361, 1308, 2339, 1307, 2281, 1303, 2279, 1254, 2171, 1251, 2173, 1125, 2096, 1124, 2097, 1254, 2021, 1250, 2021, 1294, 1887, 1295, 1881, 1254, 1626, 1256, 1623, 1208, 1610, 1206, 1610, 1095, 1534, 1095, 1534, 1206, 1508, 1205, 1507, 1257, 1354, 1251, 1344, 1213, 1329, 1203, 1327, 1154, 1278, 1157, 1274, 933, 1182, 956, 1116, 934, 1112, 960, 1047, 959, 1048, 1412, 968, 1404, 921, 1456, 844, 1453, 795, 1408, 563, 1406, 567, 1200, 566, 1134, 460, 1135)
 
 [node name="areas2D" type="Node2D" parent="." unique_id=615566627]
 
 [node name="chateau" type="Area2D" parent="areas2D" unique_id=1669649938]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/chateau" unique_id=1996783234]
-position = Vector2(502, 1172)
+position = Vector2(512, 1173)
 shape = SubResource("RectangleShape2D_8r2hw")
 
 [node name="magasin" type="Area2D" parent="areas2D" unique_id=2136524326]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/magasin" unique_id=1978081732]
-position = Vector2(1560, 1126.5)
+position = Vector2(1572, 1123)
 shape = SubResource("RectangleShape2D_imwoe")
 
 [node name="auberge" type="Area2D" parent="areas2D" unique_id=1003274055]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="areas2D/auberge" unique_id=1167408965]
-position = Vector2(2119.5, 1163.5)
+position = Vector2(2132, 1164)
 shape = SubResource("RectangleShape2D_vl2ks")
 
 [node name="parc" type="Area2D" parent="areas2D" unique_id=121547329]

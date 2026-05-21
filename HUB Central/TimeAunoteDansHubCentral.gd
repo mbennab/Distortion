@@ -231,7 +231,7 @@ func start(spawn_id: String = "entree"):
 			timeAunote.apparition(positionEntreePrincipale)
 	pnjHub.apparition(pnjPos)
 	chienHub.apparition(chienPos)
-	_set_collisions_enabled(true)
+	call_deferred("_set_collisions_enabled", true)
 	_start_portal_glows()
 	_play_ambient()
 	started = true

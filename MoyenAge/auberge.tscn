@@ -6,22 +6,22 @@
 [ext_resource type="PackedScene" uid="uid://2kidsvni536t" path="res://MoyenAge/pnj_aubergiste.tscn" id="4_pnj_aubergiste"]
 [ext_resource type="Texture2D" uid="uid://bhntmpl1o6p8b" path="res://art/bulle.webp" id="5_bul_aub"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_j0ps2"]
-atlas = ExtResource("1_drbhu")
-region = Rect2(0, 0, 2528, 1696)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_xwuuy"]
+atlas = ExtResource("1_drbhu")
+region = Rect2(0, 0, 1530, 1028)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wqj3d"]
 atlas = ExtResource("2_fywk1")
-region = Rect2(0, 0, 2528, 1696)
+region = Rect2(0, 0, 1530, 1028)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_wqj3d"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_j0ps2")
+"texture": SubResource("AtlasTexture_xwuuy")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_xwuuy")
+"texture": SubResource("AtlasTexture_wqj3d")
 }],
 "loop": true,
 "name": &"default",
@@ -38,11 +38,11 @@ radius = 240.05208
 script = ExtResource("3_auberge_gd")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1171426364]
-position = Vector2(1213, 807.49994)
-scale = Vector2(0.96123415, 0.954599)
+position = Vector2(1213.5, 808.00006)
+scale = Vector2(1.5862744, 1.5719844)
 sprite_frames = SubResource("SpriteFrames_wqj3d")
 autoplay = "default"
-frame_progress = 0.3920877
+frame_progress = 0.6463989
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1520340645]
 anchor_mode = 0
@@ -52,7 +52,10 @@ zoom = Vector2(0.422, 0.422)
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1778293796]
 build_mode = 1
-polygon = PackedVector2Array(787, 690, 768, 673, 773, 594, 935, 594, 1016, 589, 1017, 521, 1072, 521, 1131, 475, 1192, 463, 1196, 519, 1258, 564, 1310, 541, 1341, 530, 1360, 521, 1426, 516, 1429, 591, 1505, 595, 1504, 680, 1459, 684, 1466, 734, 1516, 781, 1516, 818, 1589, 879, 1571, 951, 1505, 960, 1466, 943, 1443, 954, 1418, 987, 1384, 1019, 1398, 1158, 1401, 1331, 1575, 1337, 1602, 1409, 1554, 1445, 1518, 1415, 1468, 1450, 1466, 1537, 1332, 1534, 1333, 1617, 1096, 1617, 1097, 1539, 960, 1536, 960, 1337, 989, 1301, 1037, 1322, 1107, 1322, 1111, 1249, 1207, 1263, 1214, 982, 1247, 951, 1277, 898, 1339, 855, 1371, 830, 1248, 673, 1140, 833, 1100, 924, 1067, 1044, 928, 1052, 927.3451, 1271.5112, 517, 1284, 516, 1535, 335, 1540, 282, 1214, 357, 1158, 614, 1151, 752, 1117, 752, 960, 709, 941, 551, 940, 553, 770, 510.04163, 760.55426, 512, 622, 681, 644, 706, 727, 811, 864, 872, 898, 925, 894, 976, 873, 1023, 791, 1031, 718, 992, 697, 946, 717, 868, 683)
+polygon = PackedVector2Array(787, 690, 768, 673, 773, 594, 935, 594, 1016, 589, 1017, 521, 1072, 521, 1131, 475, 1192, 463, 1196, 519, 1258, 564, 1310, 541, 1341, 530, 1360, 521, 1426, 516, 1429, 591, 1505, 595, 1504, 680, 1459, 684, 1466, 734, 1516, 781, 1516, 818, 1589, 879, 1571, 951, 1505, 960, 1466, 943, 1443, 954, 1418, 987, 1384, 1019, 1398, 1158, 1401, 1331, 1575, 1337, 1602, 1409, 1554, 1445, 1518, 1415, 1468, 1450, 1466, 1537, 1332, 1534, 1333, 1617, 1096, 1617, 1097, 1539, 960, 1536, 960, 1337, 989, 1301, 1037, 1322, 1107, 1322, 1111, 1249, 1207, 1263, 1189, 991, 1163, 925, 1100, 924, 1067, 1044, 928, 1052, 927.3451, 1271.5112, 517, 1284, 516, 1535, 335, 1540, 282, 1214, 357, 1158, 614, 1151, 752, 1117, 752, 960, 709, 941, 551, 940, 553, 770, 510.04163, 760.55426, 512, 622, 681, 644, 706, 727, 811, 864, 872, 898, 925, 894, 976, 873, 1023, 791, 1031, 718, 992, 697, 946, 717, 868, 683)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=963851746]
+polygon = PackedVector2Array(1368, 832, 1126, 832, 1248, 677)
 
 [node name="Sortie" type="Area2D" parent="." unique_id=1223625952]
 
