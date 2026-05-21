@@ -44,13 +44,26 @@ func _setup_prompt() -> void:
 	prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	prompt_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	prompt_label.add_theme_font_size_override("font_size", 18)
-	prompt_label.add_theme_color_override("font_color", Color.WHITE)
+	prompt_label.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
 	prompt_label.modulate = Color(1, 1, 1, 0.85)
 	prompt_label.visible = false
+	var pstyle := StyleBoxFlat.new()
+	pstyle.bg_color = Color(0.08, 0.08, 0.12, 0.85)
+	pstyle.border_color = Color(0.6, 0.55, 0.3, 0.7)
+	pstyle.border_width_top = 2
+	pstyle.border_width_bottom = 2
+	pstyle.border_width_left = 2
+	pstyle.border_width_right = 2
+	pstyle.corner_radius_top_left = 8
+	pstyle.corner_radius_top_right = 8
+	pstyle.corner_radius_bottom_left = 8
+	pstyle.corner_radius_bottom_right = 8
+	prompt_label.add_theme_stylebox_override("normal", pstyle)
+	prompt_label.custom_minimum_size = Vector2(340, 40)
 
 	var vp := get_viewport().get_visible_rect().size
-	prompt_label.position = Vector2(vp.x / 2.0 - 200, vp.y - 160)
-	prompt_label.size = Vector2(400, 50)
+	prompt_label.position = Vector2(vp.x / 2.0 - 170, vp.y - 160)
+	prompt_label.size = Vector2(340, 40)
 	prompt_layer.add_child(prompt_label)
 
 
@@ -73,6 +86,9 @@ func _on_sortie_entered(body: Node2D) -> void:
 func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
 	if npc_id == "npc_marchand_moyenage":
 		_merchant_talked = true
+		var bulle = $Markers2D/bulle/spr_bulle
+		if bulle:
+			bulle.hide()
 		_update_prompt_visibility()
 		if _active and not disguise_obtained:
 			DialogueSystem.complete_step("quete_deguisement", "etape_parler_marchand")

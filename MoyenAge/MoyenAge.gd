@@ -44,6 +44,7 @@ func _ready() -> void:
 	_setup_spawn_particles()
 	DialogueSystem.action_triggered.connect(_on_action_triggered)
 	DialogueSystem.quest_updated.connect(_on_quest_updated)
+	DialogueSystem.dialogue_started.connect(_on_dialogue_started)
 	prison = $prison_moyen_age
 	var limites_prison = prison.get_node_or_null("limiteDeplacement")
 	if limites_prison:
@@ -501,6 +502,18 @@ func stop() -> void:
 			prison_limite.collision_layer = 0
 	_cleanup_knights()
 	_stop_ambient()
+
+
+func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
+	match npc_id:
+		"npc_roi_moyenage":
+			var bulle = $fondMoyenAge.get_node_or_null("Markers2D/bulle/spr_bulle")
+			if bulle:
+				bulle.hide()
+		"npc_assassin":
+			var foret_bulle = foret.get_node_or_null("markers2D/bulle/spr_bulle")
+			if foret_bulle:
+				foret_bulle.hide()
 
 
 func _on_action_triggered(action: Dictionary) -> void:
