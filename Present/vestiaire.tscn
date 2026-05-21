@@ -41,10 +41,6 @@ position = Vector2(1208, 1480)
 [node name="event" type="Area2D" parent="." unique_id=853454452]
 collision_layer = 0
 
-[node name="couloir" type="CollisionShape2D" parent="event" unique_id=144237464]
-position = Vector2(1211.25, 1633)
-shape = SubResource("RectangleShape2D_bbw7r")
-
 [node name="ordi" type="CollisionShape2D" parent="event" unique_id=2040575599]
 position = Vector2(1714, 1278)
 shape = SubResource("CapsuleShape2D_gja17")
@@ -52,3 +48,11 @@ shape = SubResource("CapsuleShape2D_gja17")
 [node name="vetements" type="CollisionShape2D" parent="event" unique_id=369063820]
 position = Vector2(580, 771.75)
 shape = SubResource("RectangleShape2D_gja17")
+
+[node name="zone_couloir" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+
+[node name="couloir" type="CollisionShape2D" parent="zone_couloir" unique_id=144237464]
+position = Vector2(1211.25, 1633)
+shape = SubResource("RectangleShape2D_bbw7r")
