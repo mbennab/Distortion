@@ -321,6 +321,13 @@ func _auto_start_boss_dialogue() -> void:
 	DialogueSystem._spoken_to.erase("npc_boss_futur")
 	DialogueSystem.start_dialogue("npc_boss_futur")
 
+	# Attendre la fin de l'effet machine à écrire, puis lancer le combat
+	await get_tree().create_timer(4.0).timeout
+	if not is_inside_tree() or not DialogueSystem.is_active:
+		return
+	DialogueSystem.stop_dialogue()
+	_start_combat_boss()
+
 
 func _on_boss_action_triggered(action: Dictionary) -> void:
 	if action.get("type") == "trigger" and action.get("id") == "combat":
@@ -335,6 +342,7 @@ func _start_combat_boss() -> void:
 		return
 
 	$FondBureau.hide()
+	$ObjectiveHUD.hide()
 	_set_bureau_collisions(false)
 	time_aunote.hide()
 	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
@@ -807,8 +815,6 @@ func start(spawn_id: String = "entree") -> void:
 		stopped = false
 		$ObjectiveHUD.show()
 		_update_objective("Explorer le bureau")
-		if not DialogueSystem.action_triggered.is_connected(_on_boss_action_triggered):
-			DialogueSystem.action_triggered.connect(_on_boss_action_triggered)
 		_auto_start_boss_dialogue()
 		return
 
@@ -906,8 +912,6 @@ func stop() -> void:
 	if time_aunote:
 		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 		collision_node.disabled = true
-	if DialogueSystem.action_triggered.is_connected(_on_boss_action_triggered):
-		DialogueSystem.action_triggered.disconnect(_on_boss_action_triggered)
 	if DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
 		DialogueSystem.dialogue_ended.disconnect(_on_superette_dialogue_ended)
 	var minijeu = $FondSuperette/MiniJeuTourelles
