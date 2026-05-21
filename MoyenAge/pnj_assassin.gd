@@ -2,7 +2,7 @@ extends Node2D
 
 @export var npc_id: String = "npc_assassin"
 @export var npc_name: String = "L'Assassin"
-@export var portrait_path: String = ""
+@export var portrait_path: String = "res://art/MoyenAge/portrait_assassin.png"
 
 var animation_assassin: AnimatedSprite2D
 var zone_dialogue: Area2D
