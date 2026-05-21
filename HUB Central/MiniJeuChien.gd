@@ -242,13 +242,18 @@ func _on_scope_draw() -> void:
 	# Math sampling for sine wave lines
 	var points_target := PackedVector2Array()
 	var points_player := PackedVector2Array()
+	var points_count := int(w) / 3
+	points_target.resize(points_count)
+	points_player.resize(points_count)
+	var idx := 0
 	for sx in range(0, int(w), 3):
 		var rad_t := sx * target_frequency + wave_phase
 		var rad_p := sx * player_frequency + wave_phase
-		var sy_target = sin(rad_t) * target_amplitude + (h / 2.0)
-		var sy_player = sin(rad_p) * player_amplitude + (h / 2.0)
-		points_target.append(Vector2(sx, sy_target))
-		points_player.append(Vector2(sx, sy_player))
+		var sy_target := sin(rad_t) * target_amplitude + (h / 2.0)
+		var sy_player := sin(rad_p) * player_amplitude + (h / 2.0)
+		points_target[idx] = Vector2(sx, sy_target)
+		points_player[idx] = Vector2(sx, sy_player)
+		idx += 1
 
 	scope_control.draw_polyline(points_target, Color(1.0, 0.2, 0.4, 0.6), 1.5, true)
 	scope_control.draw_polyline(points_player, Color(0.24, 0.95, 0.79, 0.95), 2.5, true)
@@ -291,7 +296,7 @@ func _play_bark() -> void:
 	_sound_timer.start(_rng.randf_range(0.65, 0.85))
 
 func _input(event: InputEvent) -> void:
-	if not is_active:
+	if not is_active or is_victory:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		close_game()
@@ -329,6 +334,8 @@ func open_game() -> void:
 	_play_bark()
 
 func close_game() -> void:
+	if not is_active:
+		return
 	is_active = false
 	visible = false
 	_audio_player.stop()
@@ -354,10 +361,11 @@ func _on_victory() -> void:
 	label_status.text = "🏆 HARMONISATEUR STABILISÉ AVEC SUCCÈS !"
 	label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
 	
-	var parent_hub = get_parent()
+	var parent_hub := get_parent()
 	if parent_hub and parent_hub.has_method("declencher_particles_victoire"):
 		parent_hub.declencher_particles_victoire()
 	
 	# Delay exit slightly to celebrate
 	await get_tree().create_timer(1.8).timeout
-	close_game()
+	if is_inside_tree():
+		close_game()
