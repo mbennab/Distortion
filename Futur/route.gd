@@ -13,10 +13,10 @@ var _timer_panel: Panel
 var _timer_title: Label
 var _timer_value: Label
 
-const OBSTACLE_SPEED: float = 1200.0
+const OBSTACLE_SPEED: float = 1600.0
 const LANE_COUNT: int = 3
 const RESTART_DELAY: float = 1.0
-const GAME_DURATION: float = 40.0
+const GAME_DURATION: float = 30.0
 
 
 func _ready() -> void:

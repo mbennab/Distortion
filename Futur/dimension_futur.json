@@ -118,7 +118,7 @@
 		  "id": "cheffe_accueil",
 		  "condition": null,
 		  "trigger": "le joueur salue la cheffe ou se présente",
-		  "example": "Je suis la cheffe, tu es là pour nous aider je suppose, je sais, mais pour nous aider on doit d'abord te connaître, va parler aux autres.",
+		  "example": "Je suis la cheffe, tu es là pour nous aider je suppose, tu peux aller te présenter aux autres ou aller voir la voiture, on est prêts pour la mission finale.",
 		  "action": null
 		},
 		{

@@ -11,9 +11,9 @@
 [ext_resource type="PackedScene" uid="uid://bcndk2esdoblk" path="res://Futur/route.tscn" id="9_route"]
 [ext_resource type="PackedScene" uid="uid://dkluhjp5toqnl" path="res://Futur/fond_superette.tscn" id="10_superette"]
 [ext_resource type="PackedScene" uid="uid://bk1ygcs1v5s80" path="res://Futur/fond_metro.tscn" id="11_metro"]
-[ext_resource type="PackedScene" path="res://Futur/fond_tour.tscn" id="12_tour"]
-[ext_resource type="PackedScene" uid="uid://cxf4p2kptiqy2" path="res://Futur/fond_bureau.tscn" id="13_bureau"]
-[ext_resource type="PackedScene" uid="uid://df3b7w0b50pea" path="res://Futur/fond_etage_1.tscn" id="14_etage1"]
+[ext_resource type="PackedScene" uid="uid://ick26q0aflar" path="res://Futur/fond_tour.tscn" id="12_tour"]
+[ext_resource type="PackedScene" uid="uid://ce03ipdncafi2" path="res://Futur/fond_bureau.tscn" id="13_bureau"]
+[ext_resource type="PackedScene" path="res://Futur/fond_etage_1.tscn" id="14_etage1"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_punk"]
 radius = 120.0
@@ -163,14 +163,14 @@ z_index = -1
 visible = false
 z_index = -1
 
-[node name="FondTour" parent="." instance=ExtResource("12_tour")]
+[node name="FondTour" parent="." unique_id=1400100381 instance=ExtResource("12_tour")]
 visible = false
 z_index = -1
 
-[node name="FondEtage1" parent="." instance=ExtResource("14_etage1")]
+[node name="FondEtage1" parent="." unique_id=560298857 instance=ExtResource("14_etage1")]
 visible = false
 z_index = -1
 
-[node name="FondBureau" parent="." instance=ExtResource("13_bureau")]
+[node name="FondBureau" parent="." unique_id=711523539 instance=ExtResource("13_bureau")]
 visible = false
 z_index = -1
