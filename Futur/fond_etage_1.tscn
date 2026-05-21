@@ -1,10 +1,16 @@
 [gd_scene format=3 uid="uid://df3b7w0b50pea"]
 
-[node name="fondEtage1" type="Node2D" unique_id=60089890]
+[ext_resource type="Texture2D" uid="uid://ypw7uurou3eb" path="res://art/Futur/fondEtage1.png" id="1_20x1l"]
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=10772931]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_20x1l"]
+size = Vector2(283, 107)
+
+[node name="FondEtage1" type="Node2D" unique_id=60089890]
+
+[node name="image_etage_1" type="Sprite2D" parent="." unique_id=10772931]
 position = Vector2(1214, 808.5)
 scale = Vector2(1.8225564, 1.3663281)
+texture = ExtResource("1_20x1l")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=792392337]
 anchor_mode = 0
@@ -25,7 +31,6 @@ position = Vector2(1626, 1135)
 position = Vector2(805, 679)
 
 [node name="Limites-etage-1" type="StaticBody2D" parent="." unique_id=1477282438]
-visible = false
 collision_layer = 0
 
 [node name="étage" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=764699042]
@@ -71,3 +76,9 @@ polygon = PackedVector2Array(156, 644, 192, 643, 193, 629, 228, 628, 225, 557, 1
 [node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="Limites-etage-1" unique_id=1449767118]
 build_mode = 1
 polygon = PackedVector2Array(2076, 1244, 2105, 1244, 2108, 1266, 2127, 1273, 2137, 1285, 2141, 1302, 2160, 1305, 2169, 1297, 2170, 1311, 2169, 1329, 2160, 1339, 2129, 1330, 2108, 1338, 2110, 1368, 2072, 1368, 2074, 1334, 2052, 1323, 2048, 1335, 2015, 1336, 2012, 1295, 2022, 1302, 2040, 1302, 2043, 1283, 2056, 1278, 2076, 1267)
+
+[node name="SortieEtage2" type="Area2D" parent="." unique_id=577303964]
+
+[node name="Sortie2Etage" type="CollisionShape2D" parent="SortieEtage2" unique_id=745142353]
+position = Vector2(1207.5, 528)
+shape = SubResource("RectangleShape2D_20x1l")

@@ -41,6 +41,7 @@ func _ready() -> void:
 	pnjkoiai2 = $"SousSol/pnj-koiai-2"
 	_connect_escalier_signals()
 	_connect_metro_sortie_signal()
+	_connect_sortie_fond_signal()
 
 
 func _setup_fade_overlay() -> void:
@@ -188,6 +189,18 @@ func _set_basement_collisions(enabled: bool) -> void:
 	var limite = $"SousSol/fondSousSol".get_node_or_null("limite-sous-sol")
 	if limite:
 		limite.collision_layer = 64 if enabled else 0
+
+
+func _set_tour_collisions(enabled: bool) -> void:
+	var limite = $FondTour.get_node_or_null("limite-entree-tour")
+	if limite:
+		limite.collision_layer = 512 if enabled else 0
+
+
+func _set_etage1_collisions(enabled: bool) -> void:
+	var limite = $FondEtage1.get_node_or_null("Limites-etage-1")
+	if limite:
+		limite.collision_layer = 2048 if enabled else 0
 
 
 func _setup_spawn_particles() -> void:
@@ -560,6 +573,45 @@ func _transition_to_metro() -> void:
 	can_move = true
 
 
+func _connect_sortie_fond_signal() -> void:
+	var sortie = $FondTour/sortie
+	if sortie:
+		sortie.collision_mask = 1
+		sortie.body_entered.connect(_on_sortie_fond_entered)
+
+
+func _on_sortie_fond_entered(body: Node2D) -> void:
+	if body != time_aunote or not can_move:
+		return
+
+	can_move = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+
+	$FondTour.hide()
+	_set_tour_collisions(false)
+
+	$FondEtage1.show()
+	_set_etage1_collisions(true)
+
+	time_aunote.global_position = $FondEtage1/Marker/Entrée.global_position
+	time_aunote.scale = Vector2(0.35, 0.35)
+	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+	if collision_node:
+		collision_node.disabled = false
+
+	$ObjectiveHUD.show()
+	_update_objective("Explorer le premier étage de la tour")
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+
+	can_move = true
+
+
 func _play_cinematique_futur() -> void:
 	var video_layer := CanvasLayer.new()
 	video_layer.layer = 200
@@ -595,6 +647,8 @@ func _transition_to_tower() -> void:
 
 	$FondMetro.hide()
 	$FondTour.show()
+	$FondEtage1.hide()
+	_set_etage1_collisions(false)
 	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
 	if tour_limite:
 		tour_limite.collision_layer = 512
@@ -654,6 +708,7 @@ func _disable_all_collisions() -> void:
 	$FondSuperette.hide()
 	$FondMetro.hide()
 	$FondTour.hide()
+	$FondEtage1.hide()
 	$FondBureau.hide()
 	$"pnj-futur".hide()
 	$"pnj-cheffe".hide()
@@ -668,6 +723,7 @@ func _disable_all_collisions() -> void:
 	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
 	if tour_limite:
 		tour_limite.collision_layer = 0
+	_set_etage1_collisions(false)
 	_set_bureau_collisions(false)
 	if pnjfutur:
 		var zone = pnjfutur.get_node_or_null("ZoneDialogue")
@@ -703,7 +759,7 @@ func start(spawn_id: String = "entree") -> void:
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://Futur/dimension_futur.json")
 	time_aunote = $TimeAunote
-	time_aunote.collision_mask = 2016
+	time_aunote.collision_mask = 4064
 	pnjfutur = $"pnj-futur"
 	pnjcheffe = $"pnj-cheffe"
 
@@ -778,6 +834,8 @@ func start(spawn_id: String = "entree") -> void:
 		if zone_escalier:
 			zone_escalier.monitoring = false
 		$FondTour.show()
+		$FondEtage1.hide()
+		_set_etage1_collisions(false)
 		var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
 		if tour_limite:
 			tour_limite.collision_layer = 512
@@ -879,7 +937,7 @@ func start_from_escalier() -> void:
 	_set_upper_collisions(true)
 	_set_basement_collisions(false)
 	time_aunote = $TimeAunote
-	time_aunote.collision_mask = 2016
+	time_aunote.collision_mask = 4064
 	pnjfutur = $"pnj-futur"
 	pnjfutur.apparition(pnjfuturPos)
 	pnjfutur.get_node("ZoneDialogue").monitoring = true
