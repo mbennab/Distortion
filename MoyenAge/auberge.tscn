@@ -67,6 +67,15 @@ position = Vector2(1212, 1460)
 [node name="pnj_aubergiste" type="Marker2D" parent="markers2D" unique_id=1852808355]
 position = Vector2(1817, 668)
 
+[node name="table1" type="Marker2D" parent="markers2D" unique_id=592407302]
+position = Vector2(1615, 1103)
+
+[node name="table2" type="Marker2D" parent="markers2D" unique_id=345356615]
+position = Vector2(529, 1016)
+
+[node name="table3" type="Marker2D" parent="markers2D" unique_id=370879940]
+position = Vector2(362, 562)
+
 [node name="pnj-aubergiste" parent="." unique_id=1387049508 instance=ExtResource("4_pnj_aubergiste")]
 position = Vector2(1817, 668)
 

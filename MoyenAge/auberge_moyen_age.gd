@@ -9,6 +9,7 @@ var _spoken_to_aubergiste := false
 var _mg_instance: CanvasLayer = null
 var _current_table_id := ""
 var _near_tables: Dictionary = {}
+var _table_sprites: Dictionary = {}
 
 var prompt_layer: CanvasLayer
 var prompt_label: Label
@@ -29,6 +30,7 @@ func _ready() -> void:
 
 	_setup_tables()
 	_setup_prompt()
+	_update_table_sprites()
 
 
 func _setup_tables() -> void:
@@ -37,6 +39,41 @@ func _setup_tables() -> void:
 		if area:
 			area.body_entered.connect(_on_table_body_entered.bind(tid))
 			area.body_exited.connect(_on_table_body_exited.bind(tid))
+			
+			# Create interactive bubble sprite above table
+			var sprite := Sprite2D.new()
+			sprite.name = "sprite_bulle_" + tid
+			
+			var tex_path = "res://art/bulle.webp"
+			if not ResourceLoader.exists(tex_path):
+				tex_path = "res://art/bulle.png"
+				
+			if ResourceLoader.exists(tex_path):
+				sprite.texture = load(tex_path)
+				
+			sprite.scale = Vector2(0.6, 0.6)
+			sprite.z_index = 5
+			
+			var spawn_pos := Vector2.ZERO
+			var marker = get_node_or_null("markers2D/" + tid)
+			if marker:
+				spawn_pos = marker.position
+			else:
+				var col = area.get_node_or_null("CollisionShape2D")
+				if col:
+					spawn_pos = area.position + col.position
+				else:
+					spawn_pos = area.position
+					
+			sprite.position = spawn_pos + Vector2(0, -60)
+			add_child(sprite)
+			_table_sprites[tid] = sprite
+			
+			# Gentle floating animation
+			var start_y = sprite.position.y
+			var tween = create_tween().set_loops()
+			tween.tween_property(sprite, "position:y", start_y - 8.0, 1.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(sprite, "position:y", start_y, 1.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 
 func _setup_prompt() -> void:
@@ -59,10 +96,30 @@ func _setup_prompt() -> void:
 	prompt_layer.add_child(prompt_label)
 
 
+func _update_table_sprites() -> void:
+	for tid in ["table1", "table2", "table3"]:
+		var sprite = _table_sprites.get(tid) as Sprite2D
+		if sprite:
+			if tid in _tables_done:
+				if sprite.visible and sprite.modulate.a > 0.0:
+					var fade_tween = create_tween()
+					fade_tween.tween_property(sprite, "modulate:a", 0.0, 0.4)
+					fade_tween.tween_callback(func(): sprite.visible = false)
+				else:
+					sprite.visible = false
+			else:
+				sprite.visible = true
+				if _spoken_to_aubergiste:
+					sprite.modulate.a = 1.0
+				else:
+					sprite.modulate.a = 0.4
+
+
 func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
 	if npc_id == "npc_aubergiste_moyenage":
 		_spoken_to_aubergiste = true
 		_update_prompt_visibility()
+		_update_table_sprites()
 
 
 func _on_table_body_entered(_body: Node2D, table_id: String) -> void:
@@ -129,6 +186,7 @@ func _on_table_minigame_done(success: bool) -> void:
 		_current_table_id = ""
 
 	_update_prompt_visibility()
+	_update_table_sprites()
 
 	var parent = get_parent()
 	if parent and parent.has_method("_on_auberge_table_minigame_success"):
@@ -183,6 +241,7 @@ func start() -> void:
 	process_mode = PROCESS_MODE_INHERIT
 	_tables_done.clear()
 	_table_minigame_running = false
+	_update_table_sprites()
 	var static_body = $StaticBody2D
 	if static_body:
 		static_body.collision_layer = 4
