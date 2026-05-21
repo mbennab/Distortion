@@ -23,7 +23,7 @@ position = Vector2(1149, 1522)
 
 [node name="SortieEtage2" type="Area2D" parent="." unique_id=200721019]
 
-[node name="Sortie2Etage" type="CollisionShape2D" parent="SortieEtage2" unique_id=1470414402]
+[node name="SortieEtage2" type="CollisionShape2D" parent="SortieEtage2" unique_id=1470414402]
 position = Vector2(1215, 429)
 shape = SubResource("RectangleShape2D_ltls1")
 

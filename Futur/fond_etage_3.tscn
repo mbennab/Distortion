@@ -19,6 +19,7 @@ zoom = Vector2(0.422, 0.422)
 [node name="Marker" type="Node2D" parent="." unique_id=616265992]
 
 [node name="entreeEtage3" type="Marker2D" parent="Marker" unique_id=1958568779]
+position = Vector2(1149, 1522)
 
 [node name="garde33" type="Marker2D" parent="Marker" unique_id=1719305883]
 position = Vector2(1388, 469)
@@ -43,8 +44,8 @@ polygon = PackedVector2Array(1058, 1015, 1118, 1016, 1119, 917, 1089, 918, 1089,
 build_mode = 1
 polygon = PackedVector2Array(1312, 1017, 1368, 1017, 1369, 914, 1341, 911, 1339, 916, 1308, 917)
 
-[node name="Area2D" type="Area2D" parent="." unique_id=1082236830]
+[node name="SortieEtage3" type="Area2D" parent="." unique_id=1082236830]
 
-[node name="SortieEtage3" type="CollisionShape2D" parent="Area2D" unique_id=1448707430]
+[node name="SortieEtage3" type="CollisionShape2D" parent="SortieEtage3" unique_id=1448707430]
 position = Vector2(1218, 239)
 shape = SubResource("RectangleShape2D_mxtm0")

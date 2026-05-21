@@ -14,6 +14,8 @@
 [ext_resource type="PackedScene" uid="uid://ick26q0aflar" path="res://Futur/fond_tour.tscn" id="12_tour"]
 [ext_resource type="PackedScene" uid="uid://ce03ipdncafi2" path="res://Futur/fond_bureau.tscn" id="13_bureau"]
 [ext_resource type="PackedScene" path="res://Futur/fond_etage_1.tscn" id="14_etage1"]
+[ext_resource type="PackedScene" path="res://Futur/fond_etage_2.tscn" id="15_etage2"]
+[ext_resource type="PackedScene" path="res://Futur/fond_etage_3.tscn" id="16_etage3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_punk"]
 radius = 120.0
@@ -168,6 +170,14 @@ visible = false
 z_index = -1
 
 [node name="FondEtage1" parent="." unique_id=560298857 instance=ExtResource("14_etage1")]
+visible = false
+z_index = -1
+
+[node name="FondEtage2" parent="." unique_id=985210112 instance=ExtResource("15_etage2")]
+visible = false
+z_index = -1
+
+[node name="FondEtage3" parent="." unique_id=985210113 instance=ExtResource("16_etage3")]
 visible = false
 z_index = -1
 
