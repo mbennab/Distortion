@@ -359,6 +359,14 @@ func _play_sound(path: String) -> void:
 		player.play()
 		player.finished.connect(player.queue_free)
 
+func _typewriter_text(label: Label, target_text: String) -> void:
+	label.text = ""
+	for i in range(target_text.length()):
+		if not is_inside_tree():
+			return
+		label.text += target_text[i]
+		await get_tree().create_timer(0.04).timeout
+
 func _victory() -> void:
 	is_combat_active = false
 	status_label.text = "VICTOIRE ! L'assassin est vaincu !"
@@ -372,39 +380,217 @@ func _victory() -> void:
 			DialogueSystem.complete_step("quete_piste_assassin", "etape_enqueter_foret")
 	DialogueSystem.complete_step("quete_piste_assassin", "etape_trouver_assassin")
 	
-	# Animation de fondu noir et retour au hub
+	# Masquer l'UI de combat pour laisser place à la cinématique
+	combat_ui.hide()
+	epee_bouclier_sprite.hide()
+	if pnj_assassin:
+		pnj_assassin.hide()
+	
+	# Animation de fondu noir
 	var parent_ma = get_parent()
 	if parent_ma and parent_ma.fade_layer and parent_ma.fade_rect:
-		# Utiliser le fade de MoyenAge
 		var fade_rect_node = parent_ma.fade_rect
-		var tween := create_tween()
-		tween.tween_property(fade_rect_node, "modulate:a", 1.0, 1.5)
-		await tween.finished
+		var fade_tween := create_tween()
+		fade_tween.tween_property(fade_rect_node, "modulate:a", 1.0, 1.5)
+		await fade_tween.finished
 		
-		# Afficher le message sur l'écran noir
-		var label := Label.new()
-		label.text = "La distorsion semble plus stable..."
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		label.add_theme_font_override("font", SystemFont.new())
-		label.add_theme_font_size_override("font_size", 28)
-		label.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
-		label.size = get_viewport_rect().size
-		parent_ma.fade_layer.add_child(label)
+		if not is_inside_tree():
+			return
+			
+		# Obtenir la taille de l'écran avec une valeur de repli sécurisée
+		var viewport_size := get_viewport_rect().size
+		if viewport_size.x <= 0 or viewport_size.y <= 0:
+			viewport_size = Vector2(1024, 682)
+			
+		# Créer le conteneur principal de la cinématique
+		var cinematic_container := Control.new()
+		cinematic_container.size = viewport_size
+		cinematic_container.clip_contents = true
+		parent_ma.fade_layer.add_child(cinematic_container)
+		parent_ma.fade_layer.move_child(cinematic_container, 0) # Placer sous fade_rect
 		
+		# Fond noir sous les images
+		var bg_rect := ColorRect.new()
+		bg_rect.color = Color.BLACK
+		bg_rect.size = viewport_size
+		cinematic_container.add_child(bg_rect)
+		
+		# Clipper pour masquer les bords débordants des images zoomées
+		var image_clipper := Control.new()
+		image_clipper.size = viewport_size
+		image_clipper.clip_contents = true
+		cinematic_container.add_child(image_clipper)
+		
+		# 1. Première image (cinematique_MA1.png) - Panoramique droite -> gauche sans déformation
+		var tex_rect1 := TextureRect.new()
+		var tex1 := load("res://art/MoyenAge/cinematique_MA1.png") as Texture2D
+		tex_rect1.texture = tex1
+		tex_rect1.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect1.stretch_mode = TextureRect.STRETCH_SCALE
+		
+		# Calculer la taille en conservant l'aspect ratio exact (basé sur la hauteur du viewport)
+		var aspect_ratio1 := float(tex1.get_width()) / float(tex1.get_height())
+		var tex_height1 := viewport_size.y
+		var tex_width1 := tex_height1 * aspect_ratio1
+		tex_rect1.size = Vector2(tex_width1, tex_height1)
+		
+		var start_x1 := -(tex_width1 - viewport_size.x)
+		var end_x1 := 0.0
+		tex_rect1.position = Vector2(start_x1, 0.0)
+		image_clipper.add_child(tex_rect1)
+		
+		# Zone de sous-titre premium avec contours bleutés
+		var subtitles_bg := Panel.new()
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0.75)
+		style.corner_radius_top_left = 12
+		style.corner_radius_top_right = 12
+		style.corner_radius_bottom_left = 12
+		style.corner_radius_bottom_right = 12
+		style.border_width_left = 2
+		style.border_width_top = 2
+		style.border_width_right = 2
+		style.border_width_bottom = 2
+		style.border_color = Color(0, 0.8, 1.0, 0.4) # Couleur distortion
+		subtitles_bg.add_theme_stylebox_override("panel", style)
+		
+		var bg_width := viewport_size.x * 0.85
+		var bg_height := 120.0
+		subtitles_bg.size = Vector2(bg_width, bg_height)
+		subtitles_bg.position = Vector2(
+			(viewport_size.x - bg_width) / 2.0,
+			viewport_size.y - bg_height - 40.0
+		)
+		subtitles_bg.modulate.a = 0.0
+		cinematic_container.add_child(subtitles_bg)
+		
+		var subtitles_label := Label.new()
+		subtitles_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		subtitles_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		subtitles_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		subtitles_label.size = subtitles_bg.size - Vector2(40, 20)
+		subtitles_label.position = Vector2(20, 10)
+		subtitles_label.add_theme_font_override("font", SystemFont.new())
+		subtitles_label.add_theme_font_size_override("font_size", 20)
+		subtitles_label.add_theme_color_override("font_color", Color.WHITE)
+		subtitles_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+		subtitles_label.add_theme_constant_override("shadow_offset_x", 2)
+		subtitles_label.add_theme_constant_override("shadow_offset_y", 2)
+		subtitles_bg.add_child(subtitles_label)
+		
+		# --- Phase 1 : Lancement de la première scène ---
+		# Rétablir le fondu de MoyenAge pour faire apparaître l'image
+		var tween_in1 := create_tween()
+		tween_in1.tween_property(fade_rect_node, "modulate:a", 0.0, 1.5)
+		
+		# Lancer le mouvement lent droite -> gauche
+		var pan_tween1 := create_tween()
+		pan_tween1.set_ease(Tween.EASE_IN_OUT)
+		pan_tween1.set_trans(Tween.TRANS_SINE)
+		pan_tween1.tween_property(tex_rect1, "position:x", end_x1, 9.0)
+		
+		# Faire apparaître la boîte de sous-titres
+		var bg_tween1 := create_tween()
+		bg_tween1.tween_property(subtitles_bg, "modulate:a", 1.0, 0.8)
+		await bg_tween1.finished
+		
+		if not is_inside_tree():
+			return
+			
+		# Écrire le texte de victoire face à l'assassin
+		await _typewriter_text(subtitles_label, "Vous avez terrassé l'assassin. La ligne temporelle de cette époque est désormais hors de danger.")
+		
+		if not is_inside_tree():
+			return
+			
+		# Attendre la fin du panoramique
 		await get_tree().create_timer(2.0).timeout
-		if is_inside_tree():
-			label.queue_free()
+		if pan_tween1.is_running():
+			await pan_tween1.finished
+			
+		if not is_inside_tree():
+			return
+			
+		# Disparition des sous-titres
+		var bg_fadeout1 := create_tween()
+		bg_fadeout1.tween_property(subtitles_bg, "modulate:a", 0.0, 0.6)
+		await bg_fadeout1.finished
 		
-		# Remettre le fade à 0 pour le prochain chargement de l'ère
+		if not is_inside_tree():
+			return
+			
+		# --- Phase 2 : Deuxième image (cinematique_MA2.png) - Panoramique gauche -> droite ---
+		var tex_rect2 := TextureRect.new()
+		var tex2 := load("res://art/MoyenAge/cinematique_MA2.png") as Texture2D
+		tex_rect2.texture = tex2
+		tex_rect2.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect2.stretch_mode = TextureRect.STRETCH_SCALE
+		
+		# Calculer la taille en conservant l'aspect ratio exact (basé sur la hauteur du viewport)
+		var aspect_ratio2 := float(tex2.get_width()) / float(tex2.get_height())
+		var tex_height2 := viewport_size.y
+		var tex_width2 := tex_height2 * aspect_ratio2
+		tex_rect2.size = Vector2(tex_width2, tex_height2)
+		tex_rect2.modulate.a = 0.0
+		
+		var start_x2 := 0.0
+		var end_x2 := -(tex_width2 - viewport_size.x)
+		tex_rect2.position = Vector2(start_x2, 0.0)
+		image_clipper.add_child(tex_rect2)
+		
+		# Transition en fondu enchaîné (Cross-fade)
+		var cross_fade := create_tween()
+		cross_fade.tween_property(tex_rect2, "modulate:a", 1.0, 1.5)
+		
+		# Lancer le mouvement lent gauche -> droite
+		var pan_tween2 := create_tween()
+		pan_tween2.set_ease(Tween.EASE_IN_OUT)
+		pan_tween2.set_trans(Tween.TRANS_SINE)
+		pan_tween2.tween_property(tex_rect2, "position:x", end_x2, 9.0)
+		
+		await cross_fade.finished
+		if not is_inside_tree():
+			return
+			
+		# Libérer la première texture pour économiser la mémoire
+		tex_rect1.queue_free()
+		
+		# Faire réapparaître les sous-titres
+		var bg_tween2 := create_tween()
+		bg_tween2.tween_property(subtitles_bg, "modulate:a", 1.0, 0.8)
+		await bg_tween2.finished
+		
+		if not is_inside_tree():
+			return
+			
+		# Écrire le texte sur la stabilité de la distorsion et le retour au nexus
+		await _typewriter_text(subtitles_label, "La distorsion semble plus stable et nous pouvons retourner au nexus maintenant.")
+		
+		if not is_inside_tree():
+			return
+			
+		# Laisser le temps de lire puis fondu au noir final
+		await get_tree().create_timer(3.0).timeout
+		
+		if not is_inside_tree():
+			return
+			
+		var fade_out_tween := create_tween()
+		fade_out_tween.tween_property(fade_rect_node, "modulate:a", 1.0, 1.5)
+		await fade_out_tween.finished
+		
+		if not is_inside_tree():
+			return
+			
+		# Nettoyage et transition finale
+		cinematic_container.queue_free()
 		fade_rect_node.modulate.a = 0.0
 		
-		# Retourner au hub
 		var main = get_tree().current_scene
 		if main and main.has_method("warp_to_era"):
 			main.warp_to_era("hub", "entree")
 	else:
-		# Fallback de sécurité si le fade layer n'est pas dispo
+		# Repli si les nodes de fondu du parent ne sont pas trouvés
 		var main = get_tree().current_scene
 		if main and main.has_method("warp_to_era"):
 			main.warp_to_era("hub", "entree")
