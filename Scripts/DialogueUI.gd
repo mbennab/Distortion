@@ -21,6 +21,7 @@ var normal_panel: Panel
 
 var retro_mode: bool = false
 var retro_container: Control
+var retro_msg_scroll: ScrollContainer
 var retro_portrait: TextureRect
 var retro_name_label: Label
 var retro_message_label: Label
@@ -267,6 +268,13 @@ func _setup_retro_ui() -> void:
 	var msg_font = SystemFont.new()
 	msg_font.font_names = ["Courier New", "monospace"]
 
+	retro_msg_scroll = ScrollContainer.new()
+	retro_msg_scroll.size_flags_horizontal = Control.SIZE_FILL
+	retro_msg_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	retro_msg_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	retro_msg_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	vbox.add_child(retro_msg_scroll)
+
 	retro_message_label = Label.new()
 	retro_message_label.text = ""
 	retro_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -274,10 +282,10 @@ func _setup_retro_ui() -> void:
 	retro_message_label.add_theme_font_size_override("font_size", 15)
 	retro_message_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9, 1))
 	retro_message_label.add_theme_constant_override("line_spacing", 4)
-	retro_message_label.size_flags_horizontal = Control.SIZE_FILL
+	retro_message_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	retro_message_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	retro_message_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(retro_message_label)
+	retro_msg_scroll.add_child(retro_message_label)
 
 	var input_font = SystemFont.new()
 	input_font.font_names = ["Courier New", "monospace"]
@@ -525,6 +533,7 @@ func _show_player_message(text: String) -> void:
 	var sent_text = text
 	_start_typewriter(wrapped, func():
 		retro_message_label.text = wrapped
+		_scroll_retro_to_bottom()
 		DialogueSystem.send_message(sent_text)
 	)
 
@@ -593,6 +602,7 @@ func _on_typewriter_tick() -> void:
 		else:
 			retro_message_label.text += c
 		typewriter_char_index += 1
+		_scroll_retro_to_bottom()
 	else:
 		typewriter_timer.stop()
 		is_animating = false
@@ -608,10 +618,19 @@ func _skip_typewriter() -> void:
 	typewriter_timer.stop()
 	is_animating = false
 	retro_message_label.text = typewriter_full_text
+	_scroll_retro_to_bottom()
 	if typewriter_callback.is_valid():
 		var cb = typewriter_callback
 		typewriter_callback = Callable()
 		cb.call()
+
+
+func _scroll_retro_to_bottom() -> void:
+	if not retro_msg_scroll or not is_inside_tree():
+		return
+	await get_tree().process_frame
+	if is_instance_valid(retro_msg_scroll):
+		retro_msg_scroll.scroll_vertical = int(retro_msg_scroll.get_v_scroll_bar().max_value)
 
 
 func _create_generic_portrait() -> ImageTexture:
