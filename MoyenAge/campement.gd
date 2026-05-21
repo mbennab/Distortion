@@ -72,10 +72,15 @@ func start_combat() -> void:
 	var animated_sprite = pnj_assassin.get_node("AnimatedSprite2D") as AnimatedSprite2D
 	animated_sprite.play("default")
 	
+	# Cacher la fenêtre d'objectifs du parent
+	var parent_ma_start = get_parent()
+	if parent_ma_start and parent_ma_start.has_node("ObjectiveHUD"):
+		parent_ma_start.get_node("ObjectiveHUD").hide()
+
 	# Configurer les sprites de premier plan (grand z-index et grande taille pour occuper l'écran)
 	epee_bouclier_sprite.z_index = 10
-	epee_bouclier_sprite.position = Vector2(1214, 900)
-	epee_bouclier_sprite.scale = Vector2(4.0, 4.0)
+	epee_bouclier_sprite.position = Vector2(1213.5, 808)
+	epee_bouclier_sprite.scale = Vector2(4.4, 4.4)
 	_set_weapon_sprite("idle")
 	epee_bouclier_sprite.show()
 	
@@ -340,6 +345,20 @@ func _victory() -> void:
 		tween.tween_property(fade_rect_node, "modulate:a", 1.0, 1.5)
 		await tween.finished
 		
+		# Afficher le message sur l'écran noir
+		var label := Label.new()
+		label.text = "la distorsion semble plus stable..."
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.add_theme_font_override("font", SystemFont.new())
+		label.add_theme_font_size_override("font_size", 28)
+		label.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
+		label.size = get_viewport_rect().size
+		parent_ma.fade_layer.add_child(label)
+		
+		await get_tree().create_timer(2.0).timeout
+		label.queue_free()
+		
 		# Arrêter le combat et retourner au hub
 		parent_ma.stop()
 		var main = get_tree().current_scene
@@ -403,7 +422,9 @@ func _defeat() -> void:
 			
 		parent_ma.time_aunote.global_position = parent_ma.foret.get_node("markers2D/apparition").global_position
 		parent_ma.can_move = true
-		parent_ma._play_zone_audio("foret")
+		parent_ma._play_zone_audio("parc")
+		if parent_ma.has_node("ObjectiveHUD"):
+			parent_ma.get_node("ObjectiveHUD").show()
 		parent_ma._update_objective("Trouver l'assassin dans la forêt")
 		
 		# Fondu de retour

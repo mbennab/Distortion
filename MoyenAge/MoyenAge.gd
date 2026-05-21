@@ -83,6 +83,7 @@ func _ready() -> void:
 			static_parc.collision_layer = 0
 	foret = $foret
 	if foret:
+		foret.process_mode = PROCESS_MODE_DISABLED
 		foret.hide()
 		var static_foret = foret.get_node_or_null("StaticBody2D")
 		if static_foret:
@@ -382,6 +383,7 @@ func start(spawn_id: String = "entree") -> void:
 			var limite_prison_f = prison.get_node_or_null("limiteDeplacement")
 			if limite_prison_f:
 				limite_prison_f.collision_layer = 0
+			foret.process_mode = PROCESS_MODE_INHERIT
 			foret.show()
 			var static_foret = foret.get_node_or_null("StaticBody2D")
 			if static_foret:
@@ -477,6 +479,7 @@ func stop() -> void:
 	if parc:
 		parc.stop()
 	if foret:
+		foret.process_mode = PROCESS_MODE_DISABLED
 		foret.hide()
 		var static_foret = foret.get_node_or_null("StaticBody2D")
 		if static_foret:
@@ -675,6 +678,7 @@ func _on_femme_friendship_done() -> void:
 	if limite_p:
 		limite_p.collision_layer = 0
 
+	foret.process_mode = PROCESS_MODE_INHERIT
 	foret.show()
 	var static_foret = foret.get_node_or_null("StaticBody2D")
 	if static_foret:
@@ -726,6 +730,7 @@ func _on_foret_sortie_entered(body: Node2D) -> void:
 	if not is_inside_tree():
 		return
 
+	foret.process_mode = PROCESS_MODE_DISABLED
 	foret.hide()
 	var static_foret = foret.get_node_or_null("StaticBody2D")
 	if static_foret:
@@ -1042,6 +1047,7 @@ func _start_assassin_combat() -> void:
 		return
 		
 	# Hide the forest zone and disable movement
+	foret.process_mode = PROCESS_MODE_DISABLED
 	foret.hide()
 	var static_foret = foret.get_node_or_null("StaticBody2D")
 	if static_foret:

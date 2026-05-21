@@ -1,8 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://jobybqofpbv6"]
+[gd_scene format=3 uid="uid://jobybqofpbv6"]
 
-[ext_resource type="Script" path="res://MoyenAge/campement.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bmqi5l80xs32o" path="res://MoyenAge/campement.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://0jtlbyacbne7" path="res://art/MoyenAge/campement.png" id="2_bg"]
-[ext_resource type="Texture2D" path="res://art/MoyenAge/epee_bouclier.png" id="3_weapon"]
+[ext_resource type="Texture2D" uid="uid://b31lxg1omandy" path="res://art/MoyenAge/epee_bouclier.png" id="3_weapon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.1, 0.1, 0.12, 0.6)
@@ -21,18 +21,7 @@ bg_color = Color(0.2, 0.8, 0.4, 0.9)
 border_width_left = 1
 border_width_top = 1
 border_width_bottom = 1
-border_color = Color(0.4, 1.0, 0.6, 0.8)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_assassin_fill"]
-bg_color = Color(0.8, 0.2, 0.2, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_bottom = 1
-border_color = Color(1.0, 0.4, 0.4, 0.8)
+border_color = Color(0.4, 1, 0.6, 0.8)
 corner_radius_top_left = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
@@ -41,6 +30,17 @@ corner_radius_bottom_left = 2
 [sub_resource type="SystemFont" id="SystemFont_mono"]
 font_names = PackedStringArray("Courier New", "monospace")
 subpixel_positioning = 0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_assassin_fill"]
+bg_color = Color(0.8, 0.2, 0.2, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(1, 0.4, 0.4, 0.8)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [node name="campement" type="Node2D" unique_id=1188731684]
 script = ExtResource("1_script")
@@ -55,14 +55,14 @@ anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
 
 [node name="epee_bouclier" type="Sprite2D" parent="." unique_id=987654]
-position = Vector2(1214, 1220)
-scale = Vector2(1.8, 1.8)
+position = Vector2(1213.5, 808)
+scale = Vector2(4.4, 4.4)
 texture = ExtResource("3_weapon")
 
-[node name="CombatUI" type="CanvasLayer" parent="."]
+[node name="CombatUI" type="CanvasLayer" parent="." unique_id=599885845]
 layer = 10
 
-[node name="Control" type="Control" parent="CombatUI"]
+[node name="Control" type="Control" parent="CombatUI" unique_id=1683240067]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -71,7 +71,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="PlayerHPBar" type="ProgressBar" parent="CombatUI/Control"]
+[node name="PlayerHPBar" type="ProgressBar" parent="CombatUI/Control" unique_id=1452941036]
 layout_mode = 0
 offset_left = 64.0
 offset_top = 48.0
@@ -83,7 +83,7 @@ max_value = 5.0
 value = 5.0
 show_percentage = false
 
-[node name="PlayerHPLabel" type="Label" parent="CombatUI/Control"]
+[node name="PlayerHPLabel" type="Label" parent="CombatUI/Control" unique_id=283150272]
 layout_mode = 0
 offset_left = 64.0
 offset_top = 18.0
@@ -94,7 +94,7 @@ theme_override_font_sizes/font_size = 18
 text = "Joueur : 5 / 5"
 vertical_alignment = 1
 
-[node name="AssassinHPBar" type="ProgressBar" parent="CombatUI/Control"]
+[node name="AssassinHPBar" type="ProgressBar" parent="CombatUI/Control" unique_id=1477751948]
 layout_mode = 0
 offset_left = 704.0
 offset_top = 48.0
@@ -106,7 +106,7 @@ max_value = 5.0
 value = 5.0
 show_percentage = false
 
-[node name="AssassinHPLabel" type="Label" parent="CombatUI/Control"]
+[node name="AssassinHPLabel" type="Label" parent="CombatUI/Control" unique_id=620652210]
 layout_mode = 0
 offset_left = 704.0
 offset_top = 18.0
@@ -118,7 +118,7 @@ text = "Assassin : 5 / 5"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="CombatUI/Control"]
+[node name="StatusLabel" type="Label" parent="CombatUI/Control" unique_id=984047081]
 layout_mode = 0
 offset_left = 200.0
 offset_top = 96.0
@@ -133,7 +133,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="StunLabel" type="Label" parent="CombatUI/Control"]
+[node name="StunLabel" type="Label" parent="CombatUI/Control" unique_id=538499453]
 visible = false
 layout_mode = 0
 offset_left = 320.0
@@ -149,9 +149,10 @@ text = "ÉTOURDI ! (3s)"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InstructionLabel" type="Label" parent="CombatUI/Control"]
+[node name="InstructionLabel" type="Label" parent="CombatUI/Control" unique_id=2127248657]
 layout_mode = 1
-anchors_preset = 7
+anchors_preset = -1
+anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -169,7 +170,7 @@ text = "Touches : [A / Q] Lever Bouclier  |  [E] Attaquer"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ScreenFlash" type="ColorRect" parent="CombatUI/Control"]
+[node name="ScreenFlash" type="ColorRect" parent="CombatUI/Control" unique_id=535429740]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
