@@ -94,7 +94,7 @@ L'appel API demande obligatoirement un retour au format JSON :
   - **États de l'Assassin (Postures)** : 
     - `"idle"` : Vulnérable aux assauts.
     - `"defense"` : Parera toute attaque du joueur, lui infligeant un étourdissement (`is_player_stunned`) de 3.0 secondes.
-    - `"attack"` : Charge un coup dévastateur pendant 1.0s (avertissement via flash d'écran rouge). Le joueur doit parer sous peine de perdre 1 HP.
+	- `"attack"` : Charge un coup dévastateur pendant 1.0s (avertissement via flash d'écran rouge). Le joueur doit parer sous peine de perdre 1 HP.
   - **Mode Rage (< 50 HP)** : L'assassin accélère son rythme de combat. Le changement de posture s'effectue toutes les 1.2 à 2.0s (au lieu de 2.0 à 3.0s), la posture défensive a 55% de chance de s'activer, et les attaques se chargent en **0.5 seconde** au lieu d'une seconde complète.
   - **Défaite & Résilience Temporelle** : Si le joueur tombe à 0 HP, la distorsion le sauve. Un écran noir affiche le message *"vous êtes sauvés par la distorsion..."* pendant 3 secondes, puis le joueur est replacé à l'entrée de la forêt avec tous ses points de vie. L'objectif est réinitialisé sur *"Trouver l'assassin dans la forêt"*.
 
@@ -105,9 +105,9 @@ L'appel API demande obligatoirement un retour au format JSON :
 - **Mini-jeu d'infiltration / 1, 2, 3 Soleil (`MiniJeuSoleil.gd`)** :
   - Le joueur doit dérober le badge d'un technicien en se déplaçant horizontalement vers la gauche via les actions d'input `marche_gauche/droite/haut/bas` (ZQSD / WASD / Flèches).
   - **Machine à États (Phases)** : 
-    - `Phase.LOOKING_AWAY` : Le joueur peut avancer en toute sécurité.
-    - `Phase.WARNING` : Avertissement de 0.3s. Le joueur doit stopper tout mouvement.
-    - `Phase.LOOKING_AT` : Le technicien observe. Si le joueur bouge après la période de grâce de 0.1s, il subit une pénalité.
+	- `Phase.LOOKING_AWAY` : Le joueur peut avancer en toute sécurité.
+	- `Phase.WARNING` : Avertissement de 0.3s. Le joueur doit stopper tout mouvement.
+	- `Phase.LOOKING_AT` : Le technicien observe. Si le joueur bouge après la période de grâce de 0.1s, il subit une pénalité.
   - **Pénalité (Strike)** : Le joueur subit un recul (Knockback) de **200 pixels** vers la droite et un étourdissement de 1.2s. Au bout de 3 strikes, le jeu se solde par un échec.
   - **Victoire** : Atteindre une distance de rapprochement inférieure à **55 pixels** du technicien.
 - **Hall &PC de contrôle** : En présentant le badge dérobé à l'Agent Moreau, le joueur est autorisé à entrer. Il parle à la secrétaire Sophie (`npc_secretaire_present`) qui le charge de préparer la centrale (déclenchant `quete_preparation`). Le joueur doit se rendre aux vestiaires, enfiler la tenue de technicien de maintenance (`joueur_deguise_maintenance.tscn`), ce qui lui donne les droits d'interaction pour opérer le PC de contrôle et les disjoncteurs électriques.
@@ -128,8 +128,8 @@ Exploration de la base de la résistance ➔ Dialogue avec Vukovi et Koiai au so
 - **Cinématique & Tour** : La transition vers la tour d'Alfredo déclenche la lecture plein écran de la vidéo d'introduction `res://art/Futur/cinematique_futur.ogv`.
 - **Combat de Boss RPG au Tour par Tour (`Scripts/CombatBossFutur.gd`)** :
   - **Propriétés & Statistiques** :
-    - Joueur : 100 HP, 20 ATK, 10 DEF.
-    - Alfredo Sinko Nochez : 150 HP, 15 ATK, 5 DEF.
+	- Joueur : 100 HP, 20 ATK, 10 DEF.
+	- Alfredo Sinko Nochez : 150 HP, 15 ATK, 5 DEF.
   - **Menu d'actions** :
     - **Attaquer** : Inflige des dégâts basés sur `player_atk - (boss_def / 2) + randi() % 7 - 3` (minimum 5).
     - **Parer** : Double la valeur de défense du joueur (`player_def * 2`) pour le tour en cours.
@@ -139,9 +139,9 @@ Exploration de la base de la résistance ➔ Dialogue avec Vukovi et Koiai au so
     - `roll < 9` (20% de chance) : Alfredo se concentre et accumule de la puissance physique (`boss_atk_buff += 3`).
     - `roll == 9` (10% de chance) : Alfredo ricane et nargue le joueur ("Vous croyez pouvoir me vaincre, misérable créature ?").
   - **Polissage Visuel UI** :
-    - Barres de HP dynamiques dont la couleur s'adapte selon le ratio restant (Vert > 50%, Jaune > 25%, Rouge sinon).
-    - Jauges de dégâts retardées (`boss_hp_dmg` / `player_hp_dmg`) matérialisées par un rectangle rouge s'estompant via un tween d'interpolation mathématique en sinus (`TRANS_SINE`, `EASE_IN`) d'une durée de 0.6s.
-    - Les sprites des personnages flottent doucement dans les airs via des tweens d'oscillation verticale de 8 pixels configurés en boucle infinie (`set_loops(-1)`).
+	- Barres de HP dynamiques dont la couleur s'adapte selon le ratio restant (Vert > 50%, Jaune > 25%, Rouge sinon).
+	- Jauges de dégâts retardées (`boss_hp_dmg` / `player_hp_dmg`) matérialisées par un rectangle rouge s'estompant via un tween d'interpolation mathématique en sinus (`TRANS_SINE`, `EASE_IN`) d'une durée de 0.6s.
+	- Les sprites des personnages flottent doucement dans les airs via des tweens d'oscillation verticale de 8 pixels configurés en boucle infinie (`set_loops(-1)`).
 
 ---
 
