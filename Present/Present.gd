@@ -1,6 +1,7 @@
 extends Node2D
 
 const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
+const MiniJeuTuyauScene = preload("res://Scripts/MiniJeuTuyau.tscn")
 
 var time_aunote: CharacterBody2D
 var pnj_secu
@@ -53,6 +54,9 @@ var _salle_electricite_retour_prompt: Label
 var _subroom_retour_prompt_layer: CanvasLayer
 
 var _last_dialogue_npc_id: String = ""
+var _player_at_machines_repair: bool = false
+var _salle_machine_minigame: Node = null
+var _machines_repair_prompt: Label
 
 
 func _ready() -> void:
@@ -403,6 +407,15 @@ func _setup_subroom_retours() -> void:
 		ret_se.body_entered.connect(_on_salle_electricite_retour_entered)
 		ret_se.body_exited.connect(_on_salle_electricite_retour_exited)
 
+	var event2 = salle_machine.get_node_or_null("event2")
+	if event2:
+		event2.body_entered.connect(_on_salle_machine_repair_entered)
+		event2.body_exited.connect(_on_salle_machine_repair_exited)
+
+	_machines_repair_prompt = _create_portal_prompt("Appuyez sur E pour inspecter les machines")
+	_machines_repair_prompt.visible = false
+	_subroom_retour_prompt_layer.add_child(_machines_repair_prompt)
+
 
 func _on_pc_controle_retour_entered(body: Node2D) -> void:
 	if body == time_aunote and pc_controle.visible:
@@ -441,6 +454,19 @@ func _on_salle_electricite_retour_exited(body: Node2D) -> void:
 	if body == time_aunote:
 		_player_at_salle_electricite_retour = false
 		_salle_electricite_retour_prompt.visible = false
+
+
+func _on_salle_machine_repair_entered(body: Node2D) -> void:
+	if body == time_aunote and salle_machine.visible:
+		_player_at_machines_repair = true
+		_machines_repair_prompt.visible = true
+		_update_portal_prompt_position(_machines_repair_prompt)
+
+
+func _on_salle_machine_repair_exited(body: Node2D) -> void:
+	if body == time_aunote:
+		_player_at_machines_repair = false
+		_machines_repair_prompt.visible = false
 
 
 func _go_to_couloir() -> void:
@@ -790,6 +816,12 @@ func _set_salle_machine_collisions(enabled: bool) -> void:
 	var limites = salle_machine.get_node_or_null("limites")
 	if limites:
 		limites.collision_layer = 8 if enabled else 0
+	var event = salle_machine.get_node_or_null("event")
+	if event:
+		event.monitoring = enabled
+	var event2 = salle_machine.get_node_or_null("event2")
+	if event2:
+		event2.monitoring = enabled
 
 
 func _set_salle_electricite_collisions(enabled: bool) -> void:
@@ -844,9 +876,12 @@ func _input(event: InputEvent) -> void:
 	elif _player_at_pc_controle_retour and pc_controle.visible:
 		get_viewport().set_input_as_handled()
 		_return_from_pc_controle()
-	elif _player_at_salle_machine_retour and salle_machine.visible:
+	elif _player_at_salle_machine_retour and salle_machine.visible and _salle_machine_minigame == null:
 		get_viewport().set_input_as_handled()
 		_return_from_salle_machine()
+	elif _player_at_machines_repair and salle_machine.visible:
+		get_viewport().set_input_as_handled()
+		_start_salle_machine_minigame()
 	elif _player_at_salle_electricite_retour and salle_electricite.visible:
 		get_viewport().set_input_as_handled()
 		_return_from_salle_electricite()
@@ -1309,12 +1344,31 @@ func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale)
 
 func _on_parking_minigame_won() -> void:
 	DialogueSystem.complete_step("quete_acces_centrale", "etape_chercher_carte")
-	# Bascule vers le PNJ "retour" qui valide le badge
 	if pnj_secu:
 		pnj_secu.npc_id = "npc_securite_present_retour"
 	time_aunote.global_position = $"Parking/Node2D/zone pop after jeux".global_position
-	_update_objective("Retourner voir l'agent de sécurité")
+	_update_objective("Retourner voir l'agent de securite")
 	can_move = true
+
+
+func _start_salle_machine_minigame() -> void:
+	if _salle_machine_minigame != null:
+		return
+	can_move = false
+	time_aunote.hide()
+	_machines_repair_prompt.visible = false
+	_salle_machine_minigame = MiniJeuTuyauScene.instantiate()
+	_salle_machine_minigame.done.connect(_on_salle_machine_minigame_done)
+	get_tree().root.add_child(_salle_machine_minigame)
+
+
+func _on_salle_machine_minigame_done(success: bool) -> void:
+	_salle_machine_minigame = null
+	time_aunote.show()
+	can_move = true
+	if success:
+		DialogueSystem.complete_step("quete_preparation", "etape_reparer_machines")
+		_update_objective("Court-circuit ! Remettez l'electricite en marche...")
 
 
 func stop() -> void:
@@ -1381,3 +1435,9 @@ func stop() -> void:
 		_salle_machine_retour_prompt.visible = false
 	if _salle_electricite_retour_prompt:
 		_salle_electricite_retour_prompt.visible = false
+	_player_at_machines_repair = false
+	if _machines_repair_prompt:
+		_machines_repair_prompt.visible = false
+	if _salle_machine_minigame and is_instance_valid(_salle_machine_minigame):
+		_salle_machine_minigame.queue_free()
+		_salle_machine_minigame = null

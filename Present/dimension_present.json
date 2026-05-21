@@ -215,10 +215,11 @@
 	  "title": "Prendre son service de maintenance",
 	  "status": "not_started",
 	  "requires_quests": ["quete_acces_centrale"],
-	  "steps": [
+"steps": [
 		{"id": "etape_parler_secretaire", "description": "Parler à la secrétaire", "completed": false},
-		{"id": "etape_aller_vestiaires", "description": "Aller se changer aux vestiaires", "completed": false}
-	  ]
+		{"id": "etape_aller_vestiaires", "description": "Aller se changer aux vestiaires", "completed": false},
+		{"id": "etape_reparer_machines", "description": "Réparer les tuyaux dans la salle des machines", "completed": false}
+		  ]
 	}
   ],
   "mini_games": [],
