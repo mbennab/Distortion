@@ -203,15 +203,36 @@ func _setup_retro_ui() -> void:
 	inner_panel.add_theme_stylebox_override("panel", inner_style)
 	retro_container.add_child(inner_panel)
 
+	# Discrete retro escape key indicator in top right
+	var escape_font = SystemFont.new()
+	escape_font.font_names = ["Courier New", "monospace"]
+
+	var retro_escape_label = Label.new()
+	retro_escape_label.text = "[esc] pour fermer"
+	retro_escape_label.add_theme_font_override("font", escape_font)
+	retro_escape_label.add_theme_font_size_override("font_size", 10)
+	retro_escape_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6, 0.6))
+	retro_escape_label.anchor_left = 1.0
+	retro_escape_label.anchor_right = 1.0
+	retro_escape_label.anchor_top = 0.0
+	retro_escape_label.anchor_bottom = 0.0
+	retro_escape_label.offset_left = -200
+	retro_escape_label.offset_right = -12
+	retro_escape_label.offset_top = 6
+	retro_escape_label.offset_bottom = 26
+	retro_escape_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	inner_panel.add_child(retro_escape_label)
+
 	var hbox = HBoxContainer.new()
 	hbox.anchor_left = 0.0
 	hbox.anchor_right = 1.0
 	hbox.anchor_top = 0.0
 	hbox.anchor_bottom = 1.0
-	hbox.offset_left = 0
-	hbox.offset_right = 0
-	hbox.offset_top = 0
-	hbox.offset_bottom = 0
+	hbox.offset_left = 12
+	hbox.offset_right = -12
+	hbox.offset_top = 10
+	hbox.offset_bottom = -10
+	hbox.add_theme_constant_override("separation", 16)
 	inner_panel.add_child(hbox)
 
 	retro_portrait = TextureRect.new()
@@ -262,7 +283,7 @@ func _setup_retro_ui() -> void:
 	input_font.font_names = ["Courier New", "monospace"]
 
 	retro_input_line = LineEdit.new()
-	retro_input_line.placeholder_text = ""
+	retro_input_line.placeholder_text = "> Ecrivez votre message..."
 	retro_input_line.add_theme_font_override("font", input_font)
 	retro_input_line.add_theme_font_size_override("font_size", 14)
 	retro_input_line.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8, 0.9))
