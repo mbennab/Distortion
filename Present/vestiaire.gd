@@ -29,8 +29,21 @@ func _setup_prompts() -> void:
 	_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_prompt_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_prompt_label.add_theme_font_size_override("font_size", 18)
-	_prompt_label.add_theme_color_override("font_color", Color.WHITE)
+	_prompt_label.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
 	_prompt_label.modulate = Color(1, 1, 1, 0.85)
+	var prompt_style := StyleBoxFlat.new()
+	prompt_style.bg_color = Color(0.08, 0.08, 0.12, 0.85)
+	prompt_style.border_color = Color(0.6, 0.55, 0.3, 0.7)
+	prompt_style.border_width_top = 2
+	prompt_style.border_width_bottom = 2
+	prompt_style.border_width_left = 2
+	prompt_style.border_width_right = 2
+	prompt_style.corner_radius_top_left = 8
+	prompt_style.corner_radius_top_right = 8
+	prompt_style.corner_radius_bottom_left = 8
+	prompt_style.corner_radius_bottom_right = 8
+	_prompt_label.add_theme_stylebox_override("normal", prompt_style)
+	_prompt_label.custom_minimum_size = Vector2(340, 40)
 	_prompt_label.visible = false
 	_prompt_layer.add_child(_prompt_label)
 
@@ -59,7 +72,7 @@ func _setup_prompts() -> void:
 
 
 func _connect_zone_couloir() -> void:
-	var zone_couloir = $zone_couloir as Area2D
+	var zone_couloir = $event as Area2D
 	if zone_couloir:
 		zone_couloir.body_entered.connect(_on_zone_couloir_entered)
 		zone_couloir.body_exited.connect(_on_zone_couloir_exited)
@@ -123,7 +136,7 @@ func _process(_delta: float) -> void:
 	if not time_aunote:
 		return
 
-	var vetements_shape: CollisionShape2D = $event.get_node_or_null("vetements")
+	var vetements_shape: CollisionShape2D = get_node_or_null("event2/vetements")
 	if not vetements_shape:
 		return
 	var shape_rect: RectangleShape2D = vetements_shape.shape
@@ -220,10 +233,10 @@ func start() -> void:
 	if event_area:
 		event_area.collision_layer = 8
 		event_area.monitoring = true
-	var zone_couloir: Area2D = $zone_couloir as Area2D
-	if zone_couloir:
-		zone_couloir.collision_layer = 8
-		zone_couloir.monitoring = true
+	var event2_area: Area2D = $event2 as Area2D
+	if event2_area:
+		event2_area.collision_layer = 8
+		event2_area.monitoring = true
 	show()
 
 
@@ -244,8 +257,8 @@ func stop() -> void:
 	if event_area:
 		event_area.collision_layer = 0
 		event_area.monitoring = false
-	var zone_couloir: Area2D = $zone_couloir as Area2D
-	if zone_couloir:
-		zone_couloir.collision_layer = 0
-		zone_couloir.monitoring = false
+	var event2_area: Area2D = $event2 as Area2D
+	if event2_area:
+		event2_area.collision_layer = 0
+		event2_area.monitoring = false
 	hide()

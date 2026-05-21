@@ -1,5 +1,7 @@
 extends Node2D
 
+const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
+
 var time_aunote: CharacterBody2D
 var pnj_secu
 var pnj_secretaire
@@ -20,6 +22,8 @@ var hall
 var couloir
 var pc_controle
 var vestiaire
+var salle_machine
+var salle_electricite
 var _player_in_couloir: bool = false
 var _couloir_unlocked: bool = false
 var _couloir_prompt: Label
@@ -32,14 +36,20 @@ var _retour_hall_prompt_layer: CanvasLayer
 
 var _player_at_porte_pc_controle: bool = false
 var _player_at_porte_vestiaires: bool = false
+var _player_at_porte_machines: bool = false
+var _player_at_porte_electricite: bool = false
 var _porte_pc_prompt: Label
 var _porte_vestiaires_prompt: Label
+var _porte_machines_prompt: Label
+var _porte_electricite_prompt: Label
 var _portes_prompt_layer: CanvasLayer
 
 var _player_at_pc_controle_retour: bool = false
-var _player_at_vestiaire_retour: bool = false
+var _player_at_salle_machine_retour: bool = false
+var _player_at_salle_electricite_retour: bool = false
 var _pc_controle_retour_prompt: Label
-var _vestiaire_retour_prompt: Label
+var _salle_machine_retour_prompt: Label
+var _salle_electricite_retour_prompt: Label
 var _subroom_retour_prompt_layer: CanvasLayer
 
 var _last_dialogue_npc_id: String = ""
@@ -64,6 +74,9 @@ func _ready() -> void:
 	couloir = $Couloir
 	pc_controle = $"PcControle"
 	vestiaire = $"Vestiaire"
+	salle_machine = $SalleMachine
+	salle_electricite = $SalleElectricite
+	vestiaire.return_to_couloir_requested.connect(_return_from_vestiaire)
 	_connect_couloir_signals()
 	_setup_couloir_prompt()
 	_setup_couloir_retour()
@@ -174,6 +187,36 @@ func _show_couloir_locked_message() -> void:
 		label.queue_free()
 
 
+func _show_disguise_locked_message() -> void:
+	var label := Label.new()
+	label.text = "Je devrais me changer avant de visiter"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", Color(1, 1, 1))
+	label.custom_minimum_size = Vector2(500, 0)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.75)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	label.add_theme_stylebox_override("normal", style)
+	label.z_index = 100
+	label.modulate = Color(1, 1, 1, 0)
+	add_child(label)
+	label.global_position = time_aunote.global_position + Vector2(-250, -150)
+
+	var text_tween := create_tween()
+	text_tween.tween_property(label, "modulate", Color(1, 1, 1, 1), 0.3)
+	text_tween.tween_interval(1.5)
+	text_tween.tween_property(label, "modulate", Color(1, 1, 1, 0), 0.3)
+	await text_tween.finished
+	if is_instance_valid(label):
+		label.queue_free()
+
+
 func _setup_couloir_retour() -> void:
 	_retour_hall_prompt_layer = CanvasLayer.new()
 	_retour_hall_prompt_layer.layer = 50
@@ -243,6 +286,14 @@ func _setup_couloir_portals() -> void:
 	_porte_pc_prompt.visible = false
 	_portes_prompt_layer.add_child(_porte_pc_prompt)
 
+	_porte_machines_prompt = _create_portal_prompt("Appuyez sur E — Salle des machines")
+	_porte_machines_prompt.visible = false
+	_portes_prompt_layer.add_child(_porte_machines_prompt)
+
+	_porte_electricite_prompt = _create_portal_prompt("Appuyez sur E — Salle électrique")
+	_porte_electricite_prompt.visible = false
+	_portes_prompt_layer.add_child(_porte_electricite_prompt)
+
 	_porte_vestiaires_prompt = _create_portal_prompt("Appuyez sur E — Vestiaires")
 	_porte_vestiaires_prompt.visible = false
 	_portes_prompt_layer.add_child(_porte_vestiaires_prompt)
@@ -251,6 +302,16 @@ func _setup_couloir_portals() -> void:
 	if porte_pc:
 		porte_pc.body_entered.connect(_on_porte_pc_controle_entered)
 		porte_pc.body_exited.connect(_on_porte_pc_controle_exited)
+
+	var porte_mach = couloir.get_node_or_null("porte_machines")
+	if porte_mach:
+		porte_mach.body_entered.connect(_on_porte_machines_entered)
+		porte_mach.body_exited.connect(_on_porte_machines_exited)
+
+	var porte_elec = couloir.get_node_or_null("porte_electricite")
+	if porte_elec:
+		porte_elec.body_entered.connect(_on_porte_electricite_entered)
+		porte_elec.body_exited.connect(_on_porte_electricite_exited)
 
 	var porte_vest = couloir.get_node_or_null("porte_vestiaires")
 	if porte_vest:
@@ -284,6 +345,32 @@ func _on_porte_vestiaires_exited(body: Node2D) -> void:
 		_porte_vestiaires_prompt.visible = false
 
 
+func _on_porte_machines_entered(body: Node2D) -> void:
+	if body == time_aunote and couloir.visible:
+		_player_at_porte_machines = true
+		_porte_machines_prompt.visible = true
+		_update_portal_prompt_position(_porte_machines_prompt)
+
+
+func _on_porte_machines_exited(body: Node2D) -> void:
+	if body == time_aunote:
+		_player_at_porte_machines = false
+		_porte_machines_prompt.visible = false
+
+
+func _on_porte_electricite_entered(body: Node2D) -> void:
+	if body == time_aunote and couloir.visible:
+		_player_at_porte_electricite = true
+		_porte_electricite_prompt.visible = true
+		_update_portal_prompt_position(_porte_electricite_prompt)
+
+
+func _on_porte_electricite_exited(body: Node2D) -> void:
+	if body == time_aunote:
+		_player_at_porte_electricite = false
+		_porte_electricite_prompt.visible = false
+
+
 func _setup_subroom_retours() -> void:
 	_subroom_retour_prompt_layer = CanvasLayer.new()
 	_subroom_retour_prompt_layer.layer = 50
@@ -293,19 +380,28 @@ func _setup_subroom_retours() -> void:
 	_pc_controle_retour_prompt.visible = false
 	_subroom_retour_prompt_layer.add_child(_pc_controle_retour_prompt)
 
-	_vestiaire_retour_prompt = _create_portal_prompt("Appuyez sur E pour retourner au couloir")
-	_vestiaire_retour_prompt.visible = false
-	_subroom_retour_prompt_layer.add_child(_vestiaire_retour_prompt)
+	_salle_machine_retour_prompt = _create_portal_prompt("Appuyez sur E pour retourner au couloir")
+	_salle_machine_retour_prompt.visible = false
+	_subroom_retour_prompt_layer.add_child(_salle_machine_retour_prompt)
+
+	_salle_electricite_retour_prompt = _create_portal_prompt("Appuyez sur E pour retourner au couloir")
+	_salle_electricite_retour_prompt.visible = false
+	_subroom_retour_prompt_layer.add_child(_salle_electricite_retour_prompt)
 
 	var ret_pc = pc_controle.get_node_or_null("couloir")
 	if ret_pc:
 		ret_pc.body_entered.connect(_on_pc_controle_retour_entered)
 		ret_pc.body_exited.connect(_on_pc_controle_retour_exited)
 
-	var ret_vest = vestiaire.get_node_or_null("event")
-	if ret_vest:
-		ret_vest.body_entered.connect(_on_vestiaire_retour_entered)
-		ret_vest.body_exited.connect(_on_vestiaire_retour_exited)
+	var ret_sm = salle_machine.get_node_or_null("event")
+	if ret_sm:
+		ret_sm.body_entered.connect(_on_salle_machine_retour_entered)
+		ret_sm.body_exited.connect(_on_salle_machine_retour_exited)
+
+	var ret_se = salle_electricite.get_node_or_null("retour_couloir")
+	if ret_se:
+		ret_se.body_entered.connect(_on_salle_electricite_retour_entered)
+		ret_se.body_exited.connect(_on_salle_electricite_retour_exited)
 
 
 func _on_pc_controle_retour_entered(body: Node2D) -> void:
@@ -321,17 +417,30 @@ func _on_pc_controle_retour_exited(body: Node2D) -> void:
 		_pc_controle_retour_prompt.visible = false
 
 
-func _on_vestiaire_retour_entered(body: Node2D) -> void:
-	if body == time_aunote and vestiaire.visible:
-		_player_at_vestiaire_retour = true
-		_vestiaire_retour_prompt.visible = true
-		_update_portal_prompt_position(_vestiaire_retour_prompt)
+func _on_salle_machine_retour_entered(body: Node2D) -> void:
+	if body == time_aunote and salle_machine.visible:
+		_player_at_salle_machine_retour = true
+		_salle_machine_retour_prompt.visible = true
+		_update_portal_prompt_position(_salle_machine_retour_prompt)
 
 
-func _on_vestiaire_retour_exited(body: Node2D) -> void:
+func _on_salle_machine_retour_exited(body: Node2D) -> void:
 	if body == time_aunote:
-		_player_at_vestiaire_retour = false
-		_vestiaire_retour_prompt.visible = false
+		_player_at_salle_machine_retour = false
+		_salle_machine_retour_prompt.visible = false
+
+
+func _on_salle_electricite_retour_entered(body: Node2D) -> void:
+	if body == time_aunote and salle_electricite.visible:
+		_player_at_salle_electricite_retour = true
+		_salle_electricite_retour_prompt.visible = true
+		_update_portal_prompt_position(_salle_electricite_retour_prompt)
+
+
+func _on_salle_electricite_retour_exited(body: Node2D) -> void:
+	if body == time_aunote:
+		_player_at_salle_electricite_retour = false
+		_salle_electricite_retour_prompt.visible = false
 
 
 func _go_to_couloir() -> void:
@@ -381,6 +490,10 @@ func _return_from_couloir() -> void:
 	_player_at_porte_pc_controle = false
 	_porte_vestiaires_prompt.visible = false
 	_player_at_porte_vestiaires = false
+	_porte_machines_prompt.visible = false
+	_player_at_porte_machines = false
+	_porte_electricite_prompt.visible = false
+	_player_at_porte_electricite = false
 
 	var tween_fade := create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
@@ -491,7 +604,7 @@ func _go_to_vestiaire() -> void:
 	couloir.hide()
 	_set_couloir_collisions(false)
 
-	vestiaire.show()
+	vestiaire.start()
 	_set_vestiaire_collisions(true)
 	_set_zone_camera("vestiaire")
 
@@ -511,7 +624,6 @@ func _return_from_vestiaire() -> void:
 	if not is_inside_tree() or couloir.visible:
 		return
 	can_move = false
-	_vestiaire_retour_prompt.visible = false
 
 	var tween_fade := create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
@@ -519,7 +631,7 @@ func _return_from_vestiaire() -> void:
 	if not is_inside_tree():
 		return
 
-	vestiaire.hide()
+	vestiaire.stop()
 	_set_vestiaire_collisions(false)
 
 	couloir.show()
@@ -527,6 +639,130 @@ func _return_from_vestiaire() -> void:
 	_set_zone_camera("couloir")
 
 	time_aunote.global_position = couloir.get_node("Node2D/pop vestiaires").global_position
+	time_aunote.scale = Vector2(1.58, 1.58)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	can_move = true
+
+
+func _go_to_salle_machine() -> void:
+	if not is_inside_tree() or salle_machine.visible:
+		return
+	can_move = false
+	_porte_machines_prompt.visible = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	couloir.hide()
+	_set_couloir_collisions(false)
+
+	salle_machine.show()
+	_set_salle_machine_collisions(true)
+	_set_zone_camera("salle_machine")
+
+	time_aunote.global_position = salle_machine.get_node("Node2D/zone pop").global_position
+	time_aunote.scale = Vector2(0.9555, 0.9555)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	can_move = true
+
+
+func _return_from_salle_machine() -> void:
+	if not is_inside_tree() or couloir.visible:
+		return
+	can_move = false
+	_salle_machine_retour_prompt.visible = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	salle_machine.hide()
+	_set_salle_machine_collisions(false)
+
+	couloir.show()
+	_set_couloir_collisions(true)
+	_set_zone_camera("couloir")
+
+	time_aunote.global_position = couloir.get_node("Node2D/pop machine").global_position
+	time_aunote.scale = Vector2(1.58, 1.58)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	can_move = true
+
+
+func _go_to_salle_electricite() -> void:
+	if not is_inside_tree() or salle_electricite.visible:
+		return
+	can_move = false
+	_porte_electricite_prompt.visible = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	couloir.hide()
+	_set_couloir_collisions(false)
+
+	salle_electricite.show()
+	_set_salle_electricite_collisions(true)
+	_set_zone_camera("salle_electricite")
+
+	time_aunote.global_position = salle_electricite.get_node("Node2D/zone pop").global_position
+	time_aunote.scale = Vector2(0.9555, 0.9555)
+
+	tween_fade = create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	can_move = true
+
+
+func _return_from_salle_electricite() -> void:
+	if not is_inside_tree() or couloir.visible:
+		return
+	can_move = false
+	_salle_electricite_retour_prompt.visible = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	salle_electricite.hide()
+	_set_salle_electricite_collisions(false)
+
+	couloir.show()
+	_set_couloir_collisions(true)
+	_set_zone_camera("couloir")
+
+	time_aunote.global_position = couloir.get_node("Node2D/pop electricite").global_position
 	time_aunote.scale = Vector2(1.58, 1.58)
 
 	tween_fade = create_tween()
@@ -546,6 +782,18 @@ func _set_pc_controle_collisions(enabled: bool) -> void:
 
 func _set_vestiaire_collisions(enabled: bool) -> void:
 	var limites = vestiaire.get_node_or_null("limites")
+	if limites:
+		limites.collision_layer = 8 if enabled else 0
+
+
+func _set_salle_machine_collisions(enabled: bool) -> void:
+	var limites = salle_machine.get_node_or_null("limites")
+	if limites:
+		limites.collision_layer = 8 if enabled else 0
+
+
+func _set_salle_electricite_collisions(enabled: bool) -> void:
+	var limites = salle_electricite.get_node_or_null("limites")
 	if limites:
 		limites.collision_layer = 8 if enabled else 0
 
@@ -574,16 +822,34 @@ func _input(event: InputEvent) -> void:
 		_return_from_couloir()
 	elif _player_at_porte_pc_controle and couloir.visible:
 		get_viewport().set_input_as_handled()
-		_go_to_pc_controle()
+		if TimeAunoteScript.disguised_present:
+			_go_to_pc_controle()
+		else:
+			_show_disguise_locked_message()
+	elif _player_at_porte_machines and couloir.visible:
+		get_viewport().set_input_as_handled()
+		if TimeAunoteScript.disguised_present:
+			_go_to_salle_machine()
+		else:
+			_show_disguise_locked_message()
+	elif _player_at_porte_electricite and couloir.visible:
+		get_viewport().set_input_as_handled()
+		if TimeAunoteScript.disguised_present:
+			_go_to_salle_electricite()
+		else:
+			_show_disguise_locked_message()
 	elif _player_at_porte_vestiaires and couloir.visible:
 		get_viewport().set_input_as_handled()
 		_go_to_vestiaire()
 	elif _player_at_pc_controle_retour and pc_controle.visible:
 		get_viewport().set_input_as_handled()
 		_return_from_pc_controle()
-	elif _player_at_vestiaire_retour and vestiaire.visible:
+	elif _player_at_salle_machine_retour and salle_machine.visible:
 		get_viewport().set_input_as_handled()
-		_return_from_vestiaire()
+		_return_from_salle_machine()
+	elif _player_at_salle_electricite_retour and salle_electricite.visible:
+		get_viewport().set_input_as_handled()
+		_return_from_salle_electricite()
 
 
 func _on_parking_entered(body: Node2D) -> void:
@@ -720,6 +986,8 @@ func _set_zone_camera(zone_name: String) -> void:
 	var couloir_cam = couloir.get_node_or_null("Camera2D")
 	var pc_controle_cam = pc_controle.get_node_or_null("Camera2D")
 	var vestiaire_cam = vestiaire.get_node_or_null("Camera2D")
+	var salle_machine_cam = salle_machine.get_node_or_null("Camera2D")
+	var salle_electricite_cam = salle_electricite.get_node_or_null("Camera2D")
 	if fond_cam:
 		fond_cam.enabled = (zone_name == "fond")
 	if parking_cam:
@@ -732,6 +1000,10 @@ func _set_zone_camera(zone_name: String) -> void:
 		pc_controle_cam.enabled = (zone_name == "pc_controle")
 	if vestiaire_cam:
 		vestiaire_cam.enabled = (zone_name == "vestiaire")
+	if salle_machine_cam:
+		salle_machine_cam.enabled = (zone_name == "salle_machine")
+	if salle_electricite_cam:
+		salle_electricite_cam.enabled = (zone_name == "salle_electricite")
 
 
 func _on_dialogue_started(npc_id: String, npc_name: String) -> void:
@@ -927,6 +1199,10 @@ func start(spawn_id: String = "entree") -> void:
 	_set_pc_controle_collisions(false)
 	vestiaire.hide()
 	_set_vestiaire_collisions(false)
+	salle_machine.hide()
+	_set_salle_machine_collisions(false)
+	salle_electricite.hide()
+	_set_salle_electricite_collisions(false)
 	if pnj_secretaire:
 		pnj_secretaire.hide()
 		var zone_s = pnj_secretaire.get_node_or_null("ZoneDialogue")
@@ -1071,14 +1347,21 @@ func stop() -> void:
 	_set_couloir_collisions(false)
 	pc_controle.hide()
 	_set_pc_controle_collisions(false)
-	vestiaire.hide()
+	vestiaire.stop()
 	_set_vestiaire_collisions(false)
+	salle_machine.hide()
+	_set_salle_machine_collisions(false)
+	salle_electricite.hide()
+	_set_salle_electricite_collisions(false)
 	_player_in_couloir = false
 	_player_in_retour_hall = false
 	_player_at_porte_pc_controle = false
 	_player_at_porte_vestiaires = false
+	_player_at_porte_machines = false
+	_player_at_porte_electricite = false
 	_player_at_pc_controle_retour = false
-	_player_at_vestiaire_retour = false
+	_player_at_salle_machine_retour = false
+	_player_at_salle_electricite_retour = false
 	_hall_transition_started = false
 	if _couloir_prompt:
 		_couloir_prompt.visible = false
@@ -1088,7 +1371,13 @@ func stop() -> void:
 		_porte_pc_prompt.visible = false
 	if _porte_vestiaires_prompt:
 		_porte_vestiaires_prompt.visible = false
+	if _porte_machines_prompt:
+		_porte_machines_prompt.visible = false
+	if _porte_electricite_prompt:
+		_porte_electricite_prompt.visible = false
 	if _pc_controle_retour_prompt:
 		_pc_controle_retour_prompt.visible = false
-	if _vestiaire_retour_prompt:
-		_vestiaire_retour_prompt.visible = false
+	if _salle_machine_retour_prompt:
+		_salle_machine_retour_prompt.visible = false
+	if _salle_electricite_retour_prompt:
+		_salle_electricite_retour_prompt.visible = false
