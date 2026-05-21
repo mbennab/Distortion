@@ -17,6 +17,7 @@ anchor_mode = 0
 zoom = Vector2(0.422, 0.422)
 
 [node name="limites" type="StaticBody2D" parent="Camera2D" unique_id=538305750]
+visible = false
 collision_layer = 0
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Camera2D/limites" unique_id=780667944]
@@ -35,7 +36,7 @@ polygon = PackedVector2Array(752, 882, 863, 877, 978, 929, 993, 967, 1465, 962, 
 position = Vector2(1210, 1447)
 
 [node name="secretairePos" type="Marker2D" parent="Camera2D/Node2D" unique_id=2037805306]
-position = Vector2(1218, 846)
+position = Vector2(1067, 752)
 
 [node name="couloir" type="Area2D" parent="Camera2D" unique_id=1778215358]
 collision_layer = 0
