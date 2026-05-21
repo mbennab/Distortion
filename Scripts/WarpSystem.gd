@@ -35,6 +35,34 @@ var open: bool = false
 var container: Control
 var buttons: Array[Button] = []
 
+var minigames_status := {
+	"crochetage": false,
+	"marchandage": false,
+	"ecoute_tables": false,
+	"combat_assassin": false,
+	"infiltration": false,
+	"tuyaux": false,
+	"cablage": false,
+	"conduite": false,
+	"lasers": false,
+	"boss_rpg": false
+}
+
+var minigames_list := [
+	{"key": "crochetage", "name": "🔒 Crochetage", "zone": "moyenage"},
+	{"key": "marchandage", "name": "👗 Marchandage", "zone": "moyenage"},
+	{"key": "ecoute_tables", "name": "🍻 Écoute Tables", "zone": "moyenage"},
+	{"key": "combat_assassin", "name": "⚔️ Combat Assassin", "zone": "moyenage"},
+	{"key": "infiltration", "name": "☀️ Infiltration", "zone": "present"},
+	{"key": "tuyaux", "name": "🔧 Tuyaux", "zone": "present"},
+	{"key": "cablage", "name": "⚡ Câblage", "zone": "present"},
+	{"key": "conduite", "name": "🚗 Conduite", "zone": "futur"},
+	{"key": "lasers", "name": "🔴 Lasers", "zone": "futur"},
+	{"key": "boss_rpg", "name": "👑 Boss RPG", "zone": "futur"},
+]
+
+var minigame_buttons := {}
+
 
 func _ready() -> void:
 	layer = 256
@@ -49,87 +77,114 @@ func _setup_ui() -> void:
 	container.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(container)
 
-	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.7)
-	bg.anchor_right = 1.0
-	bg.anchor_bottom = 1.0
-	container.add_child(bg)
+	# Sleek obsidian dark background panel with fine sci-fi border
+	var bg_panel := Panel.new()
+	bg_panel.anchor_right = 1.0
+	bg_panel.anchor_bottom = 1.0
+	var bg_style := StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.04, 0.04, 0.06, 0.92) # Deep rich obsidian
+	bg_style.border_color = Color(0.2, 0.25, 0.35, 0.25)
+	bg_style.border_width_left = 2
+	bg_style.border_width_right = 2
+	bg_style.border_width_top = 2
+	bg_style.border_width_bottom = 2
+	bg_panel.add_theme_stylebox_override("panel", bg_style)
+	container.add_child(bg_panel)
 
+	# Bold, glowing HUD title
 	var title := Label.new()
-	title.text = "Warp System"
+	title.text = "CHRONO-WARP SYSTEM"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", Color(1, 1, 1))
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
 	title.anchor_right = 1.0
 	title.offset_top = 20
 	title.offset_bottom = 60
 	container.add_child(title)
 
+	# Clean elegant subtitle
 	var hint := Label.new()
-	hint.text = "F2 pour fermer  •  Cliquez une destination pour vous y téléporter"
+	hint.text = "[F2] Fermer l'interface  •  Sélectionnez une faille temporelle pour transiter"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 13)
-	hint.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	hint.add_theme_color_override("font_color", Color(0.6, 0.65, 0.75))
 	hint.anchor_right = 1.0
-	hint.offset_top = 55
-	hint.offset_bottom = 75
+	hint.offset_top = 58
+	hint.offset_bottom = 78
 	container.add_child(hint)
 
-	var scroll := ScrollContainer.new()
-	scroll.anchor_right = 1.0
-	scroll.anchor_bottom = 1.0
-	scroll.offset_left = 100
-	scroll.offset_top = 90
-	scroll.offset_right = -100
-	scroll.offset_bottom = -100
-	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
-	container.add_child(scroll)
+	# Main horizontal grid layout (944px width, perfectly centered and stretched)
+	var columns_hbox := HBoxContainer.new()
+	columns_hbox.anchor_right = 1.0
+	columns_hbox.anchor_bottom = 1.0
+	columns_hbox.offset_left = 40
+	columns_hbox.offset_top = 90
+	columns_hbox.offset_right = -40
+	columns_hbox.offset_bottom = -190
+	columns_hbox.add_theme_constant_override("separation", 20)
+	container.add_child(columns_hbox)
 
-	var vbox := VBoxContainer.new()
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 8)
-	scroll.add_child(vbox)
+	# Bottom glassmorphic panel for mini-games debug toggles
+	var minigame_panel := PanelContainer.new()
+	minigame_panel.anchor_left = 0.0
+	minigame_panel.anchor_right = 1.0
+	minigame_panel.anchor_top = 1.0
+	minigame_panel.anchor_bottom = 1.0
+	minigame_panel.offset_left = 40
+	minigame_panel.offset_top = -175
+	minigame_panel.offset_right = -40
+	minigame_panel.offset_bottom = -15
+	
+	var mp_style := StyleBoxFlat.new()
+	mp_style.bg_color = Color(0.08, 0.08, 0.12, 0.75) # Sleek glassmorphic dark-gray tint
+	mp_style.border_color = Color(0.25, 0.3, 0.45, 0.3)
+	mp_style.border_width_left = 1
+	mp_style.border_width_right = 1
+	mp_style.border_width_top = 1
+	mp_style.border_width_bottom = 1
+	mp_style.corner_radius_top_left = 10
+	mp_style.corner_radius_top_right = 10
+	mp_style.corner_radius_bottom_left = 10
+	mp_style.corner_radius_bottom_right = 10
+	mp_style.content_margin_left = 15
+	mp_style.content_margin_right = 15
+	mp_style.content_margin_top = 10
+	mp_style.content_margin_bottom = 10
+	minigame_panel.add_theme_stylebox_override("panel", mp_style)
+	container.add_child(minigame_panel)
 
-	# --- Debug: Disguise toggle ---
-	var debug_bar := HBoxContainer.new()
-	debug_bar.anchor_right = 1.0
-	debug_bar.anchor_top = 1.0
-	debug_bar.anchor_bottom = 1.0
-	debug_bar.offset_top = -80
-	debug_bar.offset_bottom = -10
-	debug_bar.offset_left = 100
-	debug_bar.offset_right = -100
-	debug_bar.add_theme_constant_override("separation", 12)
-	debug_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	container.add_child(debug_bar)
+	var mg_vbox := VBoxContainer.new()
+	mg_vbox.add_theme_constant_override("separation", 6)
+	minigame_panel.add_child(mg_vbox)
+	
+	var mg_title := Label.new()
+	mg_title.text = "ÉVALUATION ET CONTRÔLE DES MINI-JEUX TEMPORELS"
+	mg_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mg_title.add_theme_font_size_override("font_size", 11)
+	mg_title.add_theme_color_override("font_color", Color(0.4, 0.75, 1.0, 0.8)) # Glowing cyan hint
+	mg_vbox.add_child(mg_title)
+	
+	var grid := GridContainer.new()
+	grid.columns = 5
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 8)
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mg_vbox.add_child(grid)
 
-	var disguise_btn := Button.new()
-	disguise_btn.text = "👗 Se déguiser"
-	disguise_btn.custom_minimum_size = Vector2(220, 36)
-	disguise_btn.pressed.connect(_on_disguise)
-	_add_btn_style(disguise_btn, Color(0.2, 0.5, 0.2))
-	debug_bar.add_child(disguise_btn)
-
-	var undisguise_btn := Button.new()
-	undisguise_btn.text = "👤 Enlever déguisement"
-	undisguise_btn.custom_minimum_size = Vector2(220, 36)
-	undisguise_btn.pressed.connect(_on_undisguise)
-	_add_btn_style(undisguise_btn, Color(0.5, 0.2, 0.2))
-	debug_bar.add_child(undisguise_btn)
-
-	var badge_give_btn := Button.new()
-	badge_give_btn.text = "🎫 Badge : Fait"
-	badge_give_btn.custom_minimum_size = Vector2(220, 36)
-	badge_give_btn.pressed.connect(_on_badge_done)
-	_add_btn_style(badge_give_btn, Color(0.2, 0.4, 0.5))
-	debug_bar.add_child(badge_give_btn)
-
-	var badge_remove_btn := Button.new()
-	badge_remove_btn.text = "❌ Badge : Pas fait"
-	badge_remove_btn.custom_minimum_size = Vector2(220, 36)
-	badge_remove_btn.pressed.connect(_on_badge_undone)
-	_add_btn_style(badge_remove_btn, Color(0.5, 0.2, 0.2))
-	debug_bar.add_child(badge_remove_btn)
+	for i in range(minigames_list.size()):
+		var mg_info: Dictionary = minigames_list[i]
+		var key: String = mg_info.key
+		var display_name: String = mg_info.name
+		
+		var btn := Button.new()
+		btn.text = display_name
+		btn.toggle_mode = true
+		btn.custom_minimum_size = Vector2(0, 36)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(btn)
+		
+		minigame_buttons[key] = btn
+		btn.toggled.connect(func(toggled_on: bool): _on_minigame_toggled(toggled_on, key))
 
 	for zone in zone_order:
 		var zone_dests := []
@@ -139,33 +194,92 @@ func _setup_ui() -> void:
 		if zone_dests.is_empty():
 			continue
 
+		var z_color := _zone_color(zone)
+
+		# Dimension Card Container for clear, elegant visual separation
+		var card := PanelContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		
+		var card_style := StyleBoxFlat.new()
+		card_style.bg_color = Color(0.08, 0.08, 0.12, 0.5)
+		card_style.border_color = Color(0.2, 0.25, 0.35, 0.15)
+		card_style.border_width_left = 1
+		card_style.border_width_right = 1
+		card_style.border_width_top = 1
+		card_style.border_width_bottom = 1
+		card_style.corner_radius_top_left = 8
+		card_style.corner_radius_top_right = 8
+		card_style.corner_radius_bottom_left = 8
+		card_style.corner_radius_bottom_right = 8
+		card_style.content_margin_left = 12
+		card_style.content_margin_right = 12
+		card_style.content_margin_top = 12
+		card_style.content_margin_bottom = 12
+		card.add_theme_stylebox_override("panel", card_style)
+		columns_hbox.add_child(card)
+
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 10)
+		card.add_child(col)
+
 		var section := Label.new()
-		section.text = zone_labels.get(zone, zone)
-		section.add_theme_font_size_override("font_size", 18)
-		section.add_theme_color_override("font_color", _zone_color(zone))
-		section.custom_minimum_size = Vector2(0, 32)
-		vbox.add_child(section)
+		section.text = zone_labels.get(zone, zone).to_upper()
+		section.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		section.add_theme_font_size_override("font_size", 16)
+		section.add_theme_color_override("font_color", z_color)
+		section.custom_minimum_size = Vector2(0, 24)
+		col.add_child(section)
+
+		# Custom separator underline themed with the dimension color
+		var sep := ColorRect.new()
+		sep.color = Color(z_color.r, z_color.g, z_color.b, 0.3)
+		sep.custom_minimum_size = Vector2(0, 2)
+		col.add_child(sep)
 
 		for key in zone_dests:
 			var dest := destinations[key] as Dictionary
 			var btn := Button.new()
-			btn.text = dest.name
+			
+			var display_name: String = dest.name
+			var parts := display_name.split(" — ")
+			if parts.size() > 1:
+				display_name = parts[1]
+				
+			btn.text = display_name
 			btn.custom_minimum_size = Vector2(0, 36)
 			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			var btn_style := StyleBoxFlat.new()
-			btn_style.bg_color = Color(0.2, 0.2, 0.25, 0.8)
-			btn_style.border_color = Color(0.4, 0.4, 0.5)
-			btn_style.border_width_top = 1
-			btn_style.border_width_bottom = 1
-			btn_style.corner_radius_top_left = 4
-			btn_style.corner_radius_top_right = 4
-			btn_style.corner_radius_bottom_left = 4
-			btn_style.corner_radius_bottom_right = 4
-			btn.add_theme_stylebox_override("normal", btn_style)
-			btn.add_theme_stylebox_override("hover", btn_style)
-			btn.add_theme_color_override("font_color", Color(0.9, 0.9, 1.0))
+			
+			# Highly premium, reactive buttons with custom hover glows matching the dimension color
+			var normal_style := StyleBoxFlat.new()
+			normal_style.bg_color = Color(0.12, 0.12, 0.18, 0.7)
+			normal_style.border_color = Color(0.25, 0.25, 0.35, 0.4)
+			normal_style.border_width_left = 1
+			normal_style.border_width_right = 1
+			normal_style.border_width_top = 1
+			normal_style.border_width_bottom = 1
+			normal_style.corner_radius_top_left = 6
+			normal_style.corner_radius_top_right = 6
+			normal_style.corner_radius_bottom_left = 6
+			normal_style.corner_radius_bottom_right = 6
+			
+			var hover_style := normal_style.duplicate() as StyleBoxFlat
+			hover_style.bg_color = Color(0.18, 0.18, 0.26, 0.8)
+			hover_style.border_color = Color(z_color.r, z_color.g, z_color.b, 0.8)
+			
+			var pressed_style := normal_style.duplicate() as StyleBoxFlat
+			pressed_style.bg_color = Color(z_color.r * 0.4, z_color.g * 0.4, z_color.b * 0.4, 0.9)
+			pressed_style.border_color = Color(z_color.r, z_color.g, z_color.b, 1.0)
+			
+			btn.add_theme_stylebox_override("normal", normal_style)
+			btn.add_theme_stylebox_override("hover", hover_style)
+			btn.add_theme_stylebox_override("pressed", pressed_style)
+			btn.add_theme_color_override("font_color", Color(0.9, 0.92, 0.98))
+			btn.add_theme_color_override("font_hover_color", Color.WHITE)
+			btn.add_theme_color_override("font_pressed_color", Color.WHITE)
+			
 			btn.pressed.connect(_on_warp.bind(key))
-			vbox.add_child(btn)
+			col.add_child(btn)
 			buttons.append(btn)
 
 
@@ -186,6 +300,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func toggle() -> void:
 	open = not open
 	if open:
+		update_minigames_status_from_game()
+		_update_minigame_button_styles()
 		show()
 	else:
 		hide()
@@ -201,40 +317,252 @@ func _on_warp(dest_key: String) -> void:
 
 
 func _add_btn_style(btn: Button, color: Color) -> void:
-	var s := StyleBoxFlat.new()
-	s.bg_color = Color(color.r, color.g, color.b, 0.8)
-	s.border_color = Color(color.r * 1.5, color.g * 1.5, color.b * 1.5, 0.8)
-	s.border_width_top = 1
-	s.border_width_bottom = 1
-	s.corner_radius_top_left = 4
-	s.corner_radius_top_right = 4
-	s.corner_radius_bottom_left = 4
-	s.corner_radius_bottom_right = 4
-	btn.add_theme_stylebox_override("normal", s)
-	btn.add_theme_stylebox_override("hover", s)
-	btn.add_theme_color_override("font_color", Color(0.9, 0.9, 1.0))
+	var s_normal := StyleBoxFlat.new()
+	s_normal.bg_color = Color(color.r * 0.4, color.g * 0.4, color.b * 0.4, 0.6)
+	s_normal.border_color = Color(color.r, color.g, color.b, 0.4)
+	s_normal.border_width_left = 1
+	s_normal.border_width_right = 1
+	s_normal.border_width_top = 1
+	s_normal.border_width_bottom = 1
+	s_normal.corner_radius_top_left = 6
+	s_normal.corner_radius_top_right = 6
+	s_normal.corner_radius_bottom_left = 6
+	s_normal.corner_radius_bottom_right = 6
+
+	var s_hover := s_normal.duplicate() as StyleBoxFlat
+	s_hover.bg_color = Color(color.r * 0.6, color.g * 0.6, color.b * 0.6, 0.8)
+	s_hover.border_color = Color(color.r * 1.3, color.g * 1.3, color.b * 1.3, 0.8)
+
+	var s_pressed := s_normal.duplicate() as StyleBoxFlat
+	s_pressed.bg_color = Color(color.r * 0.8, color.g * 0.8, color.b * 0.8, 0.95)
+	s_pressed.border_color = Color(color.r * 1.5, color.g * 1.5, color.b * 1.5, 1.0)
+
+	btn.add_theme_stylebox_override("normal", s_normal)
+	btn.add_theme_stylebox_override("hover", s_hover)
+	btn.add_theme_stylebox_override("pressed", s_pressed)
+	btn.add_theme_color_override("font_color", Color(0.95, 0.95, 1.0))
+	btn.add_theme_color_override("font_hover_color", Color.WHITE)
 
 
-func _on_disguise() -> void:
-	TimeAunoteScript.disguised = true
-	var player = get_tree().current_scene.find_child("TimeAunote", true)
-	if player:
-		player.apply_disguise()
+func update_minigames_status_from_game() -> void:
+	# Moyen Âge (if MoyenAge is active/loaded)
+	var ma_qs_evasion = DialogueSystem.game_state.get("quete_evasion")
+	if ma_qs_evasion is Dictionary:
+		var completed_evasion: Array = ma_qs_evasion.get("completed_steps", [])
+		minigames_status["crochetage"] = "etape_crocheter" in completed_evasion
+
+	var ma_qs_deg = DialogueSystem.game_state.get("quete_deguisement")
+	if ma_qs_deg is Dictionary:
+		var completed_deg: Array = ma_qs_deg.get("completed_steps", [])
+		minigames_status["marchandage"] = "etape_marchander" in completed_deg
+
+	var ma_qs_piste = DialogueSystem.game_state.get("quete_piste_assassin")
+	if ma_qs_piste is Dictionary:
+		var completed_piste: Array = ma_qs_piste.get("completed_steps", [])
+		minigames_status["ecoute_tables"] = "etape_enqueter_foret" in completed_piste
+		minigames_status["combat_assassin"] = "etape_trouver_assassin" in completed_piste
+
+	# Present (if Present is active/loaded)
+	var pr_qs_acc = DialogueSystem.game_state.get("quete_acces_centrale")
+	if pr_qs_acc is Dictionary:
+		var completed_acc: Array = pr_qs_acc.get("completed_steps", [])
+		minigames_status["infiltration"] = "etape_chercher_carte" in completed_acc
+
+	var pr_qs_prep = DialogueSystem.game_state.get("quete_preparation")
+	if pr_qs_prep is Dictionary:
+		var completed_prep: Array = pr_qs_prep.get("completed_steps", [])
+		minigames_status["tuyaux"] = "etape_reparer_machines" in completed_prep
+		minigames_status["cablage"] = "etape_reparer_electricite" in completed_prep
 
 
-func _on_undisguise() -> void:
-	TimeAunoteScript.disguised = false
-	var player = get_tree().current_scene.find_child("TimeAunote", true)
-	if player:
-		player.remove_disguise()
+func _update_minigame_button_styles() -> void:
+	for i in range(minigames_list.size()):
+		var mg_info: Dictionary = minigames_list[i]
+		var key: String = mg_info.key
+		var btn: Button = minigame_buttons.get(key)
+		if btn == null:
+			continue
+			
+		var is_completed: bool = minigames_status[key]
+		var zone_color: Color = _zone_color(mg_info.zone)
+		
+		var style_normal := StyleBoxFlat.new()
+		style_normal.border_width_left = 1
+		style_normal.border_width_right = 1
+		style_normal.border_width_top = 1
+		style_normal.border_width_bottom = 1
+		style_normal.corner_radius_top_left = 6
+		style_normal.corner_radius_top_right = 6
+		style_normal.corner_radius_bottom_left = 6
+		style_normal.corner_radius_bottom_right = 6
+		
+		if is_completed:
+			# Glowing completed style (emerald neon theme)
+			style_normal.bg_color = Color(0.1, 0.35, 0.18, 0.8) # Rich emerald green
+			style_normal.border_color = Color(0.2, 0.9, 0.45, 0.9) # Bright glowing green border
+			btn.add_theme_color_override("font_color", Color(0.9, 1.0, 0.95))
+		else:
+			# Sleek inactive style matching the era's theme but dimmed
+			style_normal.bg_color = Color(0.09, 0.09, 0.11, 0.6)
+			style_normal.border_color = Color(zone_color.r * 0.35, zone_color.g * 0.35, zone_color.b * 0.35, 0.4)
+			btn.add_theme_color_override("font_color", Color(0.65, 0.68, 0.72))
+			
+		# Hover style
+		var style_hover := style_normal.duplicate() as StyleBoxFlat
+		if is_completed:
+			style_hover.bg_color = Color(0.12, 0.42, 0.22, 0.9)
+			style_hover.border_color = Color(0.3, 1.0, 0.55, 1.0)
+		else:
+			style_hover.bg_color = Color(0.14, 0.14, 0.18, 0.8)
+			style_hover.border_color = Color(zone_color.r, zone_color.g, zone_color.b, 0.8)
+			
+		btn.add_theme_stylebox_override("normal", style_normal)
+		btn.add_theme_stylebox_override("hover", style_hover)
+		btn.add_theme_stylebox_override("pressed", style_normal)
+		
+		# Avoid firing triggers recursively when setting programmatically
+		btn.set_block_signals(true)
+		btn.button_pressed = is_completed
+		btn.set_block_signals(false)
 
 
-func _on_badge_done() -> void:
-	_set_parking_badge(true)
+func _on_minigame_toggled(toggled_on: bool, key: String) -> void:
+	minigames_status[key] = toggled_on
+	print("[WarpSystem] Minigame %s toggled: %s" % [key, toggled_on])
+	
+	# Apply immediately to DialogueSystem.game_state if loaded
+	_apply_single_override_to_dialogue_system(key, toggled_on)
+	
+	# Apply active scene reactions
+	_apply_active_scene_reactions(key, toggled_on)
+	
+	# Refresh UI display of all buttons to show correct status styling
+	_update_minigame_button_styles()
 
 
-func _on_badge_undone() -> void:
-	_set_parking_badge(false)
+func _apply_single_override_to_dialogue_system(key: String, toggled_on: bool) -> void:
+	match key:
+		"crochetage":
+			_set_step_state("quete_evasion", "etape_crocheter", toggled_on)
+		"marchandage":
+			_set_step_state("quete_deguisement", "etape_parler_marchand", toggled_on)
+			_set_step_state("quete_deguisement", "etape_marchander", toggled_on)
+		"ecoute_tables":
+			_set_step_state("quete_piste_assassin", "etape_enqueter_foret", toggled_on)
+		"combat_assassin":
+			_set_step_state("quete_piste_assassin", "etape_enqueter_foret", toggled_on)
+			_set_step_state("quete_piste_assassin", "etape_trouver_assassin", toggled_on)
+		"infiltration":
+			_set_step_state("quete_acces_centrale", "etape_parler_gardien", toggled_on)
+			_set_step_state("quete_acces_centrale", "etape_chercher_carte", toggled_on)
+		"tuyaux":
+			_set_step_state("quete_preparation", "etape_parler_secretaire", toggled_on)
+			_set_step_state("quete_preparation", "etape_aller_vestiaires", toggled_on)
+			_set_step_state("quete_preparation", "etape_reparer_machines", toggled_on)
+		"cablage":
+			_set_step_state("quete_preparation", "etape_parler_secretaire", toggled_on)
+			_set_step_state("quete_preparation", "etape_aller_vestiaires", toggled_on)
+			_set_step_state("quete_preparation", "etape_reparer_machines", toggled_on)
+			_set_step_state("quete_preparation", "etape_reparer_electricite", toggled_on)
+
+
+func _set_step_state(quest_id: String, step_id: String, completed: bool) -> void:
+	var qs = DialogueSystem.game_state.get(quest_id)
+	if qs == null:
+		return
+	var completed_list: Array = qs.get("completed_steps", [])
+	if completed:
+		if step_id not in completed_list:
+			completed_list.append(step_id)
+	else:
+		if step_id in completed_list:
+			completed_list.erase(step_id)
+	
+	qs["completed_steps"] = completed_list
+	
+	var quest = DialogueSystem._find_quest(quest_id)
+	var next_step = ""
+	if not quest.is_empty():
+		for s in quest.get("steps", []):
+			if s.get("id", "") not in completed_list:
+				next_step = s.get("id", "")
+				break
+	qs["current_step"] = next_step
+	if next_step == "":
+		qs["status"] = "done"
+	else:
+		qs["status"] = "active"
+		
+	DialogueSystem.quest_updated.emit(quest_id, qs["status"], next_step)
+
+
+func _apply_active_scene_reactions(key: String, toggled_on: bool) -> void:
+	var current_scene = get_tree().current_scene
+	if current_scene == null:
+		return
+
+	# --- Moyen Âge ---
+	var moyenage = current_scene.find_child("MoyenAge", true, false)
+	if moyenage:
+		match key:
+			"crochetage":
+				if toggled_on:
+					moyenage._on_minigame_success()
+			"marchandage":
+				if toggled_on:
+					moyenage._on_shop_minigame_success()
+					var shop = moyenage.get_node_or_null("magasin_moyen_age")
+					if shop:
+						shop.disguise_obtained = true
+					TimeAunoteScript.disguised = true
+					var player = moyenage.find_child("TimeAunote", true, false)
+					if player and player.has_method("apply_disguise"):
+						player.apply_disguise()
+				else:
+					var shop = moyenage.get_node_or_null("magasin_moyen_age")
+					if shop:
+						shop.disguise_obtained = false
+					TimeAunoteScript.disguised = false
+					var player = moyenage.find_child("TimeAunote", true, false)
+					if player and player.has_method("remove_disguise"):
+						player.remove_disguise()
+			"ecoute_tables":
+				if toggled_on:
+					moyenage._on_auberge_all_tables_done()
+			"combat_assassin":
+				if toggled_on:
+					var campement = moyenage.get_node_or_null("campement")
+					if campement and campement.has_method("_victory"):
+						campement._victory()
+
+	# --- Present ---
+	var present = current_scene.find_child("Present", true, false)
+	if present:
+		match key:
+			"infiltration":
+				_set_parking_badge(toggled_on)
+				if toggled_on:
+					present._on_parking_minigame_won()
+			"tuyaux":
+				if toggled_on:
+					present._on_salle_machine_minigame_done(true)
+			"cablage":
+				if toggled_on:
+					present._on_disjoncteur_minigame_done(true)
+
+	# --- Futur ---
+	var futur = current_scene.find_child("Futur", true, false)
+	if futur:
+		match key:
+			"conduite":
+				if toggled_on:
+					futur._on_car_minigame_done(true)
+			"lasers":
+				if toggled_on:
+					futur._on_tourelle_minigame_done(true)
+			"boss_rpg":
+				if toggled_on:
+					futur._on_combat_boss_won()
 
 
 func _set_parking_badge(done: bool) -> void:
