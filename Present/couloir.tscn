@@ -46,10 +46,10 @@ position = Vector2(144, 1301)
 position = Vector2(194, 1308)
 
 [node name="pop machine" type="Marker2D" parent="Node2D" unique_id=1567875053]
-position = Vector2(1474, 1291)
+position = Vector2(790, 1301)
 
 [node name="pop electricite" type="Marker2D" parent="Node2D" unique_id=1262375285]
-position = Vector2(807, 1308)
+position = Vector2(1413, 1302)
 
 [node name="pop vestiaires" type="Marker2D" parent="Node2D" unique_id=1184706718]
 position = Vector2(2102, 1294)

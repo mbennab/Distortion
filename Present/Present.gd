@@ -2,7 +2,7 @@ extends Node2D
 
 const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
 const MiniJeuTuyauScene = preload("res://Scripts/MiniJeuTuyau.tscn")
-const MiniJeuDisjoncteurScene = preload("res://Scripts/MiniJeuDisjoncteur.tscn")
+const MiniJeuCablageScene = preload("res://Scripts/MiniJeuCablage.tscn")
 
 var time_aunote: CharacterBody2D
 var pnj_secu
@@ -64,9 +64,10 @@ var _darkness_rect: ColorRect
 var _darkness_active: bool = false
 
 var _player_at_disjoncteur: bool = false
-var _disjoncteur_minigame: Node = null
+var _cablage_minigame: Node = null
 var _disjoncteur_done: bool = false
 var _disjoncteur_prompt: Label
+var _disjoncteur_locked_prompt: Label
 
 
 func _ready() -> void:
@@ -476,9 +477,13 @@ func _setup_subroom_retours() -> void:
 	_machines_repair_prompt.visible = false
 	_subroom_retour_prompt_layer.add_child(_machines_repair_prompt)
 
-	_disjoncteur_prompt = _create_portal_prompt("Appuyez sur E pour reenclencher les disjoncteurs")
+	_disjoncteur_prompt = _create_portal_prompt("Appuyez sur E pour ouvrir l'armoire electrique")
 	_disjoncteur_prompt.visible = false
 	_subroom_retour_prompt_layer.add_child(_disjoncteur_prompt)
+
+	_disjoncteur_locked_prompt = _create_portal_prompt("L'armoire electrique fonctionne normalement")
+	_disjoncteur_locked_prompt.visible = false
+	_subroom_retour_prompt_layer.add_child(_disjoncteur_locked_prompt)
 
 
 func _on_pc_controle_retour_entered(body: Node2D) -> void:
@@ -521,7 +526,7 @@ func _on_salle_electricite_retour_exited(body: Node2D) -> void:
 
 
 func _on_salle_machine_repair_entered(body: Node2D) -> void:
-	if body == time_aunote and salle_machine.visible:
+	if body == time_aunote and salle_machine.visible and not _salle_machine_done:
 		_player_at_machines_repair = true
 		_machines_repair_prompt.visible = true
 		_update_portal_prompt_position(_machines_repair_prompt)
@@ -534,16 +539,21 @@ func _on_salle_machine_repair_exited(body: Node2D) -> void:
 
 
 func _on_disjoncteur_entered(body: Node2D) -> void:
-	if body == time_aunote and salle_electricite.visible and not _disjoncteur_done:
-		_player_at_disjoncteur = true
-		_disjoncteur_prompt.visible = true
-		_update_portal_prompt_position(_disjoncteur_prompt)
+	if body == time_aunote and salle_electricite.visible:
+		if _salle_machine_done and not _disjoncteur_done:
+			_player_at_disjoncteur = true
+			_disjoncteur_prompt.visible = true
+			_update_portal_prompt_position(_disjoncteur_prompt)
+		elif not _salle_machine_done:
+			_disjoncteur_locked_prompt.visible = true
+			_update_portal_prompt_position(_disjoncteur_locked_prompt)
 
 
 func _on_disjoncteur_exited(body: Node2D) -> void:
 	if body == time_aunote:
 		_player_at_disjoncteur = false
 		_disjoncteur_prompt.visible = false
+		_disjoncteur_locked_prompt.visible = false
 
 
 func _go_to_couloir() -> void:
@@ -854,6 +864,7 @@ func _return_from_salle_electricite() -> void:
 	can_move = false
 	_salle_electricite_retour_prompt.visible = false
 	_disjoncteur_prompt.visible = false
+	_disjoncteur_locked_prompt.visible = false
 	_player_at_disjoncteur = false
 
 	var tween_fade := create_tween()
@@ -966,7 +977,7 @@ func _input(event: InputEvent) -> void:
 	elif _player_at_machines_repair and salle_machine.visible:
 		get_viewport().set_input_as_handled()
 		_start_salle_machine_minigame()
-	elif _player_at_salle_electricite_retour and salle_electricite.visible and _disjoncteur_minigame == null:
+	elif _player_at_salle_electricite_retour and salle_electricite.visible and _cablage_minigame == null:
 		get_viewport().set_input_as_handled()
 		_return_from_salle_electricite()
 	elif _player_at_disjoncteur and salle_electricite.visible:
@@ -1452,6 +1463,8 @@ func _start_salle_machine_minigame() -> void:
 func _on_salle_machine_minigame_done(success: bool) -> void:
 	_salle_machine_minigame = null
 	_salle_machine_done = true
+	_machines_repair_prompt.visible = false
+	_player_at_machines_repair = false
 	time_aunote.show()
 	can_move = true
 	if success:
@@ -1463,19 +1476,21 @@ func _on_salle_machine_minigame_done(success: bool) -> void:
 
 
 func _start_disjoncteur_minigame() -> void:
-	if _disjoncteur_minigame != null or _disjoncteur_done:
+	if _cablage_minigame != null or _disjoncteur_done:
 		return
 	can_move = false
 	time_aunote.hide()
 	_disjoncteur_prompt.visible = false
-	_disjoncteur_minigame = MiniJeuDisjoncteurScene.instantiate()
-	_disjoncteur_minigame.done.connect(_on_disjoncteur_minigame_done)
-	get_tree().root.add_child(_disjoncteur_minigame)
+	if _darkness_layer:
+		_darkness_layer.hide()
+	_cablage_minigame = MiniJeuCablageScene.instantiate()
+	_cablage_minigame.done.connect(_on_disjoncteur_minigame_done)
+	get_tree().root.add_child(_cablage_minigame)
 
 
 func _on_disjoncteur_minigame_done(success: bool) -> void:
-	_disjoncteur_minigame = null
-	_disjoncteur_done = true
+	_cablage_minigame = null
+	_disjoncteur_done = success
 	time_aunote.show()
 	can_move = true
 	_player_at_disjoncteur = false
@@ -1486,6 +1501,10 @@ func _on_disjoncteur_minigame_done(success: bool) -> void:
 		if pnj_secretaire:
 			pnj_secretaire.npc_id = "npc_secretaire_present_change"
 		_update_objective("Electricite retablie ! Retournez voir Sophie...")
+	else:
+		if _darkness_active:
+			_darkness_layer.show()
+		_disjoncteur_done = false
 
 
 func stop() -> void:
@@ -1540,11 +1559,13 @@ func stop() -> void:
 		_machines_repair_prompt.visible = false
 	if _disjoncteur_prompt:
 		_disjoncteur_prompt.visible = false
+	if _disjoncteur_locked_prompt:
+		_disjoncteur_locked_prompt.visible = false
 	if _salle_machine_minigame and is_instance_valid(_salle_machine_minigame):
 		_salle_machine_minigame.queue_free()
 		_salle_machine_minigame = null
-	if _disjoncteur_minigame and is_instance_valid(_disjoncteur_minigame):
-		_disjoncteur_minigame.queue_free()
-		_disjoncteur_minigame = null
+	if _cablage_minigame and is_instance_valid(_cablage_minigame):
+		_cablage_minigame.queue_free()
+		_cablage_minigame = null
 	if _darkness_layer:
 		_darkness_layer.hide()

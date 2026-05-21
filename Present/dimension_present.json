@@ -255,9 +255,9 @@
 	{
 	  "id": "npc_secretaire_present_courtcircuit",
 	  "name": "Sophie",
-	  "first_message": "Mais qu'est-ce tu as fait ?! On a plus d'electricite ! File vite à la salle électrique, réeenclenche les disjoncteurs avant que ca empire !",
+	  "first_message": "Mais qu'est-ce tu as fait ?! On a plus d'electricite ! File vite à la salle électrique, refais le câblage de l'armoire électrique avant que ca empire !",
 	  "first_message_after": [
-		{"quest_id": "quete_preparation", "quest_step": "etape_reparer_electricite", "message": "T'es encore là ?! La salle électrique, les disjoncteurs, VITE ! La centrale est dans le noir !"}
+		{"quest_id": "quete_preparation", "quest_step": "etape_reparer_electricite", "message": "T'es encore là ?! La salle électrique, l'armoire électrique, VITE ! La centrale est dans le noir !"}
 	  ],
 	  "personality": {
 		"tone": "paniquée, en colère, ultra-urgente. La centrale est dans le noir à cause du court-circuit. Elle est furieuse mais veut une solution immédiate. Tutoiement nerveux et rapide.",
@@ -278,7 +278,7 @@
 		},
 		"knowledge": [
 		  "la centrale est en panne totale d'electricite à cause d'un court-circuit dans la salle des machines",
-		  "les disjoncteurs doivent etre réenclenchés dans la salle électrique pour restaurer le courant",
+		  "l'armoire électrique doit etre re câblée dans la salle électrique pour restaurer le courant",
 		  "la salle électrique est au bout du couloir à droite",
 		  "si l'electricite n'est pas rétablie rapidement, les systemes de securité de la centrale pourraient etre compromises",
 		  "c'est le joueur qui a causé le court-circuit en intervenant sur les tuyaux",
@@ -300,16 +300,16 @@
 		  "id": "sophie_courtcircuit_urgence",
 		  "condition": null,
 		  "trigger": "le joueur parle à Sophie pendant la panne d'electricite, demande ce qui se passe, s'excuse, ou discute",
-		  "example": "T'as pas le temps de discuter !! La salle électrique, les disjoncteurs, VITE ! Y'a plus de courant dans toute la centrale !",
+		  "example": "T'as pas le temps de discuter !! La salle électrique, l'armoire électrique, VITE ! Y'a plus de courant dans toute la centrale !",
 		  "action": null
 		}
 	  ],
 	  "fallbacks": {
-		"off_topic": "Pas maintenant !! La salle électrique, les disjoncteurs, VITE !!",
+		"off_topic": "Pas maintenant !! La salle électrique, l'armoire électrique, VITE !!",
 		"insult": "Remue-toi au lieu de t'énerver !! La centrale est dans le noir !!",
 		"timeout": "Allô ?!? La salle électrique, COURS !!",
-		"unknown": "J'ai pas le temps d'expliquer !! Disjoncteurs, salle électrique, DEPÊCHE-TOI !",
-		"default_template": "Salle électrique. Disjoncteurs. MAINTENANT !!"
+		"unknown": "J'ai pas le temps d'expliquer !! Armoire électrique, salle électrique, DEPÊCHE-TOI !",
+		"default_template": "Salle électrique. Armoire électrique. MAINTENANT !!"
 	  }
 	}
   ],
@@ -334,7 +334,7 @@
 		{"id": "etape_parler_secretaire", "description": "Parler à la secrétaire", "completed": false},
 		{"id": "etape_aller_vestiaires", "description": "Aller se changer aux vestiaires", "completed": false},
 		{"id": "etape_reparer_machines", "description": "Réparer les tuyaux dans la salle des machines", "completed": false},
-		{"id": "etape_reparer_electricite", "description": "Réenclencher les disjoncteurs dans la salle électrique", "completed": false}
+		{"id": "etape_reparer_electricite", "description": "Réparer le câblage dans la salle électrique", "completed": false}
 	  ]
 	}
   ],
