@@ -71,14 +71,14 @@ func _create_particle_texture():
 	var center = Vector2(16, 16)
 	for y in range(32):
 		for x in range(32):
-			var dist = Vector2(x, y).distance_to(center) / 16.0
-			var alpha = clamp(1.0 - dist, 0.0, 1.0)
+			var dist := Vector2(x, y).distance_to(center) / 16.0
+			var alpha := clampf(1.0 - dist, 0.0, 1.0)
 			alpha = ease(alpha, 2.0)
 			image.set_pixel(x, y, Color(1, 1, 1, alpha))
 	return ImageTexture.create_from_image(image)
 
-func _create_color_ramp(color):
-	var gradient = Gradient.new()
+func _create_color_ramp(color: Color) -> Gradient:
+	var gradient := Gradient.new()
 	gradient.set_color(0, color)
 	gradient.set_color(1, Color(color, 0.0))
 	return gradient
@@ -238,7 +238,7 @@ func start(spawn_id: String = "entree"):
 	stopped = false
 
 	# Dynamic instantiation of the mini-game Control Layer
-	if not has_node("MiniJeuChien"):
+	if not has_node("MiniJeuChien") or get_node("MiniJeuChien").is_queued_for_deletion():
 		var MiniJeuScript := load("res://HUB Central/MiniJeuChien.gd") as GDScript
 		if MiniJeuScript:
 			var mini_jeu := MiniJeuScript.new() as CanvasLayer
@@ -275,12 +275,12 @@ func _on_timer_sortie_timeout():
 	hide()
 	started = false
 
-func deplacement(delta):
+func deplacement(delta: float) -> void:
 	var is_mini_jeu_active := false
 	if has_node("MiniJeuChien"):
-		var mini_jeu = get_node("MiniJeuChien")
-		if mini_jeu and "is_active" in mini_jeu:
-			is_mini_jeu_active = mini_jeu.is_active
+		var mini_jeu := get_node("MiniJeuChien") as CanvasLayer
+		if mini_jeu and not mini_jeu.is_queued_for_deletion() and "is_active" in mini_jeu:
+			is_mini_jeu_active = mini_jeu.get("is_active") as bool
 
 	if not started or DialogueUI.is_dialogue_active() or is_mini_jeu_active:
 		timeAunote.animation(Vector2.ZERO)
@@ -307,9 +307,9 @@ func avance(mouvement):
 
 func lancer_mini_jeu_chien() -> void:
 	if has_node("MiniJeuChien"):
-		var mini_jeu = get_node("MiniJeuChien")
-		if mini_jeu and mini_jeu.has_method("open_game"):
-			mini_jeu.open_game()
+		var mini_jeu := get_node("MiniJeuChien") as CanvasLayer
+		if mini_jeu and not mini_jeu.is_queued_for_deletion() and mini_jeu.has_method("open_game"):
+			mini_jeu.call("open_game")
 
 func declencher_particles_victoire() -> void:
 	if is_instance_valid(particles) and is_instance_valid(chienHub):
