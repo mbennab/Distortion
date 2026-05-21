@@ -32,11 +32,11 @@ monitorable = false
 position = Vector2(1212, 1576)
 shape = SubResource("RectangleShape2D_retour")
 
-[node name="armoire electrique" type="Area2D" parent="." unique_id=1277092153]
+[node name="event3" type="Area2D" parent="." unique_id=1277092153]
 collision_layer = 0
 monitorable = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="armoire electrique" unique_id=875102195]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="event3" unique_id=875102195]
 position = Vector2(956, 590)
 shape = SubResource("RectangleShape2D_6llv3")
 
