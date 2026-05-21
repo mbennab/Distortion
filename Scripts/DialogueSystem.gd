@@ -695,6 +695,25 @@ func _find_npc(npc_id: String) -> Dictionary:
 	for npc in dimension.get("npcs", []):
 		if npc.get("id") == npc_id:
 			return npc
+	
+	# Try auto-correcting/loading the correct dimension based on NPC ID
+	var correct_dim := ""
+	if npc_id in ["npc_marchand_moyenage", "npc_roi_moyenage", "npc_aubergiste_moyenage", "npc_femme_parc", "npc_assassin"]:
+		correct_dim = "res://MoyenAge/dimension_moyenage.json"
+	elif npc_id in ["npc_securite_present", "npc_securite_present_retour", "npc_secretaire_present"]:
+		correct_dim = "res://Present/dimension_present.json"
+	elif npc_id in ["npc_punk_futur", "npc_cheffe_futur", "npc_koiai2_futur", "npc_vukovi_futur", "npc_boss_futur"]:
+		correct_dim = "res://Futur/dimension_futur.json"
+	elif npc_id in ["npc_guide_hub"]:
+		correct_dim = "res://HUB Central/dimension_hub.json"
+	
+	if correct_dim != "":
+		print("[DialogueSystem] PNJ '%s' not in current dimension. Auto-loading %s..." % [npc_id, correct_dim])
+		load_dimension(correct_dim)
+		for npc in dimension.get("npcs", []):
+			if npc.get("id") == npc_id:
+				return npc
+				
 	return {}
 
 
