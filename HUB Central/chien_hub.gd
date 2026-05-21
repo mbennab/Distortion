@@ -76,10 +76,24 @@ func _setup_prompt() -> void:
 	_prompt_label = Label.new()
 	_prompt_label.text = "Appuyez sur E pour dire bonjour au chien"
 	_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_prompt_label.add_theme_font_size_override("font_size", 26)
-	_prompt_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+	_prompt_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_prompt_label.add_theme_font_size_override("font_size", 18)
+	_prompt_label.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
 	_prompt_label.visible = false
 	_prompt_label.z_index = 100
+	var pstyle := StyleBoxFlat.new()
+	pstyle.bg_color = Color(0.08, 0.08, 0.12, 0.85)
+	pstyle.border_color = Color(0.6, 0.55, 0.3, 0.7)
+	pstyle.border_width_top = 2
+	pstyle.border_width_bottom = 2
+	pstyle.border_width_left = 2
+	pstyle.border_width_right = 2
+	pstyle.corner_radius_top_left = 8
+	pstyle.corner_radius_top_right = 8
+	pstyle.corner_radius_bottom_left = 8
+	pstyle.corner_radius_bottom_right = 8
+	_prompt_label.add_theme_stylebox_override("normal", pstyle)
+	_prompt_label.custom_minimum_size = Vector2(340, 40)
 	add_child(_prompt_label)
 
 

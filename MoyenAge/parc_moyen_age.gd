@@ -57,6 +57,9 @@ func _on_sortie_entered(body: Node2D) -> void:
 
 func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
 	if npc_id == "npc_femme_parc":
+		var bulle = $markers2D/bulle/spr_bulle
+		if bulle:
+			bulle.hide()
 		_start_minigame()
 
 

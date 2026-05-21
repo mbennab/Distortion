@@ -1014,12 +1014,25 @@ func _setup_car_prompt() -> void:
 	_car_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_car_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_car_prompt.add_theme_font_size_override("font_size", 18)
-	_car_prompt.add_theme_color_override("font_color", Color.WHITE)
+	_car_prompt.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
 	_car_prompt.modulate = Color(1, 1, 1, 0.85)
 	_car_prompt.visible = false
+	var pstyle_car := StyleBoxFlat.new()
+	pstyle_car.bg_color = Color(0.08, 0.08, 0.12, 0.85)
+	pstyle_car.border_color = Color(0.6, 0.55, 0.3, 0.7)
+	pstyle_car.border_width_top = 2
+	pstyle_car.border_width_bottom = 2
+	pstyle_car.border_width_left = 2
+	pstyle_car.border_width_right = 2
+	pstyle_car.corner_radius_top_left = 8
+	pstyle_car.corner_radius_top_right = 8
+	pstyle_car.corner_radius_bottom_left = 8
+	pstyle_car.corner_radius_bottom_right = 8
+	_car_prompt.add_theme_stylebox_override("normal", pstyle_car)
+	_car_prompt.custom_minimum_size = Vector2(340, 40)
 	var vp := get_viewport().get_visible_rect().size
-	_car_prompt.position = Vector2(vp.x / 2.0 - 200, vp.y - 100)
-	_car_prompt.size = Vector2(400, 50)
+	_car_prompt.position = Vector2(vp.x / 2.0 - 170, vp.y - 100)
+	_car_prompt.size = Vector2(340, 40)
 	prompt_layer.add_child(_car_prompt)
 
 

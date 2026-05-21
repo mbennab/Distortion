@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://cu0thbeytd4lf" path="res://art/MoyenAge/auberge2.png" id="2_fywk1"]
 [ext_resource type="Script" uid="uid://bwqip2noa6k83" path="res://MoyenAge/auberge_moyen_age.gd" id="3_auberge_gd"]
 [ext_resource type="PackedScene" uid="uid://2kidsvni536t" path="res://MoyenAge/pnj_aubergiste.tscn" id="4_pnj_aubergiste"]
+[ext_resource type="Texture2D" uid="uid://bhntmpl1o6p8b" path="res://art/bulle.webp" id="5_bul_aub"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_j0ps2"]
 atlas = ExtResource("1_drbhu")
@@ -71,10 +72,17 @@ position = Vector2(1817, 668)
 position = Vector2(1615, 1103)
 
 [node name="table2" type="Marker2D" parent="markers2D" unique_id=345356615]
-position = Vector2(529, 1016)
+position = Vector2(364, 553)
 
 [node name="table3" type="Marker2D" parent="markers2D" unique_id=370879940]
-position = Vector2(362, 562)
+position = Vector2(520, 960)
+
+[node name="bulle" type="Marker2D" parent="markers2D" unique_id=370879941]
+position = Vector2(1817, 448)
+
+[node name="spr_bulle" type="Sprite2D" parent="markers2D/bulle" unique_id=370879942]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("5_bul_aub")
 
 [node name="pnj-aubergiste" parent="." unique_id=1387049508 instance=ExtResource("4_pnj_aubergiste")]
 position = Vector2(1817, 668)

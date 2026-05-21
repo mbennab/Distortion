@@ -26,7 +26,7 @@ func _ready() -> void:
 		
 		var col = CollisionShape2D.new()
 		var shape = CircleShape2D.new()
-		shape.radius = 120.0
+		shape.radius = 220.0
 		col.shape = shape
 		zone_dialogue.add_child(col)
 		add_child(zone_dialogue)
