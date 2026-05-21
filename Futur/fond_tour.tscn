@@ -2,6 +2,9 @@
 
 [ext_resource type="Texture2D" uid="uid://dn1hon71ty21l" path="res://art/Futur/tour_entree.png" id="1_bdpgl"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cqaf0"]
+size = Vector2(302, 158.5)
+
 [node name="fondTour" type="Node2D" unique_id=849302617]
 
 [node name="image" type="Sprite2D" parent="." unique_id=274019583]
@@ -41,3 +44,8 @@ polygon = PackedVector2Array(640, 1534, 647, 1485, 588, 1468, 588, 1333, 502, 13
 build_mode = 1
 polygon = PackedVector2Array(1765, 1554, 1769, 1485, 1841, 1496, 1838, 1333, 1928, 1337, 1924, 1468, 2131, 1440, 2197, 1475, 2187, 1565, 1990, 1561)
 
+[node name="sortie" type="Area2D" parent="." unique_id=325234192]
+
+[node name="sortieFond" type="CollisionShape2D" parent="sortie" unique_id=547767149]
+position = Vector2(1215, 421.75)
+shape = SubResource("RectangleShape2D_cqaf0")
