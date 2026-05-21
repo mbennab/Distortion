@@ -44,6 +44,37 @@ polygon = PackedVector2Array(640, 1534, 647, 1485, 588, 1468, 588, 1333, 502, 13
 build_mode = 1
 polygon = PackedVector2Array(1765, 1554, 1769, 1485, 1841, 1496, 1838, 1333, 1928, 1337, 1924, 1468, 2131, 1440, 2197, 1475, 2187, 1565, 1990, 1561)
 
+[node name="CollisionPolygon2D5" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=1439063753]
+build_mode = 1
+polygon = PackedVector2Array(728, 1123, 731, 1170, 607, 1172, 606, 1123)
+
+[node name="CollisionPolygon2D6" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=2039391756]
+position = Vector2(1084, 0)
+build_mode = 1
+polygon = PackedVector2Array(728, 1123, 731, 1170, 607, 1172, 606, 1123)
+
+[node name="CollisionPolygon2D7" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=1963612024]
+build_mode = 1
+polygon = PackedVector2Array(581, 1077, 601, 1083, 606, 1075, 603, 1028, 627, 1042, 630, 950, 603, 930, 603, 918, 614, 912, 614, 881, 590, 852, 574, 854, 569, 890, 590, 906, 586, 1063)
+
+[node name="CollisionPolygon2D10" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=489085598]
+position = Vector2(1691, -285)
+build_mode = 1
+polygon = PackedVector2Array(581, 1077, 601, 1083, 606, 1075, 603, 1028, 627, 1042, 629, 1001, 630, 950, 603, 930, 603, 918, 614, 912, 614, 881, 590, 852, 574, 854, 569, 890, 590, 906, 588.09863, 980.6283, 586, 1063)
+
+[node name="CollisionPolygon2D8" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=544867649]
+build_mode = 1
+polygon = PackedVector2Array(1818, 1075, 1833, 1085, 1838, 1084, 1848, 1078, 1848, 1070, 1843, 1062, 1841, 912, 1858, 893, 1858, 860, 1843, 859, 1817, 881, 1817, 911, 1828, 919, 1827, 930, 1801, 953, 1804, 962, 1803, 1046, 1828, 1021, 1830, 1036, 1826, 1039, 1826, 1056)
+
+[node name="CollisionPolygon2D11" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=356191360]
+position = Vector2(-1684, -289)
+build_mode = 1
+polygon = PackedVector2Array(1818, 1075, 1833, 1085, 1838, 1084, 1848, 1078, 1848, 1070, 1843, 1062, 1841.8557, 976.1643, 1841, 912, 1858, 893, 1858, 860, 1843, 859, 1817, 881, 1817, 911, 1828, 919, 1827, 930, 1801, 953, 1804, 962, 1803, 1046, 1828, 1021, 1830, 1036, 1826, 1039, 1826, 1056)
+
+[node name="CollisionPolygon2D9" type="CollisionPolygon2D" parent="limite-entree-tour" unique_id=756970971]
+build_mode = 1
+polygon = PackedVector2Array(647, 867, 689, 864, 687, 775, 652, 778)
+
 [node name="sortie" type="Area2D" parent="." unique_id=325234192]
 collision_layer = 134217728
 collision_mask = 8
