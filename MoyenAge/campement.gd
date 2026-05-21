@@ -148,7 +148,7 @@ func _handle_assassin_logic(delta: float) -> void:
 		if attack_timer <= 0.0:
 			attack_evaluated = true
 			if player_action == "defense":
-				_play_sound("res://audio/crochetage/final/final_unlock.mp3")
+				_play_sound("res://audio/combat/sword_clash.1.ogg")
 				_flash_screen(Color(1.0, 1.0, 1.0, 0.3))
 				_shake_screen(8.0)
 				status_label.text = "Coup paré ! Vous bloquez l'assassin !"
@@ -232,7 +232,7 @@ func _perform_attack() -> void:
 	attack_cooldown = 0.3
 	_set_weapon_sprite("attack")
 	
-	_play_sound("res://audio/crochetage/tick/tick01.mp3")
+	_play_sound("res://audio/combat/sword_swing_1.ogg")
 	
 	match assassin_posture:
 		"idle":
@@ -245,7 +245,7 @@ func _perform_attack() -> void:
 
 func _damage_assassin() -> void:
 	assassin_hp -= 1
-	_play_sound("res://audio/crochetage/success/success_click.mp3")
+	_play_sound("res://audio/combat/sword_swing_3.ogg")
 	_shake_screen(12.0)
 	_flash_node(pnj_assassin, Color(1.5, 0.3, 0.3)) # Flash rouge
 	_update_hp_ui()
@@ -258,7 +258,7 @@ func _damage_assassin() -> void:
 
 func _damage_player() -> void:
 	player_hp -= 1
-	_play_sound("res://audio/crochetage/failure/failure01.mp3")
+	_play_sound("res://audio/combat/sword_clash.3.ogg")
 	_shake_screen(25.0)
 	_flash_screen(Color(1.0, 0.0, 0.0, 0.5)) # Gros flash rouge
 	_update_hp_ui()
@@ -273,7 +273,7 @@ func _stun_player() -> void:
 	is_player_stunned = true
 	stun_timer = 3.0
 	attack_cooldown = 0.0
-	_play_sound("res://audio/crochetage/failure/failure01.mp3")
+	_play_sound("res://audio/combat/sword_clash.5.ogg")
 	_shake_screen(15.0)
 	_flash_screen(Color(1.0, 0.5, 0.0, 0.35)) # Flash orange
 	_update_hp_ui()
@@ -326,7 +326,7 @@ func _victory() -> void:
 	is_combat_active = false
 	status_label.text = "VICTOIRE ! L'assassin est vaincu !"
 	status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
-	_play_sound("res://audio/crochetage/final/final_unlock.mp3")
+	_play_sound("res://audio/combat/victory_fanfare.ogg")
 	
 	# Terminer la quête
 	DialogueSystem.complete_step("quete_piste_assassin", "etape_trouver_assassin")
@@ -372,6 +372,8 @@ func _defeat() -> void:
 		parent_ma.fade_layer.add_child(label)
 		
 		await get_tree().create_timer(3.0).timeout
+		if not is_inside_tree():
+			return
 		
 		label.queue_free()
 		
@@ -401,7 +403,7 @@ func _defeat() -> void:
 			
 		parent_ma.time_aunote.global_position = parent_ma.foret.get_node("markers2D/apparition").global_position
 		parent_ma.can_move = true
-		parent_ma._play_zone_audio("parc")
+		parent_ma._play_zone_audio("foret")
 		parent_ma._update_objective("Trouver l'assassin dans la forêt")
 		
 		# Fondu de retour

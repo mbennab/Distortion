@@ -9,6 +9,7 @@ var _spoken_to_aubergiste := false
 var _mg_instance: CanvasLayer = null
 var _current_table_id := ""
 var _near_tables: Dictionary = {}
+var _rumor_label: Label = null
 
 var prompt_layer: CanvasLayer
 var prompt_label: Label
@@ -157,6 +158,7 @@ func _on_all_tables_done() -> void:
 	label.size = Vector2(600, 160)
 	label.modulate = Color(1, 1, 1, 0)
 	add_child(label)
+	_rumor_label = label
 
 	var tween := create_tween()
 	tween.tween_property(label, "modulate:a", 1.0, 0.5)
@@ -205,6 +207,9 @@ func stop() -> void:
 	if pnj_aubergiste:
 		pnj_aubergiste.get_node("ZoneDialogue").monitoring = false
 		pnj_aubergiste.hide()
+	if _rumor_label and is_instance_valid(_rumor_label):
+		_rumor_label.queue_free()
+		_rumor_label = null
 	hide()
 
 
