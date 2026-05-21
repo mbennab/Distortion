@@ -509,7 +509,7 @@ func _return_from_couloir() -> void:
 	_set_zone_camera("hall")
 
 	time_aunote.global_position = hall.get_node("Camera2D/Node2D/zone pop").global_position
-	time_aunote.scale = Vector2(0.65, 0.65)
+	time_aunote.scale = Vector2(0.924, 0.924)
 
 	var secretaire_marker = hall.get_node_or_null("Camera2D/Node2D/secretairePos")
 	if pnj_secretaire and secretaire_marker:
@@ -876,7 +876,7 @@ func _go_to_parking() -> void:
 	_set_zone_camera("parking")
 
 	time_aunote.global_position = $"Parking/Node2D/zone pop".global_position
-	time_aunote.scale = Vector2(0.65, 0.65)
+	time_aunote.scale = Vector2(0.6, 0.6)
 
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
@@ -951,7 +951,7 @@ func _go_to_hall() -> void:
 	_set_zone_camera("hall")
 
 	time_aunote.global_position = hall.get_node("Camera2D/Node2D/zone pop").global_position
-	time_aunote.scale = Vector2(0.65, 0.65)
+	time_aunote.scale = Vector2(0.924, 0.924)
 
 	var secretaire_marker = hall.get_node_or_null("Camera2D/Node2D/secretairePos")
 	if pnj_secretaire and secretaire_marker:
@@ -1262,7 +1262,7 @@ func start(spawn_id: String = "entree") -> void:
 			pnj_secretaire.get_node("ZoneDialogue").monitoring = true
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
-		time_aunote.scale = Vector2(0.65, 0.65)
+		time_aunote.scale = Vector2(0.924, 0.924)
 		time_aunote.rotation = 0.0
 		can_move = true
 		var col_hall := time_aunote.get_node("collision") as CollisionShape2D
