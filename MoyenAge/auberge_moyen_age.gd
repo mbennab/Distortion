@@ -113,7 +113,7 @@ func _update_table_sprites() -> void:
 				if _spoken_to_aubergiste:
 					sprite.modulate.a = 1.0
 				else:
-					sprite.modulate.a = 0.4
+					sprite.modulate.a = 0.0
 
 
 func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
