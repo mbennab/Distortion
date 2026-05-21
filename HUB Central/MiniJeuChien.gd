@@ -3,35 +3,46 @@ extends CanvasLayer
 signal game_finished
 
 var is_active: bool = false
-var best_time: float = 9999.0
-var active_time: float = 0.0
-var stable_time: float = 0.0
-var stabilization_duration: float = 1.5 # seconds needed to win
-var is_victory: bool = false
+var score: int = 0
+var lives: int = 3
+var best_score: int = 0
+var is_game_over: bool = false
 
-# Wave Parameters
-var target_frequency: float = 0.02
-var target_amplitude: float = 40.0
-var player_frequency: float = 0.015
-var player_amplitude: float = 30.0
-var wave_phase: float = 0.0
+# Game Variables
+var paddle_x: float = 300.0
+var paddle_width: float = 80.0
+var paddle_height: float = 8.0
+var paddle_y: float = 215.0 # Placed near the bottom of scope_control
+
+var treats: Array[Dictionary] = []
+var spawn_timer: float = 0.0
+var spawn_interval: float = 1.6 # seconds between spawns
+var base_speed: float = 160.0 # pixels per second
+var speed_multiplier: float = 1.0
+
+var screen_width: float = 600.0
+var screen_height: float = 240.0
+var flash_duration: float = 0.0
 
 # UI Controls
 var root_control: Control
 var background_panel: Panel
 var scope_control: Control
-var slider_freq: HSlider
-var slider_amp: HSlider
-var label_timer: Label
+var label_lives: Label
 var label_best: Label
+var label_score: Label
 var label_status: Label
-var progress_bar: ProgressBar
 var btn_quit: Button
+
+# Game Over Overlay
+var overlay_panel: Panel
+var label_over_title: Label
+var label_over_score: Label
+var label_over_hint: Label
 
 # Sound
 var _audio_player: AudioStreamPlayer
 var _bark_sounds: Array[AudioStream] = []
-var _sound_timer: Timer
 var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
@@ -45,11 +56,6 @@ func _setup_audio() -> void:
 	_audio_player = AudioStreamPlayer.new()
 	_audio_player.bus = "Master"
 	add_child(_audio_player)
-	
-	_sound_timer = Timer.new()
-	_sound_timer.one_shot = true
-	_sound_timer.timeout.connect(_on_sound_timer_timeout)
-	add_child(_sound_timer)
 
 	# Load bark streams from res://audio/chien/
 	var dir := DirAccess.open("res://audio/chien/")
@@ -74,7 +80,7 @@ func _setup_ui() -> void:
 
 	background_panel = Panel.new()
 	background_panel.name = "BackgroundPanel"
-	background_panel.custom_minimum_size = Vector2(640, 560)
+	background_panel.custom_minimum_size = Vector2(640, 500)
 	background_panel.anchors_preset = Control.PRESET_CENTER
 	background_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 	
@@ -94,24 +100,24 @@ func _setup_ui() -> void:
 
 	# Title Bar
 	var label_title := Label.new()
-	label_title.text = "📡 N.O.S.E - NEURAL OSCILLOSCOPE SIGNAL EXTRACTOR"
+	label_title.text = "🎮 CHASSE AU WOUF - CYBER-CATCH TOY"
 	label_title.position = Vector2(20, 15)
 	label_title.add_theme_font_size_override("font_size", 16)
 	label_title.add_theme_color_override("font_color", Color(0.8, 0.5, 1.0, 1.0))
 	background_panel.add_child(label_title)
 
-	# Timer Label
-	label_timer = Label.new()
-	label_timer.text = "STABLE : 0.0s"
-	label_timer.position = Vector2(480, 15)
-	label_timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	label_timer.add_theme_font_size_override("font_size", 16)
-	label_timer.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
-	background_panel.add_child(label_timer)
+	# Lives Label (hearts)
+	label_lives = Label.new()
+	label_lives.text = "VIES : ❤️ ❤️ ❤️"
+	label_lives.position = Vector2(480, 15)
+	label_lives.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	label_lives.add_theme_font_size_override("font_size", 16)
+	label_lives.add_theme_color_override("font_color", Color(1.0, 0.2, 0.4, 1.0))
+	background_panel.add_child(label_lives)
 
 	# Best Score Label
 	label_best = Label.new()
-	label_best.text = "BEST TIME: --"
+	label_best.text = "MEILLEUR SCORE : 0"
 	label_best.position = Vector2(480, 40)
 	label_best.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	label_best.add_theme_font_size_override("font_size", 12)
@@ -137,7 +143,7 @@ func _setup_ui() -> void:
 	background_panel.add_child(panel_instr)
 
 	var label_instr := Label.new()
-	label_instr.text = "🎯 BUT : Alignez l'onde CYAN (la vôtre) sur l'onde ROUGE (cible du chien) !\n⌨️ Clavier : Q/D ou Flèches (Fréquence) • Z/S ou Flèches (Tension) | 🖱️ Souris : Glissez"
+	label_instr.text = "🎯 BUT : Déplacez le panier pour rattraper les friandises énergétiques !\n⌨️ Clavier : Q/D ou Flèches Gauche/Droite | 🖱️ Souris : Glissez"
 	label_instr.position = Vector2(10, 8)
 	label_instr.size = Vector2(580, 34)
 	label_instr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -146,232 +152,307 @@ func _setup_ui() -> void:
 	label_instr.add_theme_color_override("font_color", Color(0.9, 0.85, 1.0, 1.0))
 	panel_instr.add_child(label_instr)
 
-	# Oscilloscope Screen
+	# Play Area Screen
 	scope_control = Control.new()
 	scope_control.position = Vector2(20, 130)
-	scope_control.custom_minimum_size = Vector2(600, 180)
+	scope_control.custom_minimum_size = Vector2(600, 240)
 	scope_control.draw.connect(_on_scope_draw)
+	scope_control.gui_input.connect(_on_scope_gui_input)
 	background_panel.add_child(scope_control)
+
+	# Score Label below screen
+	label_score = Label.new()
+	label_score.text = "SCORE : 0"
+	label_score.position = Vector2(20, 385)
+	label_score.add_theme_font_size_override("font_size", 16)
+	label_score.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
+	background_panel.add_child(label_score)
 
 	# Status Label below Screen
 	label_status = Label.new()
-	label_status.text = "⚠️ SIGNAL CORRUPT - ALIGN FREQUENCIES"
-	label_status.position = Vector2(20, 320)
-	label_status.add_theme_font_size_override("font_size", 12)
-	label_status.add_theme_color_override("font_color", Color(1.0, 0.2, 0.4, 1.0))
+	label_status.text = "🟢 TRANSMISSION STABLE - READY"
+	label_status.position = Vector2(240, 385)
+	label_status.add_theme_font_size_override("font_size", 14)
+	label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
 	background_panel.add_child(label_status)
-
-	# Stabilization Progress Bar
-	progress_bar = ProgressBar.new()
-	progress_bar.position = Vector2(20, 345)
-	progress_bar.size = Vector2(600, 14)
-	progress_bar.show_percentage = false
-	var style_bg := StyleBoxFlat.new()
-	style_bg.bg_color = Color(0.08, 0.06, 0.15, 1.0)
-	style_bg.corner_radius_top_left = 4
-	style_bg.corner_radius_top_right = 4
-	style_bg.corner_radius_bottom_left = 4
-	style_bg.corner_radius_bottom_right = 4
-	progress_bar.add_theme_stylebox_override("background", style_bg)
-	var style_fg := StyleBoxFlat.new()
-	style_fg.bg_color = Color(0.24, 0.95, 0.79, 1.0)
-	style_fg.corner_radius_top_left = 4
-	style_fg.corner_radius_top_right = 4
-	style_fg.corner_radius_bottom_left = 4
-	style_fg.corner_radius_bottom_right = 4
-	progress_bar.add_theme_stylebox_override("fill", style_fg)
-	background_panel.add_child(progress_bar)
-
-	# Frequency Slider Label
-	var label_freq_title := Label.new()
-	label_freq_title.text = "🎚️ FRÉQUENCE (PITCH / VITESSE)"
-	label_freq_title.position = Vector2(20, 375)
-	label_freq_title.add_theme_font_size_override("font_size", 14)
-	label_freq_title.add_theme_color_override("font_color", Color(0.8, 0.5, 1.0, 1.0))
-	background_panel.add_child(label_freq_title)
-
-	# Frequency Slider
-	slider_freq = HSlider.new()
-	slider_freq.position = Vector2(20, 400)
-	slider_freq.size = Vector2(600, 20)
-	slider_freq.min_value = 0.005
-	slider_freq.max_value = 0.05
-	slider_freq.step = 0.0001
-	slider_freq.value = player_frequency
-	slider_freq.focus_mode = Control.FOCUS_NONE
-	slider_freq.value_changed.connect(_on_freq_changed)
-	background_panel.add_child(slider_freq)
-
-	# Amplitude/Tension Slider Label
-	var label_amp_title := Label.new()
-	label_amp_title.text = "⚡ TENSION (AMPLITUDE)"
-	label_amp_title.position = Vector2(20, 435)
-	label_amp_title.add_theme_font_size_override("font_size", 14)
-	label_amp_title.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
-	background_panel.add_child(label_amp_title)
-
-	# Amplitude/Tension Slider
-	slider_amp = HSlider.new()
-	slider_amp.position = Vector2(20, 460)
-	slider_amp.size = Vector2(600, 20)
-	slider_amp.min_value = 10.0
-	slider_amp.max_value = 80.0
-	slider_amp.step = 0.5
-	slider_amp.value = player_amplitude
-	slider_amp.focus_mode = Control.FOCUS_NONE
-	slider_amp.value_changed.connect(_on_amp_changed)
-	background_panel.add_child(slider_amp)
 
 	# Quit Button
 	btn_quit = Button.new()
 	btn_quit.text = "[ ÉCHAP ] FERMER L'INTERACTION"
-	btn_quit.position = Vector2(170, 505)
+	btn_quit.position = Vector2(170, 440)
 	btn_quit.size = Vector2(300, 36)
 	btn_quit.focus_mode = Control.FOCUS_NONE
 	btn_quit.pressed.connect(close_game)
 	background_panel.add_child(btn_quit)
 
+	# Setup Game Over Overlay Panel (Hidden initially)
+	overlay_panel = Panel.new()
+	overlay_panel.size = Vector2(600, 240)
+	var style_over := StyleBoxFlat.new()
+	style_over.bg_color = Color(0.04, 0.02, 0.08, 0.92)
+	style_over.border_width_left = 2
+	style_over.border_width_top = 2
+	style_over.border_width_right = 2
+	style_over.border_width_bottom = 2
+	style_over.border_color = Color(1.0, 0.2, 0.4, 0.8)
+	style_over.corner_radius_top_left = 6
+	style_over.corner_radius_top_right = 6
+	style_over.corner_radius_bottom_left = 6
+	style_over.corner_radius_bottom_right = 6
+	overlay_panel.add_theme_stylebox_override("panel", style_over)
+	overlay_panel.visible = false
+	scope_control.add_child(overlay_panel)
+
+	label_over_title = Label.new()
+	label_over_title.text = "❌ TRANSMISSION INTERROMPUE"
+	label_over_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label_over_title.size = Vector2(600, 40)
+	label_over_title.position = Vector2(0, 50)
+	label_over_title.add_theme_font_size_override("font_size", 22)
+	label_over_title.add_theme_color_override("font_color", Color(1.0, 0.2, 0.4, 1.0))
+	overlay_panel.add_child(label_over_title)
+
+	label_over_score = Label.new()
+	label_over_score.text = "Friandises attrapées : 0 (Score: 0)"
+	label_over_score.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label_over_score.size = Vector2(600, 30)
+	label_over_score.position = Vector2(0, 100)
+	label_over_score.add_theme_font_size_override("font_size", 14)
+	label_over_score.add_theme_color_override("font_color", Color(0.9, 0.9, 1.0, 1.0))
+	overlay_panel.add_child(label_over_score)
+
+	label_over_hint = Label.new()
+	label_over_hint.text = "Appuyez sur [ ESPACE ] pour rejouer\nou [ ÉCHAP ] pour quitter"
+	label_over_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label_over_hint.size = Vector2(600, 40)
+	label_over_hint.position = Vector2(0, 150)
+	label_over_hint.add_theme_font_size_override("font_size", 13)
+	label_over_hint.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
+	overlay_panel.add_child(label_over_hint)
+
 func _process(delta: float) -> void:
-	if not is_active or is_victory:
+	if not is_active or is_game_over:
 		return
-	
-	wave_phase += delta * 12.0
-	active_time += delta
+
+	# Handle visual red hit flash fade
+	if flash_duration > 0.0:
+		flash_duration = maxf(0.0, flash_duration - delta)
+
+	# Keyboard smooth continuous movement
+	if Input.is_action_pressed("marche_droite"):
+		paddle_x = clampf(paddle_x + 450.0 * delta, paddle_width / 2.0, screen_width - paddle_width / 2.0)
+	elif Input.is_action_pressed("marche_gauche"):
+		paddle_x = clampf(paddle_x - 450.0 * delta, paddle_width / 2.0, screen_width - paddle_width / 2.0)
+
+	# Dynamic difficulty / speed scaling
+	speed_multiplier = 1.0 + (float(score) / 120.0)
+
+	# Spawn Treats
+	spawn_timer -= delta
+	if spawn_timer <= 0.0:
+		_spawn_treat()
+		spawn_timer = spawn_interval / speed_multiplier
+
+	# Update Treats Position & Collisions
+	var i := treats.size() - 1
+	while i >= 0:
+		var treat: Dictionary = treats[i]
+		treat.pos.y += treat.speed * speed_multiplier * delta
+
+		# Check paddle collision (Catch)
+		if treat.pos.y >= (paddle_y - 8.0) and treat.pos.y <= (paddle_y + 8.0):
+			if treat.pos.x >= (paddle_x - paddle_width / 2.0) and treat.pos.x <= (paddle_x + paddle_width / 2.0):
+				_on_catch_treat(i)
+				i -= 1
+				continue
+
+		# Check floor collision (Miss)
+		if treat.pos.y > screen_height:
+			_on_miss_treat(i)
+		
+		i -= 1
+
 	scope_control.queue_redraw()
+
+func _spawn_treat() -> void:
+	var treat := {
+		"pos": Vector2(_rng.randf_range(30.0, screen_width - 30.0), -15.0),
+		"speed": _rng.randf_range(base_speed * 0.9, base_speed * 1.25),
+		"radius": 8.0,
+		"color": Color(0.24, 0.95, 0.79, 1.0) if _rng.randf() > 0.35 else Color(1.0, 0.75, 0.2, 1.0)
+	}
+	treats.append(treat)
+
+func _on_catch_treat(index: int) -> void:
+	treats.remove_at(index)
+	score += 10
+	label_score.text = "SCORE : " + str(score)
 	
-	# Evaluate match
-	var freq_diff := absf(player_frequency - target_frequency) / 0.05
-	var amp_diff := absf(player_amplitude - target_amplitude) / 80.0
-	var error := freq_diff + amp_diff
+	# Happy high pitch bark
+	_play_happy_bark()
+
+	# Emit victory particles from the dog!
+	var parent_hub := get_parent()
+	if parent_hub and parent_hub.has_method("declencher_particles_victoire"):
+		parent_hub.call("declencher_particles_victoire")
+
+	label_status.text = "🎯 CAPTURE ! +10 PTS"
+	label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
+
+func _on_miss_treat(index: int) -> void:
+	treats.remove_at(index)
+	lives -= 1
+	flash_duration = 0.22
 	
-	if error < 0.06: # 94%+ Match
-		label_status.text = "✨ SIGNAL STABLE - ALIGNEMENT OK ✨"
-		label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
-		stable_time += delta
-		if stable_time >= stabilization_duration:
-			_on_victory()
-	else:
-		label_status.text = "⚠️ SIGNAL BRUITÉ - ERREUR : " + str(clampi((1.0 - error) * 100.0, 0, 99)) + "%"
-		label_status.add_theme_color_override("font_color", Color(1.0, 0.2, 0.4, 1.0))
-		stable_time = maxf(0.0, stable_time - delta * 0.5)
+	# Update hearts text representation
+	var hearts := ""
+	for h in range(3):
+		if h < lives:
+			hearts += "❤️ "
+		else:
+			hearts += "💔 "
+	label_lives.text = "VIES : " + hearts
+
+	# Glitch low bark sound
+	_play_miss_sound()
+
+	label_status.text = "💥 RATÉ ! ATTENTION !"
+	label_status.add_theme_color_override("font_color", Color(1.0, 0.2, 0.4, 1.0))
+
+	if lives <= 0:
+		_on_game_over()
+
+func _on_game_over() -> void:
+	is_game_over = true
+	_audio_player.stop()
+	treats.clear()
 	
-	progress_bar.value = (stable_time / stabilization_duration) * 100.0
-	label_timer.text = "STABLE: " + ("%.2f" % stable_time) + "s"
+	# Save high score
+	if score > best_score:
+		best_score = score
+		label_best.text = "MEILLEUR SCORE : " + str(best_score)
+
+	# Play low pitch tragic bark sequence
+	_audio_player.pitch_scale = 0.55
+	_audio_player.volume_db = 0.0
+	if not _bark_sounds.is_empty():
+		_audio_player.stream = _bark_sounds[0]
+		_audio_player.play()
+
+	label_over_score.text = "Friandises attrapées : " + str(score / 10) + " (Score Final: " + str(score) + ")"
+	overlay_panel.visible = true
+
+func _on_scope_gui_input(event: InputEvent) -> void:
+	if not is_active or is_game_over:
+		return
+	if event is InputEventMouseMotion:
+		paddle_x = clampf(event.position.x, paddle_width / 2.0, screen_width - paddle_width / 2.0)
 
 func _on_scope_draw() -> void:
-	# Draw scope grid
-	var w: float = scope_control.custom_minimum_size.x
-	var h: float = scope_control.custom_minimum_size.y
+	# Draw play screen background box
+	var w: float = screen_width
+	var h: float = screen_height
 	
-	# Dark background box
 	scope_control.draw_rect(Rect2(0, 0, w, h), Color(0.02, 0.01, 0.04, 1.0))
-	scope_control.draw_rect(Rect2(0, 0, w, h), Color(0.24, 0.95, 0.79, 0.4), false, 2.0)
+	scope_control.draw_rect(Rect2(0, 0, w, h), Color(0.8, 0.5, 1.0, 0.35), false, 2.0)
 	
-	# Grid lines
+	# Grid Lines
 	var step_x := 30.0
 	var step_y := 30.0
 	for gx in range(0, int(w), int(step_x)):
-		scope_control.draw_line(Vector2(gx, 0), Vector2(gx, h), Color(0.24, 0.95, 0.79, 0.08))
+		scope_control.draw_line(Vector2(gx, 0), Vector2(gx, h), Color(0.8, 0.5, 1.0, 0.04))
 	for gy in range(0, int(h), int(step_y)):
-		scope_control.draw_line(Vector2(0, gy), Vector2(w, gy), Color(0.24, 0.95, 0.79, 0.08))
+		scope_control.draw_line(Vector2(0, gy), Vector2(w, gy), Color(0.8, 0.5, 1.0, 0.04))
 
-	# Middle lines
-	scope_control.draw_line(Vector2(0, h/2.0), Vector2(w, h/2.0), Color(0.24, 0.95, 0.79, 0.2), 1.5)
-	scope_control.draw_line(Vector2(w/2.0, 0), Vector2(w/2.0, h), Color(0.24, 0.95, 0.79, 0.2), 1.5)
+	# Catch paddle drawing (neon glowing cyan line)
+	var paddle_left := paddle_x - paddle_width / 2.0
+	var paddle_right := paddle_x + paddle_width / 2.0
+	
+	# Glowing under shadow
+	scope_control.draw_line(Vector2(paddle_left, paddle_y), Vector2(paddle_right, paddle_y), Color(0.24, 0.95, 0.79, 0.3), 10.0)
+	# Solid front bar
+	scope_control.draw_line(Vector2(paddle_left, paddle_y), Vector2(paddle_right, paddle_y), Color(0.24, 0.95, 0.79, 1.0), 4.0)
 
-	# Math sampling for sine wave lines
-	var points_target := PackedVector2Array()
-	var points_player := PackedVector2Array()
-	var points_count := int(w) / 3
-	points_target.resize(points_count)
-	points_player.resize(points_count)
-	var idx := 0
-	for sx in range(0, int(w), 3):
-		var rad_t := sx * target_frequency + wave_phase
-		var rad_p := sx * player_frequency + wave_phase
-		var sy_target := sin(rad_t) * target_amplitude + (h / 2.0)
-		var sy_player := sin(rad_p) * player_amplitude + (h / 2.0)
-		points_target[idx] = Vector2(sx, sy_target)
-		points_player[idx] = Vector2(sx, sy_player)
-		idx += 1
+	# Drawing falling treats
+	for treat in treats:
+		var pos: Vector2 = treat.pos
+		var radius: float = treat.radius
+		var color: Color = treat.color
 
-	scope_control.draw_polyline(points_target, Color(1.0, 0.2, 0.4, 0.6), 1.5, true)
-	scope_control.draw_polyline(points_player, Color(0.24, 0.95, 0.79, 0.95), 2.5, true)
+		# Inner solid circle
+		scope_control.draw_circle(pos, radius, color)
+		# Outer target ring
+		scope_control.draw_arc(pos, radius + 5.0, 0.0, TAU, 16, Color(color, 0.45), 1.5)
 
-func _on_freq_changed(val: float) -> void:
-	player_frequency = val
+	# Screen damage flash
+	if flash_duration > 0.0:
+		scope_control.draw_rect(Rect2(0, 0, w, h), Color(1.0, 0.1, 0.2, 0.26 * (flash_duration / 0.22)))
 
-func _on_amp_changed(val: float) -> void:
-	player_amplitude = val
-
-func _on_sound_timer_timeout() -> void:
-	if not is_active:
-		return
-	_play_bark()
-
-func _play_bark() -> void:
+func _play_happy_bark() -> void:
 	if _bark_sounds.is_empty():
 		return
-	
-	# Determine modulation based on match closeness
-	var freq_diff := absf(player_frequency - target_frequency) / 0.05
-	var amp_diff := absf(player_amplitude - target_amplitude) / 80.0
-	var error := freq_diff + amp_diff
-	
 	_audio_player.stream = _bark_sounds[_rng.randi_range(0, _bark_sounds.size() - 1)]
-	
-	# Real-time pitch modulation according to player frequency setting
-	_audio_player.pitch_scale = lerpf(0.5, 2.5, (player_frequency - 0.005) / 0.045)
-	
-	# Tremolo or distortion modulation if error is high
-	if error > 0.15:
-		_audio_player.volume_db = -12.0
-		# Apply a slight software-modulated glitch on volume if far off
-		if _rng.randf() > 0.5:
-			_audio_player.volume_db = -40.0
-	else:
-		_audio_player.volume_db = -3.0 # Clean full volume near alignment
-		
+	_audio_player.pitch_scale = _rng.randf_range(1.22, 1.55)
+	_audio_player.volume_db = 0.0
 	_audio_player.play()
-	_sound_timer.start(_rng.randf_range(0.65, 0.85))
+
+func _play_miss_sound() -> void:
+	if _bark_sounds.is_empty():
+		return
+	_audio_player.stream = _bark_sounds[0]
+	_audio_player.pitch_scale = 0.65
+	_audio_player.volume_db = -4.0
+	_audio_player.play()
 
 func _input(event: InputEvent) -> void:
-	if not is_active or is_victory:
+	if not is_active:
 		return
+	
 	if event.is_action_pressed("ui_cancel"):
 		close_game()
 		get_viewport().set_input_as_handled()
 		return
 		
-	# Keyboard adjustments support
-	if event.is_action_pressed("marche_droite"):
-		slider_freq.value = minf(slider_freq.max_value, slider_freq.value + 0.001)
-	elif event.is_action_pressed("marche_gauche"):
-		slider_freq.value = maxf(slider_freq.min_value, slider_freq.value - 0.001)
-	elif event.is_action_pressed("marche_haut"):
-		slider_amp.value = minf(slider_amp.max_value, slider_amp.value + 3.0)
-	elif event.is_action_pressed("marche_bas"):
-		slider_amp.value = maxf(slider_amp.min_value, slider_amp.value - 3.0)
+	if is_game_over:
+		if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
+			restart_game()
+			get_viewport().set_input_as_handled()
 
 func open_game() -> void:
 	is_active = true
-	is_victory = false
-	active_time = 0.0
-	stable_time = 0.0
-	progress_bar.value = 0.0
+	is_game_over = false
+	score = 0
+	lives = 3
+	speed_multiplier = 1.0
+	treats.clear()
+	spawn_timer = 0.5
+	paddle_x = 300.0
 	
-	# Randomize new target signals
-	target_frequency = _rng.randf_range(0.015, 0.045)
-	target_amplitude = _rng.randf_range(20.0, 70.0)
+	label_score.text = "SCORE : 0"
+	label_lives.text = "VIES : ❤️ ❤️ ❤️"
+	label_status.text = "🟢 TRANSMISSION STABLE - READY"
+	label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
 	
-	# Soft reset player positions
-	player_frequency = 0.01
-	player_amplitude = 15.0
-	slider_freq.value = player_frequency
-	slider_amp.value = player_amplitude
-	
+	overlay_panel.visible = false
 	visible = true
-	_play_bark()
+	_play_happy_bark()
+
+func restart_game() -> void:
+	is_game_over = false
+	score = 0
+	lives = 3
+	speed_multiplier = 1.0
+	treats.clear()
+	spawn_timer = 0.5
+	paddle_x = 300.0
+	
+	label_score.text = "SCORE : 0"
+	label_lives.text = "VIES : ❤️ ❤️ ❤️"
+	label_status.text = "🟢 PARTIE RELANCÉE - C'EST PARTI !"
+	label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
+	
+	overlay_panel.visible = false
+	_play_happy_bark()
 
 func close_game() -> void:
 	if not is_active:
@@ -379,33 +460,5 @@ func close_game() -> void:
 	is_active = false
 	visible = false
 	_audio_player.stop()
-	_sound_timer.stop()
+	treats.clear()
 	game_finished.emit()
-
-func _on_victory() -> void:
-	is_victory = true
-	_audio_player.stop()
-	_sound_timer.stop()
-	
-	if active_time < best_time:
-		best_time = active_time
-		label_best.text = "BEST TIME: " + ("%.2f" % best_time) + "s"
-	
-	# Play high pitch double victory bark
-	_audio_player.pitch_scale = 1.3
-	_audio_player.volume_db = 0.0
-	if not _bark_sounds.is_empty():
-		_audio_player.stream = _bark_sounds[0]
-		_audio_player.play()
-	
-	label_status.text = "🏆 HARMONISATEUR STABILISÉ AVEC SUCCÈS !"
-	label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
-	
-	var parent_hub := get_parent()
-	if parent_hub and parent_hub.has_method("declencher_particles_victoire"):
-		parent_hub.declencher_particles_victoire()
-	
-	# Delay exit slightly to celebrate
-	await get_tree().create_timer(1.8).timeout
-	if is_inside_tree():
-		close_game()
