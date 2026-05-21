@@ -786,6 +786,19 @@ func _on_leak_message() -> void:
 	_status_label.text = "Court-circuit ! L'electricite est coupee !"
 	_status_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.1))
 
+	var vp := get_viewport().get_visible_rect().size
+	var gen_label := Label.new()
+	gen_label.text = "Les generateurs de secours sont en marche..."
+	gen_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	gen_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	gen_label.add_theme_font_size_override("font_size", 14)
+	gen_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.3))
+	gen_label.position = Vector2(0, vp.y - 55)
+	gen_label.size = Vector2(vp.x, 22)
+	gen_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(gen_label)
+	_dynamic_nodes.append(gen_label)
+
 
 func _on_leak_finish() -> void:
 	_phase = Phase.EXITING

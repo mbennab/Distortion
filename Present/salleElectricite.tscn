@@ -5,6 +5,9 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_retour"]
 size = Vector2(400, 150)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_event3"]
+size = Vector2(120, 160)
+
 [node name="SalleElectricite" type="Node2D" unique_id=64388136]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=503600982]
@@ -26,3 +29,11 @@ monitorable = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="retour_couloir"]
 position = Vector2(1200, 1600)
 shape = SubResource("RectangleShape2D_retour")
+
+[node name="event3" type="Area2D" parent="."]
+collision_layer = 0
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="event3"]
+position = Vector2(600, 800)
+shape = SubResource("RectangleShape2D_event3")
