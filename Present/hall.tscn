@@ -38,6 +38,9 @@ position = Vector2(1210, 1447)
 [node name="secretairePos" type="Marker2D" parent="Camera2D/Node2D" unique_id=2037805306]
 position = Vector2(1067, 752)
 
+[node name="retour couloir" type="Marker2D" parent="Camera2D/Node2D" unique_id=1469562902]
+position = Vector2(1246, 744)
+
 [node name="couloir" type="Area2D" parent="Camera2D" unique_id=1778215358]
 collision_layer = 0
 
