@@ -15,7 +15,7 @@ size = Vector2(237, 28)
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=589589724]
 position = Vector2(1213.5, 808.00006)
-scale = Vector2(0.96004736, 0.95283026)
+scale = Vector2(1.5865449, 1.573515)
 texture = ExtResource("1_e470e")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=708436102]

@@ -19,6 +19,9 @@ var attack_timer := 0.0
 var attack_evaluated := false
 var posture_timer := 0.0
 
+var assassin_stunned := false
+var assassin_stun_timer := 0.0
+
 # Secousse de l'écran
 var _shake_amount := 0.0
 var _bg_default_pos := Vector2(1213.5, 808)
@@ -54,6 +57,8 @@ func start_combat() -> void:
 	attack_cooldown = 0.0
 	_shake_amount = 0.0
 	attack_evaluated = false
+	assassin_stunned = false
+	assassin_stun_timer = 0.0
 	
 	# Instancier ou récupérer l'assassin
 	if not pnj_assassin:
@@ -108,6 +113,16 @@ func _process(delta: float) -> void:
 		if _shake_amount <= 0.0:
 			campement_sprite.position = _bg_default_pos
 			
+	# Gérer l'étourdissement de l'assassin
+	if assassin_stunned:
+		assassin_stun_timer -= delta
+		if assassin_stun_timer <= 0.0:
+			assassin_stunned = false
+			status_label.text = "L'assassin a récupéré de l'étourdissement !"
+			status_label.add_theme_color_override("font_color", Color.WHITE)
+		else:
+			pass # Le timer continue, l'assassin reste étourdi
+
 	# Gérer l'étourdissement du joueur
 	if is_player_stunned:
 		stun_timer -= delta
@@ -156,18 +171,21 @@ func _handle_assassin_logic(delta: float) -> void:
 				_play_sound("res://audio/combat/sword_clash.1.ogg")
 				_flash_screen(Color(1.0, 1.0, 1.0, 0.3))
 				_shake_screen(8.0)
-				status_label.text = "Coup paré ! Vous bloquez l'assassin !"
+				status_label.text = "Coup paré ! L'assassin est étourdi ! (3s)"
 				status_label.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
-				# L'assassin retourne direct en idle après avoir été paré
+				# L'assassin est étourdi : il n'attaque pas pendant 3s
+				assassin_stunned = true
+				assassin_stun_timer = 3.0
 				_change_assassin_posture("idle")
 			else:
 				_damage_player()
 				_change_assassin_posture("idle")
 				
-	# Gérer le changement de posture
-	posture_timer -= delta
-	if posture_timer <= 0.0:
-		_choose_random_posture()
+	# Gérer le changement de posture (l'assassin étourdi ne change pas)
+	if not assassin_stunned:
+		posture_timer -= delta
+		if posture_timer <= 0.0:
+			_choose_random_posture()
 
 func _choose_random_posture() -> void:
 	var rand := randf()
@@ -249,7 +267,8 @@ func _perform_attack() -> void:
 			_damage_assassin()
 
 func _damage_assassin() -> void:
-	assassin_hp -= 1
+	var dmg := 1
+	assassin_hp -= dmg
 	_play_sound("res://audio/combat/sword_swing_3.ogg")
 	_shake_screen(12.0)
 	_flash_node(pnj_assassin, Color(1.5, 0.3, 0.3)) # Flash rouge
@@ -396,36 +415,8 @@ func _defeat() -> void:
 		
 		label.queue_free()
 		
-		# Cacher l'arène de combat et restaurer la forêt
-		hide()
-		combat_ui.hide()
-		
-		# Réinitialiser la forêt et replacer le joueur
-		parent_ma.foret.show()
-		var static_foret = parent_ma.foret.get_node_or_null("StaticBody2D")
-		if static_foret:
-			static_foret.collision_layer = 4
-			
-		# Réactiver la zone d'interaction du PNJ assassin pour pouvoir relancer le dialogue
-		var forest_assassin = parent_ma.foret.get_node_or_null("markers2D/assassin/assassin")
-		if forest_assassin and forest_assassin.has_node("ZoneDialogue"):
-			forest_assassin.get_node("ZoneDialogue").monitoring = true
-			
-		# Rendre le joueur à nouveau visible et actif
-		parent_ma.time_aunote.show()
-		parent_ma.time_aunote.modulate.a = 1.0
-		parent_ma.time_aunote.scale = Vector2(0.8, 0.8)
-		parent_ma.time_aunote.rotation = 0.0
-		var col_node := parent_ma.time_aunote.get_node("collision") as CollisionShape2D
-		if col_node:
-			col_node.disabled = false
-			
-		parent_ma.time_aunote.global_position = parent_ma.foret.get_node("markers2D/apparition").global_position
-		parent_ma.can_move = true
-		parent_ma._play_zone_audio("parc")
-		if parent_ma.has_node("ObjectiveHUD"):
-			parent_ma.get_node("ObjectiveHUD").show()
-		parent_ma._update_objective("Trouver l'assassin dans la forêt")
+		# Recommencer le combat directement de zéro (pv au max)
+		start_combat()
 		
 		# Fondu de retour
 		var tween_back := create_tween()

@@ -1,20 +1,20 @@
 [gd_scene format=3 uid="uid://cphdrnp2uds1l"]
 
 [ext_resource type="Texture2D" uid="uid://ka8k6htqsgs4" path="res://art/MoyenAge/prision_moyen-age.png" id="1_0txog"]
-[ext_resource type="Script" path="res://MoyenAge/prison_moyen_age.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://di4cuj1aclenp" path="res://MoyenAge/prison_moyen_age.gd" id="2_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_porte"]
 radius = 80.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_sortie"]
-radius = 100.0
+radius = 151.16217
 
 [node name="prison_moyen-age" type="Node2D" unique_id=1511540454]
 script = ExtResource("2_script")
 
 [node name="image" type="Sprite2D" parent="." unique_id=220167084]
-position = Vector2(1214, 810)
-scale = Vector2(0.86008525, 1.0520834)
+position = Vector2(1213.5001, 808)
+scale = Vector2(1.8058035, 2.195652)
 texture = ExtResource("1_0txog")
 
 [node name="markers2d" type="Node2D" parent="." unique_id=1159531159]
@@ -28,7 +28,7 @@ position = Vector2(490, 1002)
 [node name="porte" type="Marker2D" parent="markers2d" unique_id=737319500]
 position = Vector2(561, 568)
 
-[node name="sortie" type="Marker2D" parent="markers2d"]
+[node name="sortie" type="Marker2D" parent="markers2d" unique_id=314822981]
 position = Vector2(2100, 1480)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=413258976]
@@ -51,11 +51,10 @@ polygon = PackedVector2Array(82, 399, 86, 573, 827, 580, 825, 399)
 
 [node name="couloir" type="CollisionPolygon2D" parent="limiteDeplacement" unique_id=840574035]
 build_mode = 1
-polygon = PackedVector2Array(84, 927, 86, 1521, 2043, 1524, 2204, 1622, 2419, 1619, 2419, 1412, 1976, 1123, 1824, 1108, 1891, 938, 1973, 917, 1976, 658, 2346, 643, 2343, 446, 1705, 449, 1703, 940)
+polygon = PackedVector2Array(84, 927, 86, 1521, 2043, 1524, 2204, 1622, 2419, 1619, 2426, 1398, 1992, 1111, 1824, 1108, 1891, 938, 1973, 917, 1976, 658, 2344, 645, 2343, 446, 1723, 449, 1721, 935)
 
 [node name="ZoneSortie" type="Area2D" parent="." unique_id=1112422576]
-collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneSortie" unique_id=494994193]
-position = Vector2(2307, 1496)
+position = Vector2(2364, 1548)
 shape = SubResource("CircleShape2D_sortie")
