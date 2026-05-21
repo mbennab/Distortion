@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/MiniJeuTuyau.gd" id="1_tuyau"]
+
+[node name="MiniJeuTuyau" type="CanvasLayer"]
+layer = 129
+script = ExtResource("1_tuyau")
