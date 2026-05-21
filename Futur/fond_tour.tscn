@@ -45,7 +45,9 @@ build_mode = 1
 polygon = PackedVector2Array(1765, 1554, 1769, 1485, 1841, 1496, 1838, 1333, 1928, 1337, 1924, 1468, 2131, 1440, 2197, 1475, 2187, 1565, 1990, 1561)
 
 [node name="sortie" type="Area2D" parent="." unique_id=325234192]
+collision_layer = 134217728
+collision_mask = 8
 
 [node name="sortieFond" type="CollisionShape2D" parent="sortie" unique_id=547767149]
-position = Vector2(1215, 421.75)
+position = Vector2(1217, 318)
 shape = SubResource("RectangleShape2D_cqaf0")

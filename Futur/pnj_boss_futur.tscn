@@ -1,44 +1,44 @@
 [gd_scene format=3 uid="uid://dc0kr1b2j0bpr"]
 
-[ext_resource type="Texture2D" uid="uid://bw2bo261wm5nl" path="res://art/Futur/boss_futur.png" id="1_boss"]
+[ext_resource type="Texture2D" uid="uid://4grp3gxr0anr" path="res://art/Futur/boss_futur.png" id="1_boss"]
+[ext_resource type="Script" uid="uid://di5gsmals53id" path="res://Futur/pnj_boss_futur.gd" id="2_gd"]
 
-[ext_resource type="Script" path="res://Futur/pnj_boss_futur.gd" id="2_gd"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss"]
+radius = 120.0
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_frame1"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_jls5v"]
 atlas = ExtResource("1_boss")
-region = Rect2(0, 0, 287, 640)
+region = Rect2(28, 0, 261, 640)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_frame2"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_8odbb"]
 atlas = ExtResource("1_boss")
-region = Rect2(287, 0, 288, 640)
+region = Rect2(289, 0, 261, 640)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_boss"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_frame1")
+"texture": SubResource("AtlasTexture_jls5v")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_frame2")
+"texture": SubResource("AtlasTexture_8odbb")
 }],
 "loop": true,
 "name": &"idle-boss",
 "speed": 1.0
 }]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_boss"]
-radius = 120.0
-
-[node name="pnj-boss-futur" type="Node2D"]
+[node name="pnj-boss-futur" type="Node2D" unique_id=121067099]
 script = ExtResource("2_gd")
 
-[node name="ZoneDialogue" type="Area2D" parent="."]
+[node name="ZoneDialogue" type="Area2D" parent="." unique_id=1969347754]
 collision_layer = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue" unique_id=1383110402]
 shape = SubResource("CircleShape2D_boss")
 
-[node name="bossAnimation" type="AnimatedSprite2D" parent="."]
+[node name="bossAnimation" type="AnimatedSprite2D" parent="." unique_id=618268431]
 scale = Vector2(0.42, 0.42)
 sprite_frames = SubResource("SpriteFrames_boss")
 animation = &"idle-boss"
+frame_progress = 0.09603784
