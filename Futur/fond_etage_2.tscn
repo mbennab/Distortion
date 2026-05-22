@@ -24,7 +24,7 @@ position = Vector2(1149, 1522)
 [node name="SortieEtage2" type="Area2D" parent="." unique_id=200721019]
 
 [node name="SortieEtage2" type="CollisionShape2D" parent="SortieEtage2" unique_id=1470414402]
-position = Vector2(1215, 429)
+position = Vector2(1215, 397)
 shape = SubResource("RectangleShape2D_ltls1")
 
 [node name="LimitesEtage2" type="StaticBody2D" parent="." unique_id=985210111]
