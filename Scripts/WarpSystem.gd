@@ -16,6 +16,11 @@ var destinations := {
 	"present_entree":	{"zone": "present", "name": "Present — Entrée", "id": "entree"},
 	"present_parking":	{"zone": "present", "name": "Present — Parking", "id": "parking"},
 	"present_hall":		{"zone": "present", "name": "Present — Hall", "id": "hall"},
+	"present_couloir":	{"zone": "present", "name": "Present — Couloir", "id": "couloir"},
+	"present_pc_controle":	{"zone": "present", "name": "Present — PC Contrôle", "id": "pc_controle"},
+	"present_vestiaire":	{"zone": "present", "name": "Present — Vestiaire", "id": "vestiaire"},
+	"present_salle_machine":{"zone": "present", "name": "Present — Salle Machine", "id": "salle_machine"},
+	"present_salle_electricite":{"zone": "present", "name": "Present — Salle Électricité", "id": "salle_electricite"},
 	"futur_entree":		{"zone": "futur", "name": "Futur — Entrée", "id": "entree"},
 	"futur_soussol":	{"zone": "futur", "name": "Futur — Sous-sol", "id": "soussol"},
 	"futur_superette":	{"zone": "futur", "name": "Futur — Supérette", "id": "superette"},
@@ -63,6 +68,17 @@ var minigames_list := [
 ]
 
 var minigame_buttons := {}
+
+var quests_list := [
+	{"id": "quete_enquete_roi", "name": "👑 Enquête Roi Mourant", "zone": "moyenage"},
+	{"id": "quete_evasion", "name": "🔓 Évasion de la Prison", "zone": "moyenage"},
+	{"id": "quete_deguisement", "name": "👗 Obtenir le Déguisement", "zone": "moyenage"},
+	{"id": "quete_piste_assassin", "name": "⚔️ Piste de l'Assassin", "zone": "moyenage"},
+	{"id": "quete_acces_centrale", "name": "🪪 Accès à la Centrale", "zone": "present"},
+	{"id": "quete_preparation", "name": "🔧 Préparation Service", "zone": "present"}
+]
+
+var quest_buttons := {}
 
 
 func _ready() -> void:
@@ -121,21 +137,10 @@ func _setup_ui() -> void:
 	columns_hbox.offset_left = 40
 	columns_hbox.offset_top = 90
 	columns_hbox.offset_right = -40
-	columns_hbox.offset_bottom = -190
+	columns_hbox.offset_bottom = -295 # Shrunk slightly to leave 280px at the bottom
 	columns_hbox.add_theme_constant_override("separation", 20)
 	container.add_child(columns_hbox)
 
-	# Bottom glassmorphic panel for mini-games debug toggles
-	var minigame_panel := PanelContainer.new()
-	minigame_panel.anchor_left = 0.0
-	minigame_panel.anchor_right = 1.0
-	minigame_panel.anchor_top = 1.0
-	minigame_panel.anchor_bottom = 1.0
-	minigame_panel.offset_left = 40
-	minigame_panel.offset_top = -175
-	minigame_panel.offset_right = -40
-	minigame_panel.offset_bottom = -15
-	
 	var mp_style := StyleBoxFlat.new()
 	mp_style.bg_color = Color(0.08, 0.08, 0.12, 0.75) # Sleek glassmorphic dark-gray tint
 	mp_style.border_color = Color(0.25, 0.3, 0.45, 0.3)
@@ -151,26 +156,51 @@ func _setup_ui() -> void:
 	mp_style.content_margin_right = 15
 	mp_style.content_margin_top = 10
 	mp_style.content_margin_bottom = 10
-	minigame_panel.add_theme_stylebox_override("panel", mp_style)
-	container.add_child(minigame_panel)
+
+	var mp_style_left := mp_style
+	var mp_style_right := mp_style.duplicate() as StyleBoxFlat
+
+	# Bottom split container for dual list format
+	var bottom_hbox := HBoxContainer.new()
+	bottom_hbox.anchor_left = 0.0
+	bottom_hbox.anchor_right = 1.0
+	bottom_hbox.anchor_top = 1.0
+	bottom_hbox.anchor_bottom = 1.0
+	bottom_hbox.offset_left = 40
+	bottom_hbox.offset_top = -280
+	bottom_hbox.offset_right = -40
+	bottom_hbox.offset_bottom = -15
+	bottom_hbox.add_theme_constant_override("separation", 20)
+	container.add_child(bottom_hbox)
+
+	# Left panel for mini-games
+	var minigames_panel := PanelContainer.new()
+	minigames_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	minigames_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	minigames_panel.add_theme_stylebox_override("panel", mp_style_left)
+	bottom_hbox.add_child(minigames_panel)
 
 	var mg_vbox := VBoxContainer.new()
 	mg_vbox.add_theme_constant_override("separation", 6)
-	minigame_panel.add_child(mg_vbox)
+	mg_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	minigames_panel.add_child(mg_vbox)
 	
 	var mg_title := Label.new()
-	mg_title.text = "ÉVALUATION ET CONTRÔLE DES MINI-JEUX TEMPORELS"
+	mg_title.text = "ÉVALUATION DES MINI-JEUX TEMPORELS"
 	mg_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mg_title.add_theme_font_size_override("font_size", 11)
 	mg_title.add_theme_color_override("font_color", Color(0.4, 0.75, 1.0, 0.8)) # Glowing cyan hint
 	mg_vbox.add_child(mg_title)
-	
-	var grid := GridContainer.new()
-	grid.columns = 5
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 8)
-	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	mg_vbox.add_child(grid)
+
+	var mg_scroll := ScrollContainer.new()
+	mg_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mg_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	mg_vbox.add_child(mg_scroll)
+
+	var mg_list_vbox := VBoxContainer.new()
+	mg_list_vbox.add_theme_constant_override("separation", 4)
+	mg_list_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mg_scroll.add_child(mg_list_vbox)
 
 	for i in range(minigames_list.size()):
 		var mg_info: Dictionary = minigames_list[i]
@@ -180,12 +210,54 @@ func _setup_ui() -> void:
 		var btn := Button.new()
 		btn.text = display_name
 		btn.toggle_mode = true
-		btn.custom_minimum_size = Vector2(0, 36)
+		btn.custom_minimum_size = Vector2(0, 30)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(btn)
+		mg_list_vbox.add_child(btn)
 		
 		minigame_buttons[key] = btn
 		btn.toggled.connect(func(toggled_on: bool): _on_minigame_toggled(toggled_on, key))
+
+	# Right panel for quests
+	var quests_panel := PanelContainer.new()
+	quests_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	quests_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	quests_panel.add_theme_stylebox_override("panel", mp_style_right)
+	bottom_hbox.add_child(quests_panel)
+
+	var q_vbox := VBoxContainer.new()
+	q_vbox.add_theme_constant_override("separation", 6)
+	q_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	quests_panel.add_child(q_vbox)
+
+	var q_title := Label.new()
+	q_title.text = "VALIDATION DES QUÊTES ACTIVES"
+	q_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	q_title.add_theme_font_size_override("font_size", 11)
+	q_title.add_theme_color_override("font_color", Color(1.0, 0.75, 0.4, 0.8)) # Glowing amber hint
+	q_vbox.add_child(q_title)
+
+	var q_scroll := ScrollContainer.new()
+	q_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	q_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	q_vbox.add_child(q_scroll)
+
+	var q_list_vbox := VBoxContainer.new()
+	q_list_vbox.add_theme_constant_override("separation", 4)
+	q_list_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	q_scroll.add_child(q_list_vbox)
+
+	for i in range(quests_list.size()):
+		var quest: Dictionary = quests_list[i]
+		var qid: String = quest.id
+
+		var btn := Button.new()
+		btn.text = quest.name
+		btn.custom_minimum_size = Vector2(0, 30)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		q_list_vbox.add_child(btn)
+
+		quest_buttons[qid] = btn
+		btn.pressed.connect(_on_quest_clicked.bind(qid))
 
 	for zone in zone_order:
 		var zone_dests := []
@@ -222,6 +294,7 @@ func _setup_ui() -> void:
 
 		var col := VBoxContainer.new()
 		col.add_theme_constant_override("separation", 10)
+		col.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		card.add_child(col)
 
 		var section := Label.new()
@@ -237,6 +310,17 @@ func _setup_ui() -> void:
 		sep.color = Color(z_color.r, z_color.g, z_color.b, 0.3)
 		sep.custom_minimum_size = Vector2(0, 2)
 		col.add_child(sep)
+
+		# Wrap the buttons list in a ScrollContainer inside the card to prevent vertical overflows
+		var btn_scroll := ScrollContainer.new()
+		btn_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		btn_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		col.add_child(btn_scroll)
+
+		var btn_vbox := VBoxContainer.new()
+		btn_vbox.add_theme_constant_override("separation", 6)
+		btn_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_scroll.add_child(btn_vbox)
 
 		for key in zone_dests:
 			var dest := destinations[key] as Dictionary
@@ -280,7 +364,7 @@ func _setup_ui() -> void:
 			btn.add_theme_color_override("font_pressed_color", Color.WHITE)
 			
 			btn.pressed.connect(_on_warp.bind(key))
-			col.add_child(btn)
+			btn_vbox.add_child(btn)
 			buttons.append(btn)
 
 
@@ -303,6 +387,7 @@ func toggle() -> void:
 	if open:
 		update_minigames_status_from_game()
 		_update_minigame_button_styles()
+		update_quests_status_from_game()
 		show()
 	else:
 		hide()
@@ -498,77 +583,86 @@ func _set_step_state(quest_id: String, step_id: String, completed: bool) -> void
 
 
 func _apply_active_scene_reactions(key: String, toggled_on: bool) -> void:
-	var current_scene = get_tree().current_scene
-	if current_scene == null:
+	var main = get_tree().current_scene
+	if main == null or not main.has_method("warp_to_era"):
 		return
+	var current_zone = main.get("current_zone")
 
 	# --- Moyen Âge ---
-	var moyenage = current_scene.find_child("MoyenAge", true, false)
-	if moyenage:
-		match key:
-			"crochetage":
-				if toggled_on:
-					moyenage._on_minigame_success()
-			"marchandage":
-				if toggled_on:
-					moyenage._on_shop_minigame_success()
-					var shop = moyenage.get_node_or_null("magasin_moyen_age")
-					if shop:
-						shop.disguise_obtained = true
-					TimeAunoteScript.disguised = true
-					var player = moyenage.find_child("TimeAunote", true, false)
-					if player and player.has_method("apply_disguise"):
-						player.apply_disguise()
-				else:
-					var shop = moyenage.get_node_or_null("magasin_moyen_age")
-					if shop:
-						shop.disguise_obtained = false
-					TimeAunoteScript.disguised = false
-					var player = moyenage.find_child("TimeAunote", true, false)
-					if player and player.has_method("remove_disguise"):
-						player.remove_disguise()
-			"ecoute_tables":
-				if toggled_on:
-					moyenage._on_auberge_all_tables_done()
-			"combat_assassin":
-				if toggled_on:
-					var campement = moyenage.get_node_or_null("campement")
-					if campement and campement.has_method("_victory"):
-						campement._victory()
+	if current_zone == "moyenage":
+		var moyenage = main.get_node_or_null("MoyenAge")
+		if moyenage and moyenage.get("started") == true:
+			match key:
+				"crochetage":
+					if toggled_on:
+						moyenage._on_minigame_success()
+				"marchandage":
+					if toggled_on:
+						moyenage._on_shop_minigame_success()
+						var shop = moyenage.get_node_or_null("magasin_moyen_age")
+						if shop:
+							shop.disguise_obtained = true
+						TimeAunoteScript.disguised = true
+						var player = moyenage.find_child("TimeAunote", true, false)
+						if player and player.has_method("apply_disguise"):
+							player.apply_disguise()
+					else:
+						var shop = moyenage.get_node_or_null("magasin_moyen_age")
+						if shop:
+							shop.disguise_obtained = false
+						TimeAunoteScript.disguised = false
+						var player = moyenage.find_child("TimeAunote", true, false)
+						if player and player.has_method("remove_disguise"):
+							player.remove_disguise()
+				"ecoute_tables":
+					if toggled_on:
+						moyenage._on_auberge_all_tables_done()
+				"combat_assassin":
+					if toggled_on:
+						var campement = moyenage.get_node_or_null("campement")
+						if campement and campement.has_method("_victory"):
+							campement._victory()
 
 	# --- Present ---
-	var present = current_scene.find_child("Present", true, false)
-	if present:
-		match key:
-			"infiltration":
-				_set_parking_badge(toggled_on)
-				if toggled_on:
-					present._on_parking_minigame_won()
-			"tuyaux":
-				if toggled_on:
-					present._on_salle_machine_minigame_done(true)
-			"cablage":
-				if toggled_on:
-					present._on_disjoncteur_minigame_done(true)
+	elif current_zone == "present":
+		var present = main.get_node_or_null("Present")
+		if present and present.get("started") == true:
+			match key:
+				"infiltration":
+					_set_parking_badge(toggled_on)
+					if toggled_on:
+						present._on_parking_minigame_won()
+				"tuyaux":
+					if toggled_on:
+						present._on_salle_machine_minigame_done(true)
+				"cablage":
+					if toggled_on:
+						present._on_disjoncteur_minigame_done(true)
 
 	# --- Futur ---
-	var futur = current_scene.find_child("Futur", true, false)
-	if futur:
-		match key:
-			"conduite":
-				if toggled_on:
-					futur._on_car_minigame_done(true)
-			"lasers":
-				if toggled_on:
-					futur._on_tourelle_minigame_done(true)
-			"boss_rpg":
-				if toggled_on:
-					futur._on_combat_boss_won()
+	elif current_zone == "futur":
+		var futur = main.get_node_or_null("Futur")
+		if futur and futur.get("started") == true:
+			match key:
+				"conduite":
+					if toggled_on:
+						futur._on_car_minigame_done(true)
+				"lasers":
+					if toggled_on:
+						futur._on_tourelle_minigame_done(true)
+				"boss_rpg":
+					if toggled_on:
+						futur._on_combat_boss_won()
 
 
 func _set_parking_badge(done: bool) -> void:
-	var present = get_tree().current_scene.find_child("Present", true, false)
-	if not present:
+	var main = get_tree().current_scene
+	if main == null or not main.has_method("warp_to_era"):
+		return
+	if main.get("current_zone") != "present":
+		return
+	var present = main.get_node_or_null("Present")
+	if not present or present.get("started") != true:
 		return
 	var parking = present.get_node_or_null("Parking")
 	if parking:
@@ -577,6 +671,146 @@ func _set_parking_badge(done: bool) -> void:
 	if pnj:
 		pnj.npc_id = "npc_securite_present_retour" if done else "npc_securite_present"
 	print("[WarpSystem] Badge %s" % ("FAIT" if done else "PAS FAIT"))
+
+
+func _on_quest_clicked(quest_id: String) -> void:
+	var qs = DialogueSystem.game_state.get(quest_id)
+	var current_status := "not_started"
+	if qs is Dictionary:
+		current_status = qs.get("status", "not_started")
+
+	print("[WarpSystem] Quest clicked: %s (current status: %s)" % [quest_id, current_status])
+
+	if current_status == "done":
+		DialogueSystem.reset_quest(quest_id)
+		_apply_quest_reversal_reactions(quest_id)
+	else:
+		var qs_dict = DialogueSystem.game_state.get(quest_id)
+		if qs_dict is Dictionary:
+			var quest = DialogueSystem._find_quest(quest_id)
+			var completed_list: Array = qs_dict.get("completed_steps", [])
+			if not quest.is_empty():
+				for s in quest.get("steps", []):
+					var step_id: String = s.get("id", "")
+					if step_id not in completed_list:
+						completed_list.append(step_id)
+			qs_dict["completed_steps"] = completed_list
+			qs_dict["status"] = "done"
+			qs_dict["current_step"] = ""
+			DialogueSystem.quest_updated.emit(quest_id, "done", "")
+		_apply_quest_validation_reactions(quest_id)
+
+	# Synchronize state and styles
+	update_minigames_status_from_game()
+	_update_minigame_button_styles()
+	update_quests_status_from_game()
+
+
+func _apply_quest_validation_reactions(quest_id: String) -> void:
+	match quest_id:
+		"quete_evasion":
+			_apply_active_scene_reactions("crochetage", true)
+		"quete_deguisement":
+			_apply_active_scene_reactions("marchandage", true)
+		"quete_piste_assassin":
+			_apply_active_scene_reactions("ecoute_tables", true)
+			_apply_active_scene_reactions("combat_assassin", true)
+		"quete_acces_centrale":
+			_apply_active_scene_reactions("infiltration", true)
+		"quete_preparation":
+			_apply_active_scene_reactions("tuyaux", true)
+			_apply_active_scene_reactions("cablage", true)
+
+
+func _apply_quest_reversal_reactions(quest_id: String) -> void:
+	var main = get_tree().current_scene
+	if main == null or not main.has_method("warp_to_era"):
+		return
+	var current_zone = main.get("current_zone")
+
+	match quest_id:
+		"quete_evasion":
+			_apply_active_scene_reactions("crochetage", false)
+		"quete_deguisement":
+			_apply_active_scene_reactions("marchandage", false)
+		"quete_piste_assassin":
+			_apply_active_scene_reactions("ecoute_tables", false)
+			_apply_active_scene_reactions("combat_assassin", false)
+		"quete_acces_centrale":
+			_apply_active_scene_reactions("infiltration", false)
+			if current_zone == "present":
+				var present = main.get_node_or_null("Present")
+				if present and present.get("started") == true:
+					present._parking_unlocked = false
+		"quete_preparation":
+			_apply_active_scene_reactions("tuyaux", false)
+			_apply_active_scene_reactions("cablage", false)
+			if current_zone == "present":
+				var present = main.get_node_or_null("Present")
+				if present and present.get("started") == true:
+					present._salle_machine_done = false
+					present._disjoncteur_done = false
+					present._player_has_changed_once = false
+					present._show_darkness_overlay() # Restore darkness overlay since breaker is reset
+					present._update_secretaire_npc_id()
+
+
+func update_quests_status_from_game() -> void:
+	for quest in quests_list:
+		var qid: String = quest.id
+		var btn: Button = quest_buttons.get(qid)
+		if btn == null:
+			continue
+
+		var qs = DialogueSystem.game_state.get(qid)
+		var status := "not_started"
+		if qs is Dictionary:
+			status = qs.get("status", "not_started")
+
+		var zone_color: Color = _zone_color(quest.zone)
+		var style_normal := StyleBoxFlat.new()
+		style_normal.border_width_left = 1
+		style_normal.border_width_right = 1
+		style_normal.border_width_top = 1
+		style_normal.border_width_bottom = 1
+		style_normal.corner_radius_top_left = 6
+		style_normal.corner_radius_top_right = 6
+		style_normal.corner_radius_bottom_left = 6
+		style_normal.corner_radius_bottom_right = 6
+
+		if status == "done":
+			# Glowing completed style (emerald neon theme)
+			style_normal.bg_color = Color(0.1, 0.35, 0.18, 0.8) # Rich emerald green
+			style_normal.border_color = Color(0.2, 0.9, 0.45, 0.9) # Bright glowing green border
+			btn.add_theme_color_override("font_color", Color(0.9, 1.0, 0.95))
+			btn.text = quest.name + " [FAIT]"
+		elif status == "active":
+			# Active quest style (warm amber theme)
+			style_normal.bg_color = Color(0.35, 0.22, 0.1, 0.7) # Warm amber/brown
+			style_normal.border_color = Color(1.0, 0.65, 0.2, 0.9) # Glowing orange border
+			btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.8))
+			btn.text = quest.name + " [EN COURS]"
+		else:
+			# Dimmed/inactive style matching the era's color slightly
+			style_normal.bg_color = Color(0.09, 0.09, 0.11, 0.6)
+			style_normal.border_color = Color(zone_color.r * 0.35, zone_color.g * 0.35, zone_color.b * 0.35, 0.4)
+			btn.add_theme_color_override("font_color", Color(0.65, 0.68, 0.72))
+			btn.text = quest.name + " [NON COMMENCÉ]"
+
+		var style_hover := style_normal.duplicate() as StyleBoxFlat
+		if status == "done":
+			style_hover.bg_color = Color(0.12, 0.42, 0.22, 0.9)
+			style_hover.border_color = Color(0.3, 1.0, 0.55, 1.0)
+		elif status == "active":
+			style_hover.bg_color = Color(0.42, 0.27, 0.12, 0.85)
+			style_hover.border_color = Color(1.0, 0.75, 0.3, 1.0)
+		else:
+			style_hover.bg_color = Color(0.14, 0.14, 0.18, 0.8)
+			style_hover.border_color = Color(zone_color.r, zone_color.g, zone_color.b, 0.8)
+
+		btn.add_theme_stylebox_override("normal", style_normal)
+		btn.add_theme_stylebox_override("hover", style_hover)
+		btn.add_theme_stylebox_override("pressed", style_normal)
 
 
 func _do_warp(zone: String, spawn_id: String) -> void:

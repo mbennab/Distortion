@@ -623,8 +623,13 @@ func _return_from_couloir() -> void:
 	_set_hall_collisions(true)
 	_set_zone_camera("hall")
 
-	time_aunote.global_position = hall.get_node("Camera2D/Node2D/zone pop").global_position
+	var r_marker = hall.get_node_or_null("Camera2D/Node2D/retour couloir")
+	if r_marker:
+		time_aunote.global_position = r_marker.global_position
+	else:
+		time_aunote.global_position = hall.get_node("Camera2D/Node2D/zone pop").global_position
 	time_aunote.scale = Vector2(0.924, 0.924)
+
 
 	var secretaire_marker = hall.get_node_or_null("Camera2D/Node2D/secretairePos")
 	if pnj_secretaire and secretaire_marker:
@@ -1232,6 +1237,24 @@ func _update_secretaire_npc_id() -> void:
 		pnj_secretaire.npc_id = "npc_secretaire_present"
 
 
+
+func _ensure_hall_quest_done() -> void:
+	var q_secu = DialogueSystem.game_state.get("quete_acces_centrale", {})
+	if q_secu is Dictionary:
+		q_secu["status"] = "done"
+		q_secu["completed_steps"] = ["etape_parler_gardien", "etape_chercher_carte", "etape_retour_gardien"]
+		q_secu["current_step"] = ""
+	var q_prep = DialogueSystem.game_state.get("quete_preparation", {})
+	if q_prep is Dictionary:
+		q_prep["status"] = "active"
+		if q_prep.get("current_step", "") == "":
+			q_prep["current_step"] = "etape_parler_secretaire"
+		if q_prep.get("completed_steps") == null:
+			q_prep["completed_steps"] = []
+	_couloir_unlocked = true
+
+
+
 func _try_unlock_parking() -> void:
 	if _parking_unlocked:
 		return
@@ -1302,8 +1325,10 @@ func _process(delta: float) -> void:
 
 func _handle_movement(delta: float) -> void:
 	if DialogueUI.is_dialogue_active():
-		time_aunote.animation(Vector2.ZERO)
+		if is_instance_valid(time_aunote):
+			time_aunote.animation(Vector2.ZERO)
 		return
+	var current_speed := 700.0 if (couloir != null and couloir.visible) else speed
 	var velocity := Vector2.ZERO
 	if Input.is_action_pressed("marche_haut"):
 		velocity.y -= 1
@@ -1315,7 +1340,7 @@ func _handle_movement(delta: float) -> void:
 		velocity.x -= 1
 	var direction := velocity.normalized()
 	time_aunote.animation(direction)
-	time_aunote.move_and_collide(direction * speed * delta)
+	time_aunote.move_and_collide(direction * current_speed * delta)
 
 
 func _update_objective(text: String) -> void:
@@ -1458,6 +1483,170 @@ func start(spawn_id: String = "entree") -> void:
 		_update_objective("Parler à la secrétaire")
 		return
 
+	if spawn_id == "couloir":
+		$fondPresent.hide()
+		_set_fond_collisions(false)
+		if pnj_secu:
+			pnj_secu.hide()
+			pnj_secu.get_node("ZoneDialogue").monitoring = false
+		$Parking.hide()
+		_set_parking_collisions(false)
+		$Parking.set_interactive(false)
+		
+		couloir.show()
+		_set_couloir_collisions(true)
+		_set_zone_camera("couloir")
+		time_aunote.position = couloir.get_node("Node2D/pop hall").position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(1.58, 1.58)
+		time_aunote.rotation = 0.0
+		can_move = true
+		var col_couloir := time_aunote.get_node("collision") as CollisionShape2D
+		col_couloir.disabled = false
+		started = true
+		stopped = false
+		
+		_ensure_hall_quest_done()
+		_update_secretaire_npc_id()
+		_update_objective("Aller se changer")
+		return
+
+	if spawn_id == "vestiaire":
+		$fondPresent.hide()
+		_set_fond_collisions(false)
+		if pnj_secu:
+			pnj_secu.hide()
+			pnj_secu.get_node("ZoneDialogue").monitoring = false
+		$Parking.hide()
+		_set_parking_collisions(false)
+		$Parking.set_interactive(false)
+		
+		vestiaire.start()
+		_set_vestiaire_collisions(true)
+		_set_zone_camera("vestiaire")
+		time_aunote.position = vestiaire.get_node("Node2D/zone pop").position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(0.9555, 0.9555)
+		time_aunote.rotation = 0.0
+		can_move = true
+		var col_vestiaire := time_aunote.get_node("collision") as CollisionShape2D
+		col_vestiaire.disabled = false
+		started = true
+		stopped = false
+		
+		_ensure_hall_quest_done()
+		_update_secretaire_npc_id()
+		_update_objective("Aller se changer")
+		return
+
+	if spawn_id == "salle_machine":
+		$fondPresent.hide()
+		_set_fond_collisions(false)
+		if pnj_secu:
+			pnj_secu.hide()
+			pnj_secu.get_node("ZoneDialogue").monitoring = false
+		$Parking.hide()
+		_set_parking_collisions(false)
+		$Parking.set_interactive(false)
+		
+		salle_machine.show()
+		_set_salle_machine_collisions(true)
+		_set_zone_camera("salle_machine")
+		time_aunote.position = salle_machine.get_node("Node2D/zone pop").position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(0.9555, 0.9555)
+		time_aunote.rotation = 0.0
+		can_move = true
+		var col_salle_machine := time_aunote.get_node("collision") as CollisionShape2D
+		col_salle_machine.disabled = false
+		started = true
+		stopped = false
+		
+		_ensure_hall_quest_done()
+		var q_prep = DialogueSystem.game_state.get("quete_preparation", {})
+		if q_prep is Dictionary:
+			q_prep["completed_steps"] = ["etape_parler_secretaire", "etape_aller_vestiaires"]
+			q_prep["current_step"] = "etape_reparer_machines"
+		TimeAunoteScript.disguised_present = true
+		_player_has_changed_once = true
+		if time_aunote.has_method("apply_disguise"):
+			time_aunote.apply_disguise()
+		_update_secretaire_npc_id()
+		_update_objective("Aller réparer la salle des machines")
+		return
+
+	if spawn_id == "salle_electricite":
+		$fondPresent.hide()
+		_set_fond_collisions(false)
+		if pnj_secu:
+			pnj_secu.hide()
+			pnj_secu.get_node("ZoneDialogue").monitoring = false
+		$Parking.hide()
+		_set_parking_collisions(false)
+		$Parking.set_interactive(false)
+		
+		salle_electricite.show()
+		_set_salle_electricite_collisions(true)
+		_set_zone_camera("salle_electricite")
+		time_aunote.position = salle_electricite.get_node("Node2D/zone pop").position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(0.9555, 0.9555)
+		time_aunote.rotation = 0.0
+		can_move = true
+		var col_salle_electricite := time_aunote.get_node("collision") as CollisionShape2D
+		col_salle_electricite.disabled = false
+		started = true
+		stopped = false
+		
+		_ensure_hall_quest_done()
+		var q_prep = DialogueSystem.game_state.get("quete_preparation", {})
+		if q_prep is Dictionary:
+			q_prep["completed_steps"] = ["etape_parler_secretaire", "etape_aller_vestiaires", "etape_reparer_machines", "etape_retour_secretaire_panique"]
+			q_prep["current_step"] = "etape_reparer_electricite"
+		TimeAunoteScript.disguised_present = true
+		_player_has_changed_once = true
+		_salle_machine_done = true
+		if time_aunote.has_method("apply_disguise"):
+			time_aunote.apply_disguise()
+		_show_darkness_overlay()
+		_update_secretaire_npc_id()
+		_update_objective("Remettre le disjoncteur")
+		return
+
+	if spawn_id == "pc_controle":
+		$fondPresent.hide()
+		_set_fond_collisions(false)
+		if pnj_secu:
+			pnj_secu.hide()
+			pnj_secu.get_node("ZoneDialogue").monitoring = false
+		$Parking.hide()
+		_set_parking_collisions(false)
+		$Parking.set_interactive(false)
+		
+		pc_controle.show()
+		_set_pc_controle_collisions(true)
+		_set_zone_camera("pc_controle")
+		time_aunote.position = pc_controle.get_node("Node2D/zone pop").position
+		time_aunote.show()
+		time_aunote.modulate.a = 1.0
+		time_aunote.scale = Vector2(0.9555, 0.9555)
+		time_aunote.rotation = 0.0
+		can_move = true
+		var col_pc_controle := time_aunote.get_node("collision") as CollisionShape2D
+		col_pc_controle.disabled = false
+		started = true
+		stopped = false
+		
+		_ensure_hall_quest_done()
+		_update_secretaire_npc_id()
+		_update_objective("Prendre son service de maintenance")
+		return
+
+
 
 	_update_objective("Parler à l'agent de sécurité")
 	time_aunote.position = position_entree_principale
@@ -1498,7 +1687,10 @@ func _on_parking_minigame_won() -> void:
 	DialogueSystem.complete_step("quete_acces_centrale", "etape_chercher_carte")
 	if pnj_secu:
 		pnj_secu.npc_id = "npc_securite_present_retour"
-	time_aunote.global_position = $"Parking/Node2D/zone pop after jeux".global_position
+	if is_instance_valid(time_aunote):
+		var marker = get_node_or_null("Parking/Node2D/zone pop after jeux")
+		if marker:
+			time_aunote.global_position = marker.global_position
 	_update_objective("Retourner voir l'agent de securite")
 	can_move = true
 
@@ -1517,9 +1709,11 @@ func _start_salle_machine_minigame() -> void:
 func _on_salle_machine_minigame_done(success: bool) -> void:
 	_salle_machine_minigame = null
 	_salle_machine_done = true
-	_machines_repair_prompt.visible = false
+	if _machines_repair_prompt:
+		_machines_repair_prompt.visible = false
 	_player_at_machines_repair = false
-	time_aunote.show()
+	if is_instance_valid(time_aunote):
+		time_aunote.show()
 	can_move = true
 	if success:
 		DialogueSystem.complete_step("quete_preparation", "etape_reparer_machines")
@@ -1543,10 +1737,12 @@ func _start_disjoncteur_minigame() -> void:
 func _on_disjoncteur_minigame_done(success: bool) -> void:
 	_cablage_minigame = null
 	_disjoncteur_done = success
-	time_aunote.show()
+	if is_instance_valid(time_aunote):
+		time_aunote.show()
 	can_move = true
 	_player_at_disjoncteur = false
-	_disjoncteur_prompt.visible = false
+	if _disjoncteur_prompt:
+		_disjoncteur_prompt.visible = false
 	if success:
 		var q_prep = DialogueSystem.game_state.get("quete_preparation", {})
 		if q_prep is Dictionary:
@@ -1557,7 +1753,7 @@ func _on_disjoncteur_minigame_done(success: bool) -> void:
 		_remove_darkness_overlay()
 		_update_secretaire_npc_id()
 	else:
-		if _darkness_active:
+		if _darkness_active and _darkness_layer:
 			_darkness_layer.show()
 		_disjoncteur_done = false
 

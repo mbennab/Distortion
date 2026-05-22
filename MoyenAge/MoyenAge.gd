@@ -665,7 +665,10 @@ func _on_minigame_started() -> void:
 
 
 func _on_minigame_success() -> void:
-	time_aunote.global_position = prison.get_node("markers2d/teleportation").global_position
+	if is_instance_valid(time_aunote) and is_instance_valid(prison):
+		var marker = prison.get_node_or_null("markers2d/teleportation")
+		if marker:
+			time_aunote.global_position = marker.global_position
 	_update_objective("Trouver la sortie de la prison")
 	_play_zone_audio("prison")
 	can_move = true

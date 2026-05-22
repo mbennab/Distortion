@@ -368,6 +368,15 @@ func _typewriter_text(label: Label, target_text: String) -> void:
 		await get_tree().create_timer(0.04).timeout
 
 func _victory() -> void:
+	if not is_combat_active:
+		# Just set dialogue steps and return, don't trigger combat cinematic or crash
+		var quest_state = DialogueSystem.game_state.get("quete_piste_assassin")
+		if quest_state:
+			if quest_state.get("current_step", "") == "etape_enqueter_foret":
+				DialogueSystem.complete_step("quete_piste_assassin", "etape_enqueter_foret")
+		DialogueSystem.complete_step("quete_piste_assassin", "etape_trouver_assassin")
+		return
+
 	is_combat_active = false
 	status_label.text = "VICTOIRE ! L'assassin est vaincu !"
 	status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
