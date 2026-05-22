@@ -618,7 +618,7 @@ func _trigger_roi_adieu_sequence() -> void:
 	label.z_index = 100
 
 	var center: Vector2 = (pos1 + pos2) / 2.0
-	label.position = Vector2(center.x - 250, pos1.y - 280)
+	label.position = Vector2(center.x - 250, pos1.y - 150)
 	add_child(label)
 	knights.append(label)
 
