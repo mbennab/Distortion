@@ -12,6 +12,7 @@ var destinations := {
 	"moyenage_auberge":	{"zone": "moyenage", "name": "Moyen Âge — Auberge", "id": "auberge"},
 	"moyenage_parc":	{"zone": "moyenage", "name": "Moyen Âge — Parc", "id": "parc"},
 	"moyenage_foret":	{"zone": "moyenage", "name": "Moyen Âge — Forêt", "id": "foret"},
+	"moyenage_campement":	{"zone": "moyenage", "name": "Moyen Âge — Combat Assassin", "id": "campement"},
 	"present_entree":	{"zone": "present", "name": "Present — Entrée", "id": "entree"},
 	"present_parking":	{"zone": "present", "name": "Present — Parking", "id": "parking"},
 	"present_hall":		{"zone": "present", "name": "Present — Hall", "id": "hall"},

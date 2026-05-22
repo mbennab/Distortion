@@ -409,6 +409,31 @@ func start(spawn_id: String = "entree") -> void:
 			_play_zone_audio("foret")
 			return
 
+		"campement":
+			$fondMoyenAge.hide()
+			$fondMoyenAge.get_node_or_null("limitesDeplacements").collision_layer = 0
+			pnj_roi.hide()
+			pnj_roi.get_node("ZoneDialogue").monitoring = false
+			foret.process_mode = PROCESS_MODE_DISABLED
+			foret.hide()
+			var static_foret = foret.get_node_or_null("StaticBody2D")
+			if static_foret:
+				static_foret.collision_layer = 0
+			var forest_assassin = foret.get_node_or_null("markers2D/assassin/assassin")
+			if forest_assassin and forest_assassin.has_node("ZoneDialogue"):
+				forest_assassin.get_node("ZoneDialogue").monitoring = false
+			time_aunote.hide()
+			var col_node := time_aunote.get_node("collision") as CollisionShape2D
+			if col_node:
+				col_node.disabled = true
+			campement.start_combat()
+			_play_zone_audio("campement")
+			can_move = false
+			started = true
+			stopped = false
+			_update_objective("Vaincre l'assassin !")
+			return
+
 		_:
 			time_aunote.position = position_entree_principale
 			if prison:
