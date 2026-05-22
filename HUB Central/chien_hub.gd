@@ -74,7 +74,7 @@ func _setup_bubble() -> void:
 
 func _setup_prompt() -> void:
 	_prompt_label = Label.new()
-	_prompt_label.text = "Appuyez sur E pour dire bonjour au chien"
+	_prompt_label.text = "Appuyez sur E pour jouer avec le chien"
 	_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_prompt_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_prompt_label.add_theme_font_size_override("font_size", 18)
@@ -149,6 +149,8 @@ func show_bubble(text: String) -> void:
 	_bubble.visible = true
 	_bubble_timer.start(2.0)
 	await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	_update_bubble_position()
 
 
@@ -163,6 +165,8 @@ func _on_body_entered(body: Node2D) -> void:
 		_player_nearby = true
 		_prompt_label.visible = true
 		await get_tree().process_frame
+		if not is_inside_tree():
+			return
 		_update_prompt_position()
 
 
@@ -176,8 +180,11 @@ func _input(event: InputEvent) -> void:
 	if event.is_echo() or not _player_nearby:
 		return
 	if event.is_action_pressed("interagir"):
-		_bark()
-		get_viewport().set_input_as_handled()
+		var hub := get_parent()
+		if hub and hub.has_method("lancer_mini_jeu_chien"):
+			_prompt_label.visible = false
+			hub.call("lancer_mini_jeu_chien")
+			get_viewport().set_input_as_handled()
 
 
 func _bark() -> void:
