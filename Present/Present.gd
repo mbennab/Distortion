@@ -68,6 +68,8 @@ var _cablage_minigame: Node = null
 var _disjoncteur_done: bool = false
 var _disjoncteur_prompt: Label
 var _disjoncteur_locked_prompt: Label
+var _player_has_changed_once: bool = false
+
 
 
 func _ready() -> void:
@@ -761,8 +763,12 @@ func _return_from_vestiaire() -> void:
 		return
 
 	can_move = true
-	if TimeAunoteScript.disguised_present and pnj_secretaire:
-		pnj_secretaire.npc_id = "npc_secretaire_present_change"
+	if TimeAunoteScript.disguised_present:
+		_player_has_changed_once = true
+		var qp = DialogueSystem.game_state.get("quete_preparation")
+		if qp is Dictionary and qp.get("current_step", "") == "etape_aller_vestiaires":
+			DialogueSystem.complete_step("quete_preparation", "etape_aller_vestiaires")
+	_update_secretaire_npc_id()
 
 
 func _go_to_salle_machine() -> void:
@@ -1157,6 +1163,9 @@ func _on_action_triggered(action: Dictionary) -> void:
 	elif act_type == "trigger" and act_id == "secretaire_accueil":
 		DialogueSystem.complete_step("quete_preparation", "etape_parler_secretaire")
 		_couloir_unlocked = true
+	elif act_type == "trigger" and act_id == "secretaire_fin":
+		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_fin")
+
 
 
 func _on_quest_updated(quest_id: String, status: String, current_step: String) -> void:
@@ -1198,7 +1207,29 @@ func _on_dialogue_ended() -> void:
 	if not _couloir_unlocked and _last_dialogue_npc_id == "npc_secretaire_present":
 		_couloir_unlocked = true
 		DialogueSystem.complete_step("quete_preparation", "etape_parler_secretaire")
+	
+	if _last_dialogue_npc_id == "npc_secretaire_present_courtcircuit":
+		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_panique")
+	elif _last_dialogue_npc_id == "npc_secretaire_present_retabli":
+		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_fin")
+		
+	_update_secretaire_npc_id()
 	_last_dialogue_npc_id = ""
+
+
+func _update_secretaire_npc_id() -> void:
+	if not pnj_secretaire:
+		return
+	if _disjoncteur_done:
+		pnj_secretaire.npc_id = "npc_secretaire_present_retabli"
+	elif _salle_machine_done:
+		pnj_secretaire.npc_id = "npc_secretaire_present_courtcircuit"
+	elif TimeAunoteScript.disguised_present:
+		pnj_secretaire.npc_id = "npc_secretaire_present_change"
+	elif _player_has_changed_once:
+		pnj_secretaire.npc_id = "npc_secretaire_present_undisguise"
+	else:
+		pnj_secretaire.npc_id = "npc_secretaire_present"
 
 
 func _try_unlock_parking() -> void:
@@ -1303,11 +1334,16 @@ func _update_objective(text: String) -> void:
 func start(spawn_id: String = "entree") -> void:
 	process_mode = PROCESS_MODE_INHERIT
 	_hall_transition_started = false
+	_player_has_changed_once = false
+	_salle_machine_done = false
+	_disjoncteur_done = false
+	_couloir_unlocked = false
 	show()
 	_objective_label = $ObjectiveHUD/Panel/Objective
 	$ObjectiveHUD.show()
 	DialogueSystem.load_dimension("res://Present/dimension_present.json")
 	var parking = $Parking
+
 	if parking and parking._badge_obtained:
 		var qs = DialogueSystem.game_state.get("quete_acces_centrale", {})
 		if qs is Dictionary:
@@ -1352,6 +1388,7 @@ func start(spawn_id: String = "entree") -> void:
 	_parking_unlocked = false
 	$"fondPresent/zone escape parking".monitoring = false
 	_couloir_unlocked = false
+	_update_secretaire_npc_id()
 
 	if spawn_id == "parking":
 		$fondPresent.hide()
@@ -1402,8 +1439,25 @@ func start(spawn_id: String = "entree") -> void:
 		col_hall.disabled = false
 		started = true
 		stopped = false
+		
+		var q_secu = DialogueSystem.game_state.get("quete_acces_centrale", {})
+		if q_secu is Dictionary:
+			q_secu["status"] = "done"
+			q_secu["completed_steps"] = ["etape_parler_gardien", "etape_chercher_carte", "etape_retour_gardien"]
+			q_secu["current_step"] = ""
+		var q_prep = DialogueSystem.game_state.get("quete_preparation", {})
+		if q_prep is Dictionary:
+			q_prep["status"] = "active"
+			q_prep["current_step"] = "etape_parler_secretaire"
+			q_prep["completed_steps"] = []
+		_player_has_changed_once = false
+		_salle_machine_done = false
+		_disjoncteur_done = false
+		_couloir_unlocked = false
+		_update_secretaire_npc_id()
 		_update_objective("Parler à la secrétaire")
 		return
+
 
 	_update_objective("Parler à l'agent de sécurité")
 	time_aunote.position = position_entree_principale
@@ -1470,9 +1524,7 @@ func _on_salle_machine_minigame_done(success: bool) -> void:
 	if success:
 		DialogueSystem.complete_step("quete_preparation", "etape_reparer_machines")
 		_show_darkness_overlay()
-		if pnj_secretaire:
-			pnj_secretaire.npc_id = "npc_secretaire_present_courtcircuit"
-		_update_objective("Court-circuit ! Remettez l'electricite en marche...")
+		_update_secretaire_npc_id()
 
 
 func _start_disjoncteur_minigame() -> void:
@@ -1496,15 +1548,19 @@ func _on_disjoncteur_minigame_done(success: bool) -> void:
 	_player_at_disjoncteur = false
 	_disjoncteur_prompt.visible = false
 	if success:
+		var q_prep = DialogueSystem.game_state.get("quete_preparation", {})
+		if q_prep is Dictionary:
+			var completed: Array = q_prep.get("completed_steps", [])
+			if "etape_retour_secretaire_panique" not in completed:
+				DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_panique")
 		DialogueSystem.complete_step("quete_preparation", "etape_reparer_electricite")
 		_remove_darkness_overlay()
-		if pnj_secretaire:
-			pnj_secretaire.npc_id = "npc_secretaire_present_change"
-		_update_objective("Electricite retablie ! Retournez voir Sophie...")
+		_update_secretaire_npc_id()
 	else:
 		if _darkness_active:
 			_darkness_layer.show()
 		_disjoncteur_done = false
+
 
 
 func stop() -> void:
