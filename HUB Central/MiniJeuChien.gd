@@ -52,6 +52,7 @@ var pong_particles: Array[Dictionary] = []
 var _audio_player: AudioStreamPlayer
 var _bark_sounds: Array[AudioStream] = []
 var _rng := RandomNumberGenerator.new()
+var dog_sprite_tex: Texture2D
 
 func _ready() -> void:
 	layer = 100
@@ -59,6 +60,7 @@ func _ready() -> void:
 	_rng.randomize()
 	_setup_audio()
 	_setup_ui()
+	dog_sprite_tex = load("res://art/chien-hub.png") as Texture2D
 
 func _setup_audio() -> void:
 	_audio_player = AudioStreamPlayer.new()
@@ -769,15 +771,21 @@ func _draw_pong_state(w: float, h: float) -> void:
 	scope_control.draw_rect(Rect2(25.0, p_paddle_y - paddle_h / 2.0, paddle_w, paddle_h), Color(0.24, 0.95, 0.79, 1.0))
 	scope_control.draw_rect(Rect2(25.0, p_paddle_y - paddle_h / 2.0, paddle_w, paddle_h), Color(0.24, 0.95, 0.79, 0.35), false, 1.5)
 	
+	# Draw dog sprite just behind the paddle
+	if dog_sprite_tex:
+		var dest_w := 468.0 * 0.08
+		var dest_h := 641.0 * 0.08
+		var dest_rect := Rect2(574.0, d_paddle_y - dest_h / 2.0, dest_w, dest_h)
+		# Alternating frame based on animation time to give the dog a breathing/alive feel
+		var frame_index := 0
+		if fmod(animation_time, 1.0) > 0.5:
+			frame_index = 1
+		var src_rect := Rect2(frame_index * 468.0, 0.0, 468.0, 641.0)
+		scope_control.draw_texture_rect_region(dog_sprite_tex, dest_rect, src_rect)
+	
 	# Draw dog paddle (Pink/purple)
 	scope_control.draw_rect(Rect2(575.0 - paddle_w, d_paddle_y - paddle_h / 2.0, paddle_w, paddle_h), Color(0.8, 0.5, 1.0, 1.0))
 	scope_control.draw_rect(Rect2(575.0 - paddle_w, d_paddle_y - paddle_h / 2.0, paddle_w, paddle_h), Color(0.8, 0.5, 1.0, 0.35), false, 1.5)
-	
-	# Draw tail movement indicator lines next to dog paddle!
-	var tail_line_x := 585.0
-	var tail_sway := sin(animation_time * 24.0) * 10.0
-	scope_control.draw_line(Vector2(tail_line_x, d_paddle_y - 12), Vector2(tail_line_x + 8.0, d_paddle_y - 12 + tail_sway), Color(0.8, 0.5, 1.0, 0.65), 1.8)
-	scope_control.draw_line(Vector2(tail_line_x, d_paddle_y + 12), Vector2(tail_line_x + 8.0, d_paddle_y + 12 - tail_sway), Color(0.8, 0.5, 1.0, 0.65), 1.8)
 
 	# Draw giant background score digits
 	# Left Score
