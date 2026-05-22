@@ -12,6 +12,7 @@ var _mg_instance: CanvasLayer
 var _disguise_label: Label
 var _active := false
 var _merchant_talked := false
+var _exclamation_sprite: Sprite2D
 
 
 func _ready() -> void:
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_setup_prompt()
 	_setup_sortie_zone()
 	$zoneHabits.monitoring = false
+	_setup_exclamation()
 
 
 func _setup_habits_zone() -> void:
@@ -90,6 +92,7 @@ func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
 		if bulle:
 			bulle.hide()
 		_update_prompt_visibility()
+		_update_exclamation_visibility()
 		if _active and not disguise_obtained:
 			DialogueSystem.complete_step("quete_deguisement", "etape_parler_marchand")
 
@@ -122,6 +125,7 @@ func _input(event: InputEvent) -> void:
 func _start_minigame() -> void:
 	minigame_running = true
 	prompt_label.visible = false
+	_update_exclamation_visibility()
 
 	var parent = get_parent()
 	if parent and parent.has_method("_on_shop_minigame_started"):
@@ -152,6 +156,7 @@ func _on_minigame_done(success: bool) -> void:
 	var parent = get_parent()
 	if parent and parent.has_method("_on_shop_minigame_success"):
 		parent._on_shop_minigame_success()
+	_update_exclamation_visibility()
 
 
 func _show_disguise_message() -> void:
@@ -209,6 +214,7 @@ func start() -> void:
 	if disguise_obtained:
 		$areas2D/sortie.monitoring = true
 	show()
+	_update_exclamation_visibility()
 
 
 func stop() -> void:
@@ -232,3 +238,29 @@ func stop() -> void:
 		_disguise_label.queue_free()
 		_disguise_label = null
 	hide()
+	_update_exclamation_visibility()
+
+
+func _setup_exclamation() -> void:
+	var excl_node: Marker2D = $Markers2D/exclamation as Marker2D
+	if excl_node:
+		_exclamation_sprite = Sprite2D.new()
+		_exclamation_sprite.texture = load("res://art/exclamation.png")
+		_exclamation_sprite.scale = Vector2(0.6, 0.6)
+		_exclamation_sprite.visible = false
+		excl_node.add_child(_exclamation_sprite)
+		_start_exclamation_tween()
+
+
+func _start_exclamation_tween() -> void:
+	if not _exclamation_sprite:
+		return
+	_exclamation_sprite.position = Vector2(0, -10)
+	var tween: Tween = create_tween().set_loops(-1)
+	tween.tween_property(_exclamation_sprite, "position:y", 10.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(_exclamation_sprite, "position:y", -10.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _update_exclamation_visibility() -> void:
+	if _exclamation_sprite:
+		_exclamation_sprite.visible = _active and _merchant_talked and not disguise_obtained and not minigame_running
