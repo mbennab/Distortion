@@ -87,10 +87,13 @@ L'appel API demande obligatoirement un retour au format JSON :
 - **Mort du Roi** : L'action de dialogue `roi_adieu` s'exécute à la fin de l'échange avec le roi. Elle modifie la quête vers l'état de fuite, active les zones de détection de la prison (`ZonePorte`) et enferme le joueur.
 - **Nettoyage du magasin (`magasin_moyen_age.gd`)** : La méthode `_show_disguise_message()` utilise un Label géré par un tween de 4.5 secondes. Si l'ère est arrêtée en plein milieu (passage en `PROCESS_MODE_DISABLED`), le tween se fige et corrompt la mémoire. Pour éviter cela, il est impératif d'appeler `_disguise_label.queue_free()` dans la méthode `stop()`.
 - **Auberge & Écoute aux Tables (`MiniJeuEcouteTables.gd`)** :
+  - Le PNJ `npc_aubergiste_moyenage` (`pnj_aubergiste.tscn`) **n'a pas de sprite visuel** — seulement un script et une ZoneDialogue. La bulle de dialogue est gérée via un sprite dédié dans `auberge.tscn`.
+  - L'aubergiste doit être sollicité en premier pour débloquer l'accès aux tables d'écoute.
   - Le joueur doit maintenir `E` pour élever une barre d'écoute dans une zone d'oscillation verte fluctuante et relâcher pour la descendre.
   - Comporte 3 tables à espionner. L'échec d'une seule jauge de suspicion remet à zéro l'intégralité du mini-jeu.
 - **Arène de Combat Temps Réel (`MoyenAge/campement.gd`)** :
   - Déclenché en confrontant l'assassin dans la forêt. Warp instantané vers l'arène de combat en premier plan.
+  - **Audio Fallback** : Le combat utilise un système de fallback audio (`_play_sound()`) : si un fichier n'existe pas dans `audio/combat/`, il utilise des sons provenant d'autres mini-jeux (crochetage, marchandage) comme substituts.
   - **Santé** : Joueur = 5 HP (affichés via `ProgressBar`), Assassin = 100 HP.
   - **Inputs & Cooldowns** : Touches `A` / `Q` maintenues pour parer avec le bouclier (bloque l'attaque et étourdit l'assassin si paré pendant son assaut). Touche `E` ou `ui_accept` pour sabrer (cooldown strict de 0.3s).
   - **États de l'Assassin (Postures)** : 
@@ -98,7 +101,7 @@ L'appel API demande obligatoirement un retour au format JSON :
     - `"defense"` : Parera toute attaque du joueur, lui infligeant un étourdissement (`is_player_stunned`) de 3.0 secondes.
 	- `"attack"` : Charge un coup dévastateur pendant 1.0s (avertissement via flash d'écran rouge). Le joueur doit parer sous peine de perdre 1 HP.
   - **Mode Rage (< 50 HP)** : L'assassin accélère son rythme de combat. Le changement de posture s'effectue toutes les 1.2 à 2.0s (au lieu de 2.0 à 3.0s), la posture défensive a 55% de chance de s'activer, et les attaques se chargent en **0.5 seconde** au lieu d'une seconde complète.
-  - **Défaite & Résilience Temporelle** : Si le joueur tombe à 0 HP, la distorsion le sauve. Un écran noir affiche le message *"vous êtes sauvés par la distorsion..."* pendant 3 secondes, puis le joueur est replacé à l'entrée de la forêt avec tous ses points de vie. L'objectif est réinitialisé sur *"Trouver l'assassin dans la forêt"*.
+  - **Défaite & Résilience Temporelle** : Si le joueur tombe à 0 HP, la distorsion le sauve. Un écran noir affiche le message *"vous êtes sauvés par la distorsion..."* pendant 3 secondes, puis le combat redémarre directement avec tous les points de vie restaurés.
 
 ### 3. Présent (Nuclear - 2026)
 #### Enchaînement des Quêtes :
