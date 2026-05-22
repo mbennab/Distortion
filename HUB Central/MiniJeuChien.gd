@@ -249,7 +249,6 @@ func open_game() -> void:
 	background_panel.global_position = pnj_screen_pos - Vector2(320, 250)
 	
 	visible = true
-	_play_bark(1.0)
 
 func close_game() -> void:
 	is_active = false
@@ -266,7 +265,6 @@ func _on_quit_pressed() -> void:
 		label_score_info.text = "CHOISISSEZ UN MINI-JEU POUR COMMENCER À JOUER AVEC LE CHIEN !"
 		label_status.text = "🟢 DE RETOUR AU MENU"
 		label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
-		_play_bark(1.05)
 
 func _play_bark(pitch: float) -> void:
 	if _bark_sounds.is_empty():
@@ -413,7 +411,6 @@ func _on_play_morpion_pressed() -> void:
 	label_score_info.text = "CLIQUEZ SUR LE PLATEAU POUR POSER VOTRE BALLE 🎾 !"
 	label_status.text = "🟢 À VOTUS DE JOUER !"
 	label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
-	_play_bark(1.22)
 
 func _draw_morpion_state(w: float, h: float) -> void:
 	var start_x := 180.0
@@ -504,7 +501,6 @@ func _handle_morpion_click(mpos: Vector2) -> void:
 		
 		if morpion_grid[idx] == 0:
 			morpion_grid[idx] = 1 # Place tennis ball
-			_play_bark(1.35)
 			_check_morpion_game_state()
 			
 			if not is_morpion_game_over:
@@ -552,7 +548,6 @@ func _make_morpion_dog_move() -> void:
 			
 	if chosen_cell != -1:
 		morpion_grid[chosen_cell] = 2 # Place dog bone
-		_play_bark(0.95)
 		
 	_check_morpion_game_state()
 	if not is_morpion_game_over:
@@ -642,7 +637,6 @@ func _on_play_pong_pressed() -> void:
 	pong_winner = 0
 	pong_particles.clear()
 	_reset_pong_ball(1.0)
-	_play_bark(1.1)
 
 func _reset_pong_ball(dir_val: float) -> void:
 	ball_pos = Vector2(300.0, 145.0)
@@ -692,7 +686,6 @@ func _process_pong(delta: float) -> void:
 			var offset := (ball_pos.y - p_paddle_y) / (paddle_h / 2.0)
 			ball_vel.y = offset * base_ball_speed * 0.95
 			ball_speed_multiplier = minf(2.6, ball_speed_multiplier + 0.08)
-			_play_bark(_rng.randf_range(1.22, 1.45))
 			_add_pong_particles(ball_pos, Color(0.24, 0.95, 0.79, 1.0))
 			
 	# Right Paddle (Dog Tail - Pink/Purple)
@@ -704,7 +697,6 @@ func _process_pong(delta: float) -> void:
 			var offset := (ball_pos.y - d_paddle_y) / (paddle_h / 2.0)
 			ball_vel.y = offset * base_ball_speed * 0.95
 			ball_speed_multiplier = minf(2.6, ball_speed_multiplier + 0.08)
-			_play_bark(_rng.randf_range(0.85, 1.05))
 			_add_pong_particles(ball_pos, Color(0.8, 0.5, 1.0, 1.0))
 			
 	# Goal verification
@@ -746,6 +738,10 @@ func _check_pong_score(next_dir: float) -> void:
 		label_status.add_theme_color_override("font_color", Color(1.0, 0.2, 0.4, 1.0))
 		_play_bark(0.55)
 	else:
+		if next_dir == -1.0: # Player scored
+			_play_bark(1.3)
+		else: # Dog scored
+			_play_bark(0.8)
 		_reset_pong_ball(next_dir)
 
 func _add_pong_particles(pos: Vector2, color: Color) -> void:
