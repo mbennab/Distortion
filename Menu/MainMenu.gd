@@ -194,16 +194,27 @@ func _setup_credits() -> void:
 		"Game Design & Developpement",
 		"Par les etudiants de CIR2",
 		"",
+		"Musique : Chronos par Alexander Nakarada (CC BY 4.0)",
+		"Musique : Unsafe Roads par Alexander Nakarada (CC BY 4.0)",
+		"Musique : Space Ambience par Alexander Nakarada (CC BY 4.0)",
+		"Musique : Nightfall par Alexander Nakarada (CC BY 4.0)",
+		"Musique : Sci-Fi-Buzzkiller par Alexander Nakarada (CC BY 4.0)",
+		"Musique : NIGHTCLUB par Alexander Nakarada (CC BY 4.0)",
+		"Musique : The Foreign Tale par Alexander Nakarada (CC BY 4.0)",
+		"Musique : Adventure par Alexander Nakarada (CC BY 4.0)",
+		"Musique : Chase par Alexander Nakarada (CC BY 4.0)",
+		"Musique : The Replicant par Lyra Soundtracks (CC BY 4.0)",
+		"",
 		"Merci d'avoir joue !",
 	]
 
 	var vb := VBoxContainer.new()
 	vb.position = Vector2(30, 16)
-	vb.size = Vector2(440, 250)
+	vb.size = Vector2(440, 440)
 	vb.add_theme_constant_override("separation", 8)
 	credits.add_child(vb)
 
-	var sizes := [0, 22, 0, 16, 0, 14, 14, 0, 16]
+	var sizes := [0, 22, 0, 16, 0, 14, 14, 0, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 0, 16]
 	var colors := [
 		Color.WHITE,
 		Color(0.9, 0.95, 1.0),
@@ -212,6 +223,17 @@ func _setup_credits() -> void:
 		Color.WHITE,
 		Color(0.5, 0.55, 0.65),
 		Color(0.5, 0.55, 0.65),
+		Color.WHITE,
+		Color(0.4, 0.6, 0.8, 0.7),
+		Color(0.4, 0.6, 0.8, 0.7),
+		Color(0.4, 0.6, 0.8, 0.7),
+		Color(0.4, 0.6, 0.8, 0.7),
+		Color(0.4, 0.6, 0.8, 0.7),
+		Color(0.4, 0.6, 0.8, 0.7),
+		Color(0.4, 0.6, 0.8, 0.7),
+		Color(0.4, 0.6, 0.8, 0.7),
+		Color(0.4, 0.6, 0.8, 0.7),
+		Color(0.4, 0.6, 0.8, 0.7),
 		Color.WHITE,
 		Color(0.5, 0.8, 1.0),
 	]
@@ -273,14 +295,14 @@ func _setup_music() -> void:
 	music.volume_db = -10.0
 	add_child(music)
 
-	var dir := DirAccess.open("res://audio/hub/")
+	var dir := DirAccess.open("res://audio/menu/")
 	if not dir:
 		return
 	dir.list_dir_begin()
 	var f := dir.get_next()
 	while f != "":
 		if not dir.current_is_dir() and f.get_extension() in ["mp3", "ogg", "wav"]:
-			var s := load("res://audio/hub/" + f) as AudioStream
+			var s := load("res://audio/menu/" + f) as AudioStream
 			if s:
 				music_list.append(s)
 		f = dir.get_next()

@@ -28,6 +28,11 @@ var _objective_label: Label
 var _combat_boss_instance: Node2D
 var _etage1_guards: Array = []
 
+# Audio ambient
+var _ambient_player: AudioStreamPlayer
+var _current_zone: String = ""
+var _audio_buffers: Dictionary = {}
+
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_DISABLED
@@ -48,6 +53,7 @@ func _ready() -> void:
 	_connect_etage1_sortie_signal()
 	_connect_etage2_sortie_signal()
 	_connect_etage3_sortie_signal()
+	_setup_ambient_audio()
 
 
 func _setup_fade_overlay() -> void:
@@ -114,6 +120,7 @@ func _on_metro_sortie_entered(body: Node2D) -> void:
 	if is_instance_valid(text_label):
 		text_label.queue_free()
 
+	_play_zone_audio("tour")
 	_transition_to_tower()
 
 
@@ -150,6 +157,7 @@ func _go_to_basement() -> void:
 	await tween_fade.finished
 
 	_update_objective("Parler aux personnes du sous-sol")
+	_play_zone_audio("parking")
 	can_move = true
 
 
@@ -184,6 +192,7 @@ func _return_from_basement() -> void:
 	await tween_fade.finished
 
 	_update_objective("Parler à la cheffe")
+	_play_zone_audio("hall")
 	can_move = true
 
 
@@ -324,6 +333,7 @@ func _show_superette_scene() -> void:
 
 	$ObjectiveHUD.show()
 	_update_objective("Explorer la supérette")
+	_play_zone_audio("superette")
 	can_move = true
 
 	_auto_start_cheffe_dialogue()
@@ -465,6 +475,7 @@ func _on_superette_dialogue_ended() -> void:
 			minijeu.finished.connect(_on_tourelle_minigame_done)
 		_update_objective("Survivez 30 secondes!")
 		minijeu.start_game()
+		# Garde la musique de la supérette (pas de changement)
 		if pnjcheffe:
 			pnjcheffe.hide()
 			var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
@@ -481,6 +492,7 @@ func _on_tourelle_minigame_done(success: bool) -> void:
 
 	if success:
 		_update_objective("Vous avez survécu !")
+		_play_zone_audio("superette")
 		if pnjcheffe:
 			pnjcheffe.apparition($"FondSuperette/Markers2D/cheffe".position)
 			var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
@@ -581,6 +593,7 @@ func _transition_to_metro() -> void:
 	await tween_fade.finished
 
 	can_move = true
+	_play_zone_audio("exterieur")
 
 
 func _connect_sortie_fond_signal() -> void:
@@ -620,6 +633,7 @@ func _on_sortie_fond_entered(body: Node2D) -> void:
 	await tween_fade.finished
 
 	can_move = true
+	_play_zone_audio("etage1")
 
 
 func _setup_etage1_guards() -> void:
@@ -775,6 +789,7 @@ func _trigger_etage1_sortie() -> void:
 	await tween_fade_out.finished
 
 	can_move = true
+	_play_zone_audio("etage1")
 
 
 func _connect_etage2_sortie_signal() -> void:
@@ -841,6 +856,7 @@ func _trigger_etage2_sortie() -> void:
 	await tween_fade_out.finished
 
 	can_move = true
+	_play_zone_audio("etage1")
 
 
 func _connect_etage3_sortie_signal() -> void:
@@ -1074,6 +1090,54 @@ func _disable_all_collisions() -> void:
 			zone.monitoring = false
 
 
+# ===== Audio Ambient System =====
+
+func _setup_ambient_audio() -> void:
+	_ambient_player = AudioStreamPlayer.new()
+	_ambient_player.bus = "Master"
+	_ambient_player.volume_db = -8.0
+	add_child(_ambient_player)
+
+
+func _load_zone_audio(zone: String) -> void:
+	if zone in _audio_buffers and not _audio_buffers[zone].is_empty():
+		return
+	var dir := DirAccess.open("res://audio/futur/" + zone + "/")
+	if not dir:
+		return
+	var streams: Array[AudioStream] = []
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+			var stream := load("res://audio/futur/" + zone + "/" + file_name) as AudioStream
+			if stream:
+				streams.append(stream)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	_audio_buffers[zone] = streams
+
+
+func _play_zone_audio(zone: String) -> void:
+	if zone == _current_zone:
+		return
+	_stop_ambient()
+	_load_zone_audio(zone)
+	var streams: Array = _audio_buffers.get(zone, [])
+	if streams.is_empty():
+		_current_zone = zone
+		return
+	var idx := randi() % streams.size()
+	_ambient_player.stream = streams[idx]
+	_ambient_player.play()
+	_current_zone = zone
+
+
+func _stop_ambient() -> void:
+	_ambient_player.stop()
+	_current_zone = ""
+
+
 func start(spawn_id: String = "entree") -> void:
 	process_mode = PROCESS_MODE_INHERIT
 	show()
@@ -1107,6 +1171,7 @@ func start(spawn_id: String = "entree") -> void:
 		started = true
 		stopped = false
 		_auto_start_cheffe_dialogue()
+		_play_zone_audio("superette")
 		return
 
 	if spawn_id == "soussol":
@@ -1128,6 +1193,7 @@ func start(spawn_id: String = "entree") -> void:
 		stopped = false
 		_update_objective("Parler aux personnes du sous-sol")
 		_setup_car_minigame()
+		_play_zone_audio("parking")
 		return
 
 	if spawn_id == "metro":
@@ -1150,6 +1216,7 @@ func start(spawn_id: String = "entree") -> void:
 		stopped = false
 		$ObjectiveHUD.show()
 		_update_objective("Trouver le QG d'Alfredo")
+		_play_zone_audio("exterieur")
 		return
 
 	if spawn_id == "tour":
@@ -1175,6 +1242,7 @@ func start(spawn_id: String = "entree") -> void:
 		stopped = false
 		$ObjectiveHUD.show()
 		_update_objective("Entrer dans la tour d'Alfredo Sinko Nochez")
+		_play_zone_audio("tour")
 		return
 
 	if spawn_id == "bureau":
@@ -1212,9 +1280,10 @@ func start(spawn_id: String = "entree") -> void:
 		time_aunote.position = position_entree_principale
 		time_aunote.hide()
 		time_aunote.modulate.a = 0.0
-		time_aunote.scale = Vector2.ZERO
-		time_aunote.rotation = TAU
-		_play_spawn_animation()
+	time_aunote.scale = Vector2.ZERO
+	time_aunote.rotation = TAU
+	_play_zone_audio("hall")
+	_play_spawn_animation()
 
 
 func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale) -> void:
@@ -1275,6 +1344,7 @@ func start_from_escalier() -> void:
 
 
 func stop() -> void:
+	_stop_ambient()
 	process_mode = PROCESS_MODE_DISABLED
 	hide()
 	$ObjectiveHUD.hide()
@@ -1401,6 +1471,7 @@ func _start_car_minigame() -> void:
 
 	if _car_minigame:
 		_car_minigame.start_game()
+	_play_zone_audio("minijeu_car")
 
 
 func _on_car_minigame_done(success: bool) -> void:
@@ -1416,11 +1487,13 @@ func _on_car_minigame_done(success: bool) -> void:
 			$"SousSol/pnj-futur".show()
 			$"pnj-futur".hide()
 			$"pnj-cheffe".hide()
+			_play_zone_audio("parking")
 		else:
 			$fondFutur.show()
 			_set_upper_collisions(true)
 			$"pnj-futur".show()
 			$"pnj-cheffe".show()
+			_play_zone_audio("hall")
 
 		if is_instance_valid(time_aunote):
 			time_aunote.show()

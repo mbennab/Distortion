@@ -71,6 +71,11 @@ var _disjoncteur_prompt: Label
 var _disjoncteur_locked_prompt: Label
 var _player_has_changed_once: bool = false
 
+# Audio ambient
+var _ambient_player: AudioStreamPlayer
+var _current_zone: String = ""
+var _audio_buffers: Dictionary = {}
+
 
 
 func _ready() -> void:
@@ -102,6 +107,7 @@ func _ready() -> void:
 	_setup_couloir_retour()
 	_setup_couloir_portals()
 	_setup_subroom_retours()
+	_setup_ambient_audio()
 
 
 func _setup_fade_overlay() -> void:
@@ -595,6 +601,7 @@ func _go_to_couloir() -> void:
 		return
 
 	can_move = true
+	_play_zone_audio("couloir")
 
 
 func _return_from_couloir() -> void:
@@ -645,6 +652,7 @@ func _return_from_couloir() -> void:
 		return
 
 	can_move = true
+	_play_zone_audio("hall")
 
 
 func _go_to_pc_controle() -> void:
@@ -1044,6 +1052,7 @@ func _go_to_parking() -> void:
 	await tween_fade.finished
 
 	_update_objective("Fouiller le parking")
+	_play_zone_audio("parking")
 	can_move = true
 
 
@@ -1076,6 +1085,7 @@ func _return_from_parking() -> void:
 	var parking = $Parking
 	if parking and parking._badge_obtained:
 		_update_objective("Retourner voir l'agent de sécurité avec la carte")
+	_play_zone_audio("exterieur")
 	can_move = true
 
 
@@ -1131,8 +1141,8 @@ func _go_to_hall() -> void:
 		qp["status"] = "active"
 		qp["current_step"] = "etape_parler_secretaire"
 	_update_objective("Parler à la secrétaire")
+	_play_zone_audio("hall")
 	can_move = true
-
 
 func _set_hall_collisions(enabled: bool) -> void:
 	var limites = hall.get_node_or_null("Camera2D/limites")
@@ -1486,6 +1496,7 @@ func start(spawn_id: String = "entree") -> void:
 		started = true
 		stopped = false
 		_update_objective("Fouiller le parking")
+		_play_zone_audio("parking")
 		return
 
 	if spawn_id == "hall":
@@ -1531,6 +1542,7 @@ func start(spawn_id: String = "entree") -> void:
 		_couloir_unlocked = false
 		_update_secretaire_npc_id()
 		_update_objective("Parler à la secrétaire")
+		_play_zone_audio("hall")
 		return
 
 	if spawn_id == "couloir":
@@ -1560,6 +1572,7 @@ func start(spawn_id: String = "entree") -> void:
 		_ensure_hall_quest_done()
 		_update_secretaire_npc_id()
 		_update_objective("Aller se changer")
+		_play_zone_audio("couloir")
 		return
 
 	if spawn_id == "vestiaire":
@@ -1699,12 +1712,61 @@ func start(spawn_id: String = "entree") -> void:
 
 
 	_update_objective("Parler à l'agent de sécurité")
+	_play_zone_audio("exterieur")
 	time_aunote.position = position_entree_principale
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0
 	time_aunote.scale = Vector2.ZERO
 	time_aunote.rotation = TAU
 	_play_spawn_animation()
+
+
+# ===== Audio Ambient System =====
+
+func _setup_ambient_audio() -> void:
+	_ambient_player = AudioStreamPlayer.new()
+	_ambient_player.bus = "Master"
+	_ambient_player.volume_db = -8.0
+	add_child(_ambient_player)
+
+
+func _load_zone_audio(zone: String) -> void:
+	if zone in _audio_buffers and not _audio_buffers[zone].is_empty():
+		return
+	var dir := DirAccess.open("res://audio/present/" + zone + "/")
+	if not dir:
+		return
+	var streams: Array[AudioStream] = []
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+			var stream := load("res://audio/present/" + zone + "/" + file_name) as AudioStream
+			if stream:
+				streams.append(stream)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	_audio_buffers[zone] = streams
+
+
+func _play_zone_audio(zone: String) -> void:
+	if zone == _current_zone:
+		return
+	_stop_ambient()
+	_load_zone_audio(zone)
+	var streams: Array = _audio_buffers.get(zone, [])
+	if streams.is_empty():
+		_current_zone = zone
+		return
+	var idx := randi() % streams.size()
+	_ambient_player.stream = streams[idx]
+	_ambient_player.play()
+	_current_zone = zone
+
+
+func _stop_ambient() -> void:
+	_ambient_player.stop()
+	_current_zone = ""
 
 
 func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale) -> void:
@@ -1812,6 +1874,7 @@ func _on_disjoncteur_minigame_done(success: bool) -> void:
 
 
 func stop() -> void:
+	_stop_ambient()
 	process_mode = PROCESS_MODE_DISABLED
 	hide()
 	$ObjectiveHUD.hide()
