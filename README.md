@@ -67,7 +67,7 @@ Le joueur apparaît dans le Nexus. Des bruits d'ambiance cosmiques se font enten
 - **Le portail violet** (au centre - interne bleu) mène au **Présent nucléaire**.
 - **Le portail vert** (à droite - interne rouge) mène au **Futur technologique**.
 
-*Actions requises* : Parler au **Gardien du Nexus** pour obtenir des conseils mystiques et caresser le **chien** (qui aboie aléatoirement) avant de sauter dans l'un des portails.
+*Actions requises* : Parler au **Gardien du Nexus** pour obtenir des conseils mystiques et jouer avec le **chien** (qui aboie aléatoirement, mini-jeux Morpion des Os et Chien-Pong) avant de sauter dans l'un des portails.
 
 ---
 
@@ -88,7 +88,7 @@ Le but est d'infiltrer la centrale électrique pour empêcher une fusion nucléa
 2. **Le Parking et le Badge** : Allez sur le parking. Approchez-vous discrètement du technicien de maintenance en train de travailler et lancez le mini-jeu du **1, 2, 3 Soleil** (s'approcher lorsque le technicien a le dos tourné et se figer instantanément lorsqu'il se retourne). Dérobez son badge d'accès en finissant le jeu.
 3. **L'Infiltration (`quete_preparation`)** : Retournez voir le garde Moreau et montrez-lui le badge. Il s'écarte. Entrez dans le Hall d'accueil et parlez à la secrétaire **Sophie**. Elle vous prend pour le technicien de maintenance attendu et vous ordonne de réparer le circuit de refroidissement. Elle déverrouille le couloir d'accès.
 4. **Les Vestiaires** : Allez dans le couloir, puis entrez dans la salle des vestiaires. Interagissez avec les armoires pour revêtir la combinaison de technicien de maintenance de la centrale.
-5. **La PC de contrôle & La Salle Électrique** : Une fois en uniforme, vous disposez des habilitations nécessaires pour entrer dans la salle de contrôle. Activez le PC de contrôle principal et réenclenchez les disjoncteurs dans la salle électrique pour stabiliser la centrale nucléaire.
+5. **La PC de contrôle & La Salle Électrique** : Une fois en uniforme, vous disposez des habilitations nécessaires pour entrer dans la salle de contrôle. Activez le PC de contrôle principal pour déclencher un court-circuit, puis parlez à **Sophie** qui vous envoie réparer l'armoire électrique. Connectez les câbles entre sources, portes logiques (AND/OR/NOT) et cibles dans le **mini-jeu de câblage** pour stabiliser la centrale.
 
 ---
 
