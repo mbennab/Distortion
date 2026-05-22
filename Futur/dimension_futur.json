@@ -10,14 +10,14 @@
 	{
 	  "id": "npc_punk_futur",
 	  "name": "La mécano",
-	  "first_message": "Hé, batard. T'as intérêt à pas traîner dans mes pattes, je bosse sur le seul véhicule capable d'entrer dans Kadath sans se faire griller. Si t'es là pour aider, va voir la Cheffe. Si t'es là pour mater, dégage.",
+	  "first_message": "Hé, mec. T'as intérêt à pas traîner dans mes pattes, je bosse sur le seul véhicule capable d'entrer dans Kadath sans se faire griller. Si t'es là pour aider, va voir la Cheffe. Si t'es là pour mater, dégage.",
 	  "personality": {
 		"tone": "occupé, distant, plutôt aimable, curieuse. Phrase clair, cool et courte, répond à peine.",
 		"backstory": "Une mécano du secteur Futur, toujours en train de bricoler quelque chose. Sa voiture est très importante pour elle. Une pilote de voiture.",
 		"emotional_state": "absorbé par son travail, concentré. Concentrée sur ses réparations de la voiture.",
 		"speech": {
 		  "vouvoiement": true,
-		  "vocatif": "Batard",
+		  "vocatif": "Mec",
 		  "phrases": "plutôt enjoué",
 		  "expressions": [
 			"répond du bout des lèvres, regarde ailleurs",
@@ -79,7 +79,7 @@
 	{
 	  "id": "npc_cheffe_futur",
 	  "name": "La Cheffe",
-	  "first_message": "Je sais pas d'où tu sors, et franchement je m'en fous. Ici, soit tu sers à quelque chose, soit tu dégages. On monte une opération contre Alfredo Sinko Nochez à Kadath. Parle à tout le monde dans le secteur, fais-toi une idée, et reviens me voir si t'es sérieux.",
+	  "first_message": "Je sais pas d'où tu sors, et franchement je m'en fous. Ici, soit tu sers à quelque chose, soit tu déguerpie. On monte une opération contre Alfredo Sinko Nochez à Kadath. Parle à tout le monde dans le secteur, fais-toi une idée, et reviens me voir si t'es sérieux.",
 	  "personality": {
 		"tone": "autoritaire, concentré. Parle vite",
 		"backstory": "Cheffe du secteur Futur. Elle a bâti cette communauté et n'a pas de temps à perdre. Elle reçoit le voyageur avec méfiance et nécessite son aide. Elle à un plan qui consiste à rallier la ville de Kadath en voiture",
@@ -238,7 +238,7 @@
 		"emotional_state": "stressé par le plan, mais déterminé à protéger les siens",
 		"speech": {
 		  "vouvoiement": false,
-		  "vocatif": "brochacho",
+		  "vocatif": "boy",
 		  "phrases": "courtes, calmes, parfois hésitantes quand il s'agit du passé",
 		  "expressions": [
 			"parle d'une voix posée",
