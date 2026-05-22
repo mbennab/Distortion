@@ -36,14 +36,39 @@ func _ready() -> void:
 
 
 func _setup_bg() -> void:
+	var tex := load("res://art/fond_menu.png") as Texture2D
+	if not tex:
+		return
+
 	var t := TextureRect.new()
-	t.texture = load("res://art/hub final.png")
-	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	t.texture = tex
 	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	t.size = Vector2(W, H)
+	t.stretch_mode = TextureRect.STRETCH_SCALE
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Calcul de la largeur proportionnelle pour maintenir le ratio à H = 682
+	var tex_w := tex.get_width()
+	var tex_h := tex.get_height()
+	var scaled_w := float(tex_w) * (float(H) / float(tex_h))
+
+	# Sécurité au cas où l'image ne serait pas plus large que la fenêtre
+	if scaled_w < W:
+		scaled_w = float(W) * 1.5
+
+	t.size = Vector2(scaled_w, H)
+	t.position = Vector2(0, 0)
 	ui.add_child(t)
 	ui.move_child(t, 0)
+
+	# Animation de balayage (pan) infinie et fluide de droite à gauche puis gauche à droite
+	var pan_distance := scaled_w - W
+	if pan_distance > 0:
+		var tween := create_tween()
+		tween.set_loops()
+		# Panning de gauche à droite (l'image se déplace vers la gauche)
+		tween.tween_property(t, "position:x", -pan_distance, 22.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		# Panning de droite à gauche (l'image se déplace vers la droite)
+		tween.tween_property(t, "position:x", 0.0, 22.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 func _setup_dark() -> void:
