@@ -338,15 +338,15 @@ func _play_sound(path: String) -> void:
 		# Fallbacks malins basés sur les fichiers audio existants dans le projet
 		match path:
 			"res://audio/combat/sword_swing_1.ogg":
-				target_path = "res://audio/crochetage/tick/tick01.mp3" # Clic léger pour le swing
+				target_path = "res://audio/marchandage/miss/miss01.mp3" # Magnifique son de "whoosh" (tranchant d'épée)
 			"res://audio/combat/sword_swing_3.ogg":
-				target_path = "res://audio/crochetage/success/success_click.mp3" # Clic clair pour le coup réussi
+				target_path = "res://audio/crochetage/success/success_click.mp3" # Impact clair et net pour un coup réussi
 			"res://audio/combat/sword_clash.1.ogg":
-				target_path = "res://audio/marchandage/catch/catch03.mp3" # Impact agréable pour la parade réussie
+				target_path = "res://audio/crochetage/final/final_unlock.mp3" # Son métallique lourd "clink-clang" pour la parade au bouclier
 			"res://audio/combat/sword_clash.3.ogg":
-				target_path = "res://audio/crochetage/failure/failure01.mp3" # Bruit d'erreur lourd pour les dégâts reçus
+				target_path = "res://audio/crochetage/failure/failure01.mp3" # Bruit d'impact sourd et lourd pour les dégâts subis
 			"res://audio/combat/sword_clash.5.ogg":
-				target_path = "res://audio/marchandage/decoy/decoy_error.mp3" # Buzz de désorientation pour l'étourdissement joueur
+				target_path = "res://audio/marchandage/decoy/decoy_error.mp3" # Buzz de désorientation pour l'étourdissement du joueur
 			"res://audio/combat/victory_fanfare.ogg":
 				target_path = "res://audio/crochetage/final/final_unlock.mp3" # Fanfare de déblocage pour la victoire
 
