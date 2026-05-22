@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://biulrg1l58qig" path="res://art/Present/pc_controle.png" id="1_jhfkv"]
 [ext_resource type="Texture2D" uid="uid://d1gmlftceh3k6" path="res://art/Present/pc_controle_maj.png" id="2_assvv"]
 [ext_resource type="Texture2D" uid="uid://cqkyuhwryhqto" path="res://art/Present/pc_controle_alerte.png" id="3_is0yc"]
+[ext_resource type="Texture2D" uid="uid://ycunmb1dxkdo" path="res://art/Present/pc_controle_generateur_secours.png.jpeg" id="4_is0yc"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0f3ii"]
 size = Vector2(458.5, 217)
@@ -24,6 +25,11 @@ centered = false
 visible = false
 scale = Vector2(1.4886849, 1.7255716)
 texture = ExtResource("3_is0yc")
+centered = false
+
+[node name="pc generateur secours" type="Sprite2D" parent="." unique_id=1424368122]
+scale = Vector2(1.4886849, 1.7255716)
+texture = ExtResource("4_is0yc")
 centered = false
 
 [node name="limiteParking" type="StaticBody2D" parent="." unique_id=1458314634]
