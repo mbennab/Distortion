@@ -586,7 +586,6 @@ func _transition_to_metro() -> void:
 func _connect_sortie_fond_signal() -> void:
 	var sortie = $FondTour/sortie
 	if sortie:
-		sortie.collision_mask = 1
 		sortie.body_entered.connect(_on_sortie_fond_entered)
 
 
@@ -971,9 +970,7 @@ func _transition_to_tower() -> void:
 	$FondTour.show()
 	$FondEtage1.hide()
 	_set_etage1_collisions(false)
-	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
-	if tour_limite:
-		tour_limite.collision_layer = 512
+	_set_tour_collisions(true)
 
 	time_aunote.global_position = $FondTour/Marker/Entrée.global_position
 	time_aunote.show()
@@ -1046,9 +1043,7 @@ func _disable_all_collisions() -> void:
 	var metro_limite = $FondMetro.get_node_or_null("limite-metro")
 	if metro_limite:
 		metro_limite.collision_layer = 0
-	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
-	if tour_limite:
-		tour_limite.collision_layer = 0
+	_set_tour_collisions(false)
 	_set_etage1_collisions(false)
 	_set_etage2_collisions(false)
 	_set_etage3_collisions(false)
@@ -1167,9 +1162,7 @@ func start(spawn_id: String = "entree") -> void:
 				g.set_active(false)
 		$FondEtage1.hide()
 		_set_etage1_collisions(false)
-		var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
-		if tour_limite:
-			tour_limite.collision_layer = 512
+		_set_tour_collisions(true)
 		time_aunote.global_position = $FondTour/Marker/Entrée.global_position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
