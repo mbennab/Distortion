@@ -76,8 +76,7 @@ build_mode = 1
 polygon = PackedVector2Array(647, 867, 689, 864, 687, 775, 652, 778)
 
 [node name="sortie" type="Area2D" parent="." unique_id=325234192]
-collision_layer = 134217728
-collision_mask = 8
+collision_mask = 1
 
 [node name="sortieFond" type="CollisionShape2D" parent="sortie" unique_id=547767149]
 position = Vector2(1217, 318)
