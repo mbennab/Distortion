@@ -2,7 +2,7 @@ extends Node2D
 
 @export var npc_id: String = "npc_boss_futur"
 @export var npc_name: String = "Alfredo Sinko Nochez"
-@export var portrait_path: String = ""
+@export var portrait_path: String = "res://art/Futur/boss_hd.png"
 
 var boss_animation: AnimatedSprite2D
 var zone_dialogue: Area2D
