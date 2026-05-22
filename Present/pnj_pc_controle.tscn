@@ -1,0 +1,85 @@
+[gd_scene format=3 uid="uid://bgjikel87w14q"]
+
+[ext_resource type="Script" uid="uid://dobs47xpcdfkb" path="res://Present/pnj_pc_controle.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://ddc508yuipmrt" path="res://art/Present/pnj_pc_controle.png" id="2_texture"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_flpd3"]
+atlas = ExtResource("2_texture")
+region = Rect2(21, 45, 91, 211)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m8xju"]
+atlas = ExtResource("2_texture")
+region = Rect2(139, 45, 91, 211)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rp83b"]
+atlas = ExtResource("2_texture")
+region = Rect2(246, 45, 91, 211)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_77vsy"]
+atlas = ExtResource("2_texture")
+region = Rect2(354, 45, 91, 211)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vv3uj"]
+atlas = ExtResource("2_texture")
+region = Rect2(460, 45, 91, 211)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ioemx"]
+atlas = ExtResource("2_texture")
+region = Rect2(566, 45, 91, 211)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v1edy"]
+atlas = ExtResource("2_texture")
+region = Rect2(669, 45, 91, 211)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m6x7n"]
+atlas = ExtResource("2_texture")
+region = Rect2(769, 45, 91, 211)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_pc"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_flpd3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m8xju")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rp83b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_77vsy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vv3uj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ioemx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v1edy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m6x7n")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pc"]
+radius = 160.0
+
+[node name="PnjPcControle" type="Node2D" unique_id=2075787432]
+script = ExtResource("1_script")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=465419263]
+sprite_frames = SubResource("SpriteFrames_pc")
+autoplay = "default"
+frame_progress = 0.05292585
+
+[node name="ZoneDialogue" type="Area2D" parent="." unique_id=489710260]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneDialogue" unique_id=248057187]
+shape = SubResource("CircleShape2D_pc")

@@ -7,6 +7,7 @@ const MiniJeuCablageScene = preload("res://Scripts/MiniJeuCablage.tscn")
 var time_aunote: CharacterBody2D
 var pnj_secu
 var pnj_secretaire
+var pnj_pc_controle
 var secu_pos: Vector2
 var position_entree_principale: Vector2
 var started: bool = false
@@ -82,6 +83,7 @@ func _ready() -> void:
 	_setup_darkness_overlay()
 	pnj_secu = $"PnjSecurité"
 	pnj_secretaire = $"PnjSecretaire"
+	pnj_pc_controle = $"PnjPcControle"
 	_connect_parking_signals()
 	DialogueSystem.action_triggered.connect(_on_action_triggered)
 	DialogueSystem.dialogue_started.connect(_on_dialogue_started)
@@ -665,6 +667,15 @@ func _go_to_pc_controle() -> void:
 	_set_pc_controle_collisions(true)
 	_set_zone_camera("pc_controle")
 
+	if pnj_pc_controle:
+		var pnj_marker = pc_controle.get_node_or_null("Node2D/pnj pc principal")
+		if pnj_marker:
+			pnj_pc_controle.apparition(pnj_marker.global_position)
+			var zone = pnj_pc_controle.get_node_or_null("ZoneDialogue")
+			if zone:
+				zone.monitoring = true
+		_update_pc_controle_state()
+
 	time_aunote.global_position = pc_controle.get_node("Node2D/zone pop").global_position
 	time_aunote.scale = Vector2(0.9555, 0.9555)
 
@@ -691,6 +702,12 @@ func _return_from_pc_controle() -> void:
 
 	pc_controle.hide()
 	_set_pc_controle_collisions(false)
+
+	if pnj_pc_controle:
+		pnj_pc_controle.hide()
+		var zone = pnj_pc_controle.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
 
 	couloir.show()
 	_set_couloir_collisions(true)
@@ -1237,6 +1254,33 @@ func _update_secretaire_npc_id() -> void:
 		pnj_secretaire.npc_id = "npc_secretaire_present"
 
 
+func _update_pc_controle_state() -> void:
+	if not pc_controle:
+		return
+	var normal: Sprite2D = pc_controle.get_node_or_null("pc normal") as Sprite2D
+	var maj: Sprite2D = pc_controle.get_node_or_null("pc maj") as Sprite2D
+	var alerte: Sprite2D = pc_controle.get_node_or_null("pc alerte") as Sprite2D
+	var secours: Sprite2D = pc_controle.get_node_or_null("pc generateur secours") as Sprite2D
+
+	if normal: normal.visible = false
+	if maj: maj.visible = false
+	if alerte: alerte.visible = false
+	if secours: secours.visible = false
+
+	if _disjoncteur_done:
+		if maj: maj.visible = true
+		if pnj_pc_controle:
+			pnj_pc_controle.npc_id = "npc_pc_controle_maj"
+	elif _salle_machine_done:
+		if secours: secours.visible = true
+		if pnj_pc_controle:
+			pnj_pc_controle.npc_id = "npc_pc_controle_secours"
+	else:
+		if normal: normal.visible = true
+		if pnj_pc_controle:
+			pnj_pc_controle.npc_id = "npc_pc_controle_normal"
+
+
 
 func _ensure_hall_quest_done() -> void:
 	var q_secu = DialogueSystem.game_state.get("quete_acces_centrale", {})
@@ -1402,6 +1446,11 @@ func start(spawn_id: String = "entree") -> void:
 		var zone_s = pnj_secretaire.get_node_or_null("ZoneDialogue")
 		if zone_s:
 			zone_s.monitoring = false
+	if pnj_pc_controle:
+		pnj_pc_controle.hide()
+		var zone_pc = pnj_pc_controle.get_node_or_null("ZoneDialogue")
+		if zone_pc:
+			zone_pc.monitoring = false
 	time_aunote = $TimeAunote
 	time_aunote.collision_mask = 8
 	pnj_secu = $"PnjSecurité"
@@ -1414,6 +1463,7 @@ func start(spawn_id: String = "entree") -> void:
 	$"fondPresent/zone escape parking".monitoring = false
 	_couloir_unlocked = false
 	_update_secretaire_npc_id()
+	_update_pc_controle_state()
 
 	if spawn_id == "parking":
 		$fondPresent.hide()
@@ -1719,6 +1769,7 @@ func _on_salle_machine_minigame_done(success: bool) -> void:
 		DialogueSystem.complete_step("quete_preparation", "etape_reparer_machines")
 		_show_darkness_overlay()
 		_update_secretaire_npc_id()
+		_update_pc_controle_state()
 
 
 func _start_disjoncteur_minigame() -> void:
@@ -1752,6 +1803,7 @@ func _on_disjoncteur_minigame_done(success: bool) -> void:
 		DialogueSystem.complete_step("quete_preparation", "etape_reparer_electricite")
 		_remove_darkness_overlay()
 		_update_secretaire_npc_id()
+		_update_pc_controle_state()
 	else:
 		if _darkness_active and _darkness_layer:
 			_darkness_layer.show()
@@ -1779,6 +1831,10 @@ func stop() -> void:
 		var zone_s = pnj_secretaire.get_node_or_null("ZoneDialogue")
 		if zone_s:
 			zone_s.monitoring = false
+	if pnj_pc_controle:
+		var zone_pc = pnj_pc_controle.get_node_or_null("ZoneDialogue")
+		if zone_pc:
+			zone_pc.monitoring = false
 	$fondPresent.hide()
 	_set_fond_collisions(false)
 	$Parking.hide()

@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://cs2cja3r65ups" path="res://HUB Central/TimeAunoteDansHubCentral.gd" id="1_iim1y"]
 [ext_resource type="PackedScene" uid="uid://1le7qkl4cyvh" path="res://HUB Central/fondHubCentral.tscn" id="2_iim1y"]
 [ext_resource type="PackedScene" uid="uid://wwqx8ahb8wxb" path="res://Personnage/TimeAunote.tscn" id="3_iim1y"]
-[ext_resource type="PackedScene" uid="uid://cdbextbddujbd" path="res://HUB Central/pnj_hub.tscn" id="4_l1upj"]
+[ext_resource type="PackedScene" path="res://HUB Central/pnj_hub.tscn" id="4_l1upj"]
 [ext_resource type="Script" uid="uid://bp22n8tog4j0g" path="res://HUB Central/pnj_hub.gd" id="5_fu3hc"]
 [ext_resource type="Script" uid="uid://rart0ycc8m8p" path="res://HUB Central/chien_hub.gd" id="6_fu3hc"]
 [ext_resource type="Texture2D" uid="uid://b1hwjmw8hu2o7" path="res://art/chien-hub.png" id="7_pfj0h"]
@@ -31,20 +31,20 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_pfj0h"]
-radius = 700.0
+radius = 248.0
 height = 900.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hub"]
 bg_color = Color(0.08, 0.08, 0.15, 0.85)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.4, 0.6, 1.0, 0.6)
+border_color = Color(0.4, 0.6, 1, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="TimeAunoteDansHUBCentral" type="Node2D" unique_id=1349946414]
 script = ExtResource("1_iim1y")
@@ -74,35 +74,35 @@ animation = &"idle-dog"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="chien-hub/Area2D" unique_id=1617608115]
 shape = SubResource("CapsuleShape2D_pfj0h")
 
-[node name="ObjectiveHUD" type="CanvasLayer" parent="."]
-visible = false
+[node name="ObjectiveHUD" type="CanvasLayer" parent="." unique_id=110654043]
 layer = 64
+visible = false
 
-[node name="Panel" type="Panel" parent="ObjectiveHUD"]
-offset_left = 16
-offset_top = 16
-offset_right = 280
-offset_bottom = 96
+[node name="Panel" type="Panel" parent="ObjectiveHUD" unique_id=914127321]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 280.0
+offset_bottom = 96.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hub")
 
-[node name="Title" type="Label" parent="ObjectiveHUD/Panel"]
-offset_left = 12
-offset_top = 8
-offset_right = 252
-offset_bottom = 32
-text = "Objectifs"
-theme_override_colors/font_color = Color(0.8, 0.9, 1.0, 1)
+[node name="Title" type="Label" parent="ObjectiveHUD/Panel" unique_id=1683149599]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 252.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 16
-horizontal_alignment = 0
+text = "Objectifs"
 
-[node name="Objective" type="Label" parent="ObjectiveHUD/Panel"]
-offset_left = 12
-offset_top = 36
-offset_right = 252
-offset_bottom = 64
-text = "• Parler au Gardien du Nexus"
+[node name="Objective" type="Label" parent="ObjectiveHUD/Panel" unique_id=460800128]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 36.0
+offset_right = 252.0
+offset_bottom = 64.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 14
-horizontal_alignment = 0
+text = "• Parler au Gardien du Nexus"
 
 [connection signal="timeout" from="timerSortie" to="." method="_on_timer_sortie_timeout"]
