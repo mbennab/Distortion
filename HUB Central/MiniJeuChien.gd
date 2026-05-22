@@ -336,8 +336,6 @@ func _draw_dog_face(center: Vector2, radius: float, is_crying: bool, is_happy: b
 	# Smiling mouth lines
 	var mouth_y := snout_center.y + snout_r * 0.2
 	scope_control.draw_line(snout_center + Vector2(0, -2), Vector2(snout_center.x, mouth_y), Color(0.24, 0.95, 0.79, 1.0), 2.0)
-	scope_control.draw_arc(snout_center + Vector2(-snout_r * 0.3, mouth_y), snout_r * 0.3, 0.0, PI, 10, Color(0.24, 0.95, 0.79, 1.0), 2.0)
-	scope_control.draw_arc(snout_center + Vector2(snout_r * 0.3, mouth_y), snout_r * 0.3, 0.0, PI, 10, Color(0.24, 0.95, 0.79, 1.0), 2.0)
 	
 	# Eyes
 	var eye_offset_x := radius * 0.35
