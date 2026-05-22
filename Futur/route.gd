@@ -87,7 +87,7 @@ func start_game() -> void:
 	_timer_panel.show()
 	voiture.position = lane_positions[1]
 	current_lane = 1
-	$obstacle_timer.start(randf_range(1.0, 2.0))
+	$obstacle_timer.start(randf_range(0.5, 1.0))
 	$game_timer.start(GAME_DURATION)
 
 
@@ -163,7 +163,7 @@ func _spawn_obstacle() -> void:
 
 	add_child(obstacle)
 
-	$obstacle_timer.start(randf_range(0.8, 1.5))
+	$obstacle_timer.start(randf_range(0.4, 0.9))
 
 
 func _move_obstacles(delta: float) -> void:
@@ -197,7 +197,7 @@ func _crash() -> void:
 	current_lane = 1
 	game_active = true
 	collision_label.hide()
-	$obstacle_timer.start(randf_range(0.8, 1.5))
+	$obstacle_timer.start(randf_range(0.4, 0.9))
 
 
 func _clear_obstacles() -> void:
