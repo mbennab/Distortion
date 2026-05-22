@@ -562,12 +562,13 @@ func _transition_to_metro() -> void:
 	var metro_collision = $FondMetro.get_node("limite-metro")
 	if metro_collision:
 		metro_collision.collision_layer = 256
-	time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
-	time_aunote.show()
-	time_aunote.scale = Vector2(0.8, 0.8)
-	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
-	if collision_node:
-		collision_node.disabled = false
+	if is_instance_valid(time_aunote):
+		time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
+		time_aunote.show()
+		time_aunote.scale = Vector2(0.8, 0.8)
+		var collision_node := time_aunote.get_node("collision") as CollisionShape2D
+		if collision_node:
+			collision_node.disabled = false
 
 	$ObjectiveHUD.show()
 	_update_objective("Trouver le QG d'Alfredo")
@@ -1311,7 +1312,8 @@ func _start_car_minigame() -> void:
 
 func _on_car_minigame_done(success: bool) -> void:
 	_car_minigame_active = false
-	_car_prompt.visible = false
+	if _car_prompt:
+		_car_prompt.visible = false
 	_player_near_car = false
 
 	if not success:
@@ -1327,7 +1329,8 @@ func _on_car_minigame_done(success: bool) -> void:
 			$"pnj-futur".show()
 			$"pnj-cheffe".show()
 
-		time_aunote.show()
+		if is_instance_valid(time_aunote):
+			time_aunote.show()
 		$ObjectiveHUD.show()
 		can_move = true
 
@@ -1371,7 +1374,8 @@ func _on_car_minigame_done(success: bool) -> void:
 	$"pnj-futur".hide()
 	$"pnj-cheffe".hide()
 	$"SousSol/pnj-futur".hide()
-	time_aunote.hide()
+	if is_instance_valid(time_aunote):
+		time_aunote.hide()
 	$ObjectiveHUD.hide()
 	_set_upper_collisions(false)
 	_set_basement_collisions(false)
