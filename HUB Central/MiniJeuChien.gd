@@ -82,8 +82,15 @@ func _setup_ui() -> void:
 	# Root full screen Control to ensure exact centering
 	root_control = Control.new()
 	root_control.name = "RootControl"
+	root_control.anchor_left = 0.0
+	root_control.anchor_top = 0.0
+	root_control.anchor_right = 1.0
+	root_control.anchor_bottom = 1.0
+	root_control.offset_left = 0
+	root_control.offset_top = 0
+	root_control.offset_right = 0
+	root_control.offset_bottom = 0
 	add_child(root_control)
-	root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	background_panel = Panel.new()
 	background_panel.name = "BackgroundPanel"
@@ -230,6 +237,17 @@ func open_game() -> void:
 	label_score_info.text = "CHOISISSEZ UN MINI-JEU POUR COMMENCER À JOUER AVEC LE CHIEN !"
 	label_status.text = "🟢 PRÊT À AMUSER LE CHIEN"
 	label_status.add_theme_color_override("font_color", Color(0.24, 0.95, 0.79, 1.0))
+	
+	# Dynamically center the menu exactly on the PNJ's screen position
+	var pnj_screen_pos := Vector2(1024 / 2.0, 682 / 2.0)
+	var parent = get_parent()
+	if parent and "pnjHub" in parent and is_instance_valid(parent.pnjHub):
+		var pnj_node = parent.pnjHub as Node2D
+		if pnj_node:
+			pnj_screen_pos = pnj_node.get_global_transform_with_canvas().origin
+	
+	background_panel.global_position = pnj_screen_pos - Vector2(320, 250)
+	
 	visible = true
 	_play_bark(1.0)
 
