@@ -1030,6 +1030,141 @@ func _on_victory() -> void:
 	slide_tween.tween_property(victory_sprite, "position:x", -50, 5.0)
 
 	await get_tree().create_timer(5.0).timeout
+
+	# --- Cross-fade vers tour_victoire ---
+	var victory_sprite2 := Sprite2D.new()
+	victory_sprite2.texture = load("res://art/Futur/tour_victoire.png")
+	victory_sprite2.centered = false
+	var tex_size2 := victory_sprite2.texture.get_size()
+	var s2 := maxf(vp.x / tex_size2.x, vp.y / tex_size2.y)
+	victory_sprite2.scale = Vector2(s2, s2)
+	victory_sprite2.position = Vector2.ZERO
+	victory_sprite2.modulate.a = 0.0
+	victory_layer.add_child(victory_sprite2)
+
+	var text_panel2 := Panel.new()
+	var text_style2 := StyleBoxFlat.new()
+	text_style2.bg_color = Color(0, 0, 0, 0.75)
+	text_style2.border_width_left = 2
+	text_style2.border_width_right = 2
+	text_style2.border_width_top = 2
+	text_style2.border_width_bottom = 2
+	text_style2.border_color = Color(1, 1, 1, 0.4)
+	text_style2.corner_radius_top_left = 6
+	text_style2.corner_radius_top_right = 6
+	text_style2.corner_radius_bottom_left = 6
+	text_style2.corner_radius_bottom_right = 6
+	text_panel2.add_theme_stylebox_override("panel", text_style2)
+	text_panel2.position = Vector2(vp.x * 0.1, vp.y * 0.8)
+	text_panel2.size = Vector2(vp.x * 0.8, 80)
+	text_panel2.modulate.a = 0.0
+	victory_layer.add_child(text_panel2)
+
+	var text_label2 := Label.new()
+	text_label2.text = "La ville peut enfin retrouver sa paix, la menace est passée, le maire tyrannique n'est plus"
+	text_label2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label2.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_label2.add_theme_font_size_override("font_size", 16)
+	text_label2.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	text_label2.add_theme_constant_override("outline_size", 1)
+	text_label2.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	text_label2.position = Vector2(vp.x * 0.1 + 10, vp.y * 0.8 + 5)
+	text_label2.size = Vector2(vp.x * 0.8 - 20, 70)
+	text_label2.modulate.a = 0.0
+	victory_layer.add_child(text_label2)
+
+	var cross_tween := create_tween().set_parallel(true)
+	cross_tween.tween_property(victory_sprite, "modulate:a", 0.0, 0.8)
+	cross_tween.tween_property(text_panel, "modulate:a", 0.0, 0.8)
+	cross_tween.tween_property(text_label, "modulate:a", 0.0, 0.8)
+	cross_tween.tween_property(victory_sprite2, "modulate:a", 1.0, 0.8)
+	cross_tween.tween_property(text_panel2, "modulate:a", 1.0, 0.8)
+	cross_tween.tween_property(text_label2, "modulate:a", 1.0, 0.8)
+	await cross_tween.finished
+
+	victory_sprite.queue_free()
+	text_panel.queue_free()
+	text_label.queue_free()
+
+	var slide_tween2 := create_tween()
+	slide_tween2.tween_property(victory_sprite2, "position:x", -50, 5.0)
+
+	await get_tree().create_timer(5.0).timeout
+
+	# --- Transition éclair vers tour_victoire_twist ---
+	victory_sprite2.queue_free()
+	text_panel2.queue_free()
+	text_label2.queue_free()
+
+	var lightning_layer := CanvasLayer.new()
+	lightning_layer.layer = 26
+	add_child(lightning_layer)
+	var lightning_rect := ColorRect.new()
+	lightning_rect.color = Color(1, 1, 1, 0)
+	lightning_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lightning_rect.size = vp
+	lightning_layer.add_child(lightning_rect)
+
+	var light_tween := create_tween()
+	light_tween.tween_property(lightning_rect, "color:a", 1.0, 0.05)
+	await light_tween.finished
+
+	var victory_sprite3 := Sprite2D.new()
+	victory_sprite3.texture = load("res://art/Futur/tour_victoire_twist.png")
+	victory_sprite3.centered = false
+	var tex_size3 := victory_sprite3.texture.get_size()
+	var s3 := maxf(vp.x / tex_size3.x, vp.y / tex_size3.y)
+	victory_sprite3.scale = Vector2(s3, s3)
+	victory_sprite3.position = Vector2.ZERO
+	victory_layer.add_child(victory_sprite3)
+
+	var text_panel3 := Panel.new()
+	var text_style3 := StyleBoxFlat.new()
+	text_style3.bg_color = Color(0, 0, 0, 0.75)
+	text_style3.border_width_left = 2
+	text_style3.border_width_right = 2
+	text_style3.border_width_top = 2
+	text_style3.border_width_bottom = 2
+	text_style3.border_color = Color(1, 1, 1, 0.4)
+	text_style3.corner_radius_top_left = 6
+	text_style3.corner_radius_top_right = 6
+	text_style3.corner_radius_bottom_left = 6
+	text_style3.corner_radius_bottom_right = 6
+	text_panel3.add_theme_stylebox_override("panel", text_style3)
+	text_panel3.position = Vector2(vp.x * 0.1, vp.y * 0.8)
+	text_panel3.size = Vector2(vp.x * 0.8, 80)
+	victory_layer.add_child(text_panel3)
+
+	var text_label3 := Label.new()
+	text_label3.text = "Mais la menace de la distortion est éternelle..."
+	text_label3.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label3.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label3.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_label3.add_theme_font_size_override("font_size", 16)
+	text_label3.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	text_label3.add_theme_constant_override("outline_size", 1)
+	text_label3.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	text_label3.position = Vector2(vp.x * 0.1 + 10, vp.y * 0.8 + 5)
+	text_label3.size = Vector2(vp.x * 0.8 - 20, 70)
+	victory_layer.add_child(text_label3)
+
+	var light_off := create_tween()
+	light_off.tween_property(lightning_rect, "color:a", 0.0, 0.2)
+	await light_off.finished
+
+	lightning_rect.queue_free()
+	lightning_layer.queue_free()
+
+	await get_tree().create_timer(5.0).timeout
+
+	var final_fade := create_tween().set_parallel(true)
+	final_fade.tween_property(victory_sprite3, "modulate:a", 0.0, 1.2)
+	final_fade.tween_property(text_panel3, "modulate:a", 0.0, 1.2)
+	final_fade.tween_property(text_label3, "modulate:a", 0.0, 1.2)
+	final_fade.tween_property(_fade_rect, "color:a", 1.0, 1.2)
+	await final_fade.finished
+
 	battle_won.emit()
 
 

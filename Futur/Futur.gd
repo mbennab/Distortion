@@ -413,30 +413,6 @@ func _on_combat_boss_won() -> void:
 
 
 func _show_combat_victory_message() -> void:
-	var vp := get_viewport().get_visible_rect().size
-	var text_label := Label.new()
-	text_label.text = "Alfredo Sinko Nochez est vaincu ! La ville de Kadath est libérée !"
-	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	text_label.add_theme_font_size_override("font_size", 28)
-	text_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
-	text_label.add_theme_constant_override("outline_size", 2)
-	text_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	text_label.custom_minimum_size = Vector2(700, 0)
-	text_label.position = Vector2(vp.x / 2.0 - 350, vp.y / 2.0 - 80)
-	text_label.size = Vector2(700, 160)
-	fade_layer.add_child(text_label)
-
-	await get_tree().create_timer(4.0).timeout
-
-	if is_instance_valid(text_label):
-		text_label.queue_free()
-
-	var tween_fade := create_tween()
-	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 1.0)
-	await tween_fade.finished
-
 	var main = get_tree().current_scene
 	if main and main.has_method("warp_to_era"):
 		main.warp_to_era("hub", "entree")
