@@ -50,6 +50,7 @@ func _setup_ui() -> void:
 	root_control = Control.new()
 	root_control.anchor_right = 1.0
 	root_control.anchor_bottom = 1.0
+	root_control.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root_control)
 
 	prompt_label = Label.new()
@@ -364,6 +365,21 @@ func hide_prompt() -> void:
 	current_state = State.HIDDEN
 	nearby_npc_id = ""
 	nearby_npc_name = ""
+	prompt_label.visible = false
+
+
+func show_custom_prompt(text: String) -> void:
+	if current_state == State.ACTIVE or current_state == State.WAITING:
+		return
+	current_state = State.PROMPT
+	prompt_label.visible = true
+	prompt_label.text = text
+
+
+func hide_custom_prompt() -> void:
+	if current_state != State.PROMPT:
+		return
+	current_state = State.HIDDEN
 	prompt_label.visible = false
 
 

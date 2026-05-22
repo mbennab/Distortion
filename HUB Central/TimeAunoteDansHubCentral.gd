@@ -18,6 +18,7 @@ var timerSortie
 var speed = 350
 var particles
 var next_scene = ""
+var _active_portal: String = ""
 
 
 var _ambient_player: AudioStreamPlayer
@@ -171,23 +172,82 @@ func _stop_portal_glows() -> void:
 
 func _connect_portal_signals():
 	zonePorteJaune.body_entered.connect(_on_porte_jaune_entered)
+	zonePorteJaune.body_exited.connect(_on_porte_jaune_exited)
+	
 	zonePorteBleue.body_entered.connect(_on_porte_bleue_entered)
+	zonePorteBleue.body_exited.connect(_on_porte_bleue_exited)
+	
 	zonePorteRouge.body_entered.connect(_on_porte_rouge_entered)
+	zonePorteRouge.body_exited.connect(_on_porte_rouge_exited)
+
 
 func _on_porte_jaune_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
-		next_scene = "MoyenAge"
-		_trigger_portal("jaune", zonePorteJaune.global_position, Color.ORANGE)
+		_active_portal = "MoyenAge"
+		DialogueUI.show_custom_prompt("Appuyez sur E pour voyager vers le Moyen-Âge")
+
+
+func _on_porte_jaune_exited(body):
+	if body == timeAunote:
+		if _active_portal == "MoyenAge":
+			_active_portal = ""
+			DialogueUI.hide_custom_prompt()
+
 
 func _on_porte_bleue_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
-		next_scene = "Present"
-		_trigger_portal("bleue", zonePorteBleue.global_position, Color.PURPLE)
+		_active_portal = "Present"
+		DialogueUI.show_custom_prompt("Appuyez sur E pour voyager vers le Présent")
+
+
+func _on_porte_bleue_exited(body):
+	if body == timeAunote:
+		if _active_portal == "Present":
+			_active_portal = ""
+			DialogueUI.hide_custom_prompt()
+
 
 func _on_porte_rouge_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
-		next_scene = "Futur"
-		_trigger_portal("rouge", zonePorteRouge.global_position, Color.GREEN)
+		_active_portal = "Futur"
+		DialogueUI.show_custom_prompt("Appuyez sur E pour voyager vers le Futur")
+
+
+func _on_porte_rouge_exited(body):
+	if body == timeAunote:
+		if _active_portal == "Futur":
+			_active_portal = ""
+			DialogueUI.hide_custom_prompt()
+
+
+func _activate_current_portal():
+	var color := Color.ORANGE
+	var porte_name := "jaune"
+	var pos: Vector2 = zonePorteJaune.global_position
+	
+	match _active_portal:
+		"MoyenAge":
+			next_scene = "MoyenAge"
+			color = Color.ORANGE
+			porte_name = "jaune"
+			pos = zonePorteJaune.global_position
+		"Present":
+			next_scene = "Present"
+			color = Color.PURPLE
+			porte_name = "bleue"
+			pos = zonePorteBleue.global_position
+		"Futur":
+			next_scene = "Futur"
+			color = Color.GREEN
+			porte_name = "rouge"
+			pos = zonePorteRouge.global_position
+		_:
+			return
+			
+	DialogueUI.hide_custom_prompt()
+	_active_portal = ""
+	_trigger_portal(porte_name, pos, color)
+
 
 func _trigger_portal(porte_name, pos, color):
 	print(porte_name)
@@ -196,6 +256,17 @@ func _trigger_portal(porte_name, pos, color):
 	particles.restart()
 	timeAunote.fade_out()
 	timerSortie.start()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not started or stopped:
+		return
+	if event.is_echo():
+		return
+	if event.is_action_pressed("interagir"):
+		if _active_portal != "" and not timerSortie.time_left > 0 and not DialogueUI.is_dialogue_active():
+			get_viewport().set_input_as_handled()
+			_activate_current_portal()
+
 
 func _process(_delta):
 	deplacement(_delta)
@@ -251,6 +322,8 @@ func stop():
 	hide()
 	$ObjectiveHUD.hide()
 	DialogueUI.close_dialogue()
+	DialogueUI.hide_custom_prompt()
+	_active_portal = ""
 	_stop_portal_glows()
 	_stop_ambient()
 	_set_collisions_enabled(false)
