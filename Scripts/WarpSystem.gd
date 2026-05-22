@@ -753,6 +753,7 @@ func _apply_quest_reversal_reactions(quest_id: String) -> void:
 					present._player_has_changed_once = false
 					present._show_darkness_overlay() # Restore darkness overlay since breaker is reset
 					present._update_secretaire_npc_id()
+					present._update_pc_controle_state()
 
 
 func update_quests_status_from_game() -> void:

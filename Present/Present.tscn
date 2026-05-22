@@ -12,6 +12,8 @@
 [ext_resource type="PackedScene" uid="uid://541im6pqeob3" path="res://Present/vestiaire.tscn" id="10_vestiaire"]
 [ext_resource type="PackedScene" uid="uid://b2ww35f38sjae" path="res://Present/salleMachine.tscn" id="11_salle_machine"]
 [ext_resource type="PackedScene" uid="uid://rv8rd4lpod17" path="res://Present/salleElectricite.tscn" id="12_salle_electricite"]
+[ext_resource type="PackedScene" path="res://Present/pnj_pc_controle.tscn" id="13_pc_controle_pnj"]
+
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_present"]
 bg_color = Color(0.08, 0.08, 0.15, 0.85)
@@ -38,6 +40,9 @@ visible = false
 [node name="PnjSecurité" type="Node2D" parent="." instance=ExtResource("5_pnj")]
 
 [node name="PnjSecretaire" type="Node2D" parent="." instance=ExtResource("7_secretaire")]
+
+[node name="PnjPcControle" type="Node2D" parent="." instance=ExtResource("13_pc_controle_pnj")]
+
 
 [node name="Hall" type="Node2D" parent="." instance=ExtResource("6_hall")]
 visible = false

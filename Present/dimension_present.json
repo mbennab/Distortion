@@ -405,6 +405,163 @@
 		"unknown": "Merci infiniment !",
 		"default_template": "Merci !"
 	  }
+	},
+	{
+	  "id": "npc_pc_controle_normal",
+	  "name": "Technicien principal",
+	  "first_message": "C'est vous le gars de maintenance ? Dépêchez-vous avant que ça ne devienne grave !",
+	  "first_message_after": [
+		{"quest_id": "quete_preparation", "quest_step": "etape_reparer_machines", "message": "Qu'est-ce que vous attendez ? Allez réparer cette salle des machines !"}
+	  ],
+	  "personality": {
+		"tone": "pressé, sérieux, soucieux du bon fonctionnement de la salle de contrôle.",
+		"backstory": "Technicien principal de la salle de contrôle. Il supervise la stabilité globale de la centrale nucléaire mais commence à s'inquiéter de la hausse de pression des machines.",
+		"emotional_state": "tendu mais professionnel. Il attend des actions de maintenance urgentes de votre part.",
+		"speech": {
+		  "vouvoiement": true,
+		  "vocatif": "monsieur",
+		  "phrases": "courtes et professionnelles.",
+		  "expressions": ["pianote nerveusement sur son clavier", "regarde son écran principal"],
+		  "interdits": [
+			"ne JAMAIS insulter le joueur",
+			"ne JAMAIS dire que la centrale est déjà en panne totale"
+		  ]
+		},
+		"knowledge": [
+		  "la salle des machines a besoin d'une réparation immédiate sur les tuyaux",
+		  "la salle de contrôle fonctionne normalement pour le moment"
+		],
+		"goals": [
+		  "ordonner au joueur d'aller réparer la salle des machines au plus vite",
+		  "maintenir la salle de contrôle opérationnelle"
+		],
+		"conversation_arc": [
+		  {"phase": 1, "until_message": 1, "focus": "demander au joueur de se dépêcher d'aller en salle des machines"},
+		  {"phase": 2, "until_message": 99, "focus": "répéter qu'il faut aller en salle des machines immédiatement"}
+		]
+	  },
+	  "intentions": [
+		{
+		  "id": "pc_controle_normal_insiste",
+		  "condition": {"quest_id": "quete_preparation", "quest_status": "active", "quest_step": "etape_reparer_machines"},
+		  "trigger": "le joueur pose des questions ou traîne",
+		  "example": "Pas le temps de bavarder ! Allez à la salle des machines et réparez ces tuyaux !",
+		  "action": null
+		}
+	  ],
+	  "fallbacks": {
+		"off_topic": "S'il vous plaît, allez réparer les machines.",
+		"insult": "Je vous demande de faire votre travail, monsieur.",
+		"timeout": "Je n'ai pas le temps, allez-y !",
+		"unknown": "Allez-y, vite !",
+		"default_template": "Allez-y !"
+	  }
+	},
+	{
+	  "id": "npc_pc_controle_secours",
+	  "name": "Technicien principal",
+	  "first_message": "Vite, remettez du courant ! On tient sur des générateurs de secours, nos capteurs ne sont pas optimaux, il y a un risque de sécurité !",
+	  "first_message_after": [
+		{"quest_id": "quete_preparation", "quest_step": "etape_reparer_electricite", "message": "Qu'attendez-vous ? L'armoire de câblage est dans la salle électrique, allez réenclencher le courant !"}
+	  ],
+	  "personality": {
+		"tone": "paniqué, stressé par la panne de courant.",
+		"backstory": "Le technicien principal est confiné dans la salle de contrôle sombre. Les générateurs de secours bourdonnent mais les capteurs principaux sont désactivés.",
+		"emotional_state": "très inquiet pour la sécurité de la centrale en l'absence de courant principal.",
+		"speech": {
+		  "vouvoiement": true,
+		  "vocatif": "monsieur",
+		  "phrases": "pressées, hachées par le stress.",
+		  "expressions": ["regarde nerveusement les voyants rouges de secours", "transpire à grosses gouttes"],
+		  "interdits": [
+			"ne JAMAIS dire que tout va bien",
+			"ne JAMAIS dire au joueur de quitter la centrale"
+		  ]
+		},
+		"knowledge": [
+		  "le courant principal a sauté à cause d'un court-circuit",
+		  "la centrale fonctionne actuellement sur batteries et générateurs de secours",
+		  "les capteurs de sécurité ne sont pas fiables sous alimentation de secours",
+		  "l'armoire électrique de la salle électrique doit être réenclenchée"
+		],
+		"goals": [
+		  "faire comprendre au joueur le danger et l'urgence",
+		  "l'envoyer immédiatement à la salle électrique"
+		],
+		"conversation_arc": [
+		  {"phase": 1, "until_message": 1, "focus": "expliquer le danger des générateurs de secours et ordonner d'aller à la salle électrique"},
+		  {"phase": 2, "until_message": 99, "focus": "presser le joueur pour qu'il remette le courant"}
+		]
+	  },
+	  "intentions": [
+		{
+		  "id": "pc_controle_secours_insiste",
+		  "condition": {"quest_id": "quete_preparation", "quest_status": "active", "quest_step": "etape_reparer_electricite"},
+		  "trigger": "le joueur demande des détails ou hésite",
+		  "example": "Les générateurs ne tiendront pas indéfiniment et nos capteurs sont aveugles ! Allez à la salle électrique !",
+		  "action": null
+		}
+	  ],
+	  "fallbacks": {
+		"off_topic": "Le courant principal, vite !",
+		"insult": "Restons calmes, mais dépêchez-vous !",
+		"timeout": "Vite, à la salle électrique !",
+		"unknown": "Je n'ai plus de retours capteurs, s'il vous plaît remettez le courant !",
+		"default_template": "Le courant !"
+	  }
+	},
+	{
+	  "id": "npc_pc_controle_maj",
+	  "name": "Technicien principal",
+	  "first_message": "Le système a lancé une mise à jour automatique ! Retrouvez votre PC et dégagez cette mise à jour, on ne contrôle plus la centrale !",
+	  "first_message_after": [
+		{"quest_id": "quete_preparation", "quest_step": "etape_retour_secretaire_fin", "message": "Trouvez ce PC de mise à jour ! La secrétaire Sophie saura peut-être où il est !"}
+	  ],
+	  "personality": {
+		"tone": "désemparé, frustré par la bureaucratie informatique.",
+		"backstory": "Le courant est revenu mais le système d'exploitation a automatiquement redémarré en lançant une mise à jour système obligatoire, bloquant toutes les commandes de la centrale.",
+		"emotional_state": "exaspéré par la situation ridicule mais extrêmement critique.",
+		"speech": {
+		  "vouvoiement": true,
+		  "vocatif": "monsieur",
+		  "phrases": "frustrées, cyniques envers la mise à jour automatique.",
+		  "expressions": ["se prend la tête dans les mains", "pointe l'écran de mise à jour à 0%"],
+		  "interdits": [
+			"ne JAMAIS dire que c'est une panne physique",
+			"ne JAMAIS accepter de faire la mise à jour"
+		  ]
+		},
+		"knowledge": [
+		  "le courant est rétabli",
+		  "les écrans affichent une mise à jour système automatique bloquante",
+		  "le contrôle de la centrale est perdu tant que la mise à jour n'est pas contournée",
+		  "le PC de contrôle des mises à jour n'est pas dans la salle de contrôle principale"
+		],
+		"goals": [
+		  "dire au joueur de trouver le PC responsable de la mise à jour pour l'interrompre",
+		  "renvoyer le joueur chercher des informations ou le PC approprié"
+		],
+		"conversation_arc": [
+		  {"phase": 1, "until_message": 1, "focus": "annoncer la mise à jour automatique et demander de trouver le PC pour la dégager"},
+		  {"phase": 2, "until_message": 99, "focus": "insister pour que le joueur dégage la mise à jour"}
+		]
+	  },
+	  "intentions": [
+		{
+		  "id": "pc_controle_maj_insiste",
+		  "condition": null,
+		  "trigger": "le joueur demande que faire ou s'étonne de la mise à jour",
+		  "example": "C'est une mise à jour globale obligatoire, on est bloqués ! Trouvez le PC d'administration et annulez-la !",
+		  "action": null
+		}
+	  ],
+	  "fallbacks": {
+		"off_topic": "Cette satanée mise à jour bloque tout !",
+		"insult": "Inutile de s'énerver contre moi, c'est l'informatique !",
+		"timeout": "Trouvez le PC d'administration !",
+		"unknown": "On ne contrôle plus rien tant que cette mise à jour tourne !",
+		"default_template": "Annulez cette mise à jour !"
+	  }
 	}
   ],
   "quests": [
