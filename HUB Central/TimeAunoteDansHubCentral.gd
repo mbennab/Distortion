@@ -216,6 +216,7 @@ func start(spawn_id: String = "entree"):
 	process_mode = PROCESS_MODE_INHERIT
 	TimeAunoteScript.disguised = false
 	show()
+	next_scene = ""
 	_objective_label = $ObjectiveHUD/Panel/Objective
 	_objective_label.text = "Parler au Gardien du Nexus"
 	$ObjectiveHUD.show()
