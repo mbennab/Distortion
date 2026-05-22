@@ -26,6 +26,7 @@ var fade_layer: CanvasLayer
 var fade_rect: ColorRect
 var _objective_label: Label
 var _combat_boss_instance: Node2D
+var _etage1_guards: Array = []
 
 
 func _ready() -> void:
@@ -113,7 +114,7 @@ func _on_metro_sortie_entered(body: Node2D) -> void:
 	if is_instance_valid(text_label):
 		text_label.queue_free()
 
-	_play_cinematique_futur()
+	_transition_to_tower()
 
 
 func _go_to_basement() -> void:
@@ -124,6 +125,8 @@ func _go_to_basement() -> void:
 	await tween_fade.finished
 
 	$fondFutur.hide()
+	_car_prompt.visible = false
+	_player_near_car = false
 	_set_upper_collisions(false)
 	$"pnj-futur".hide()
 	if pnjfutur:
@@ -602,6 +605,7 @@ func _on_sortie_fond_entered(body: Node2D) -> void:
 
 	$FondEtage1.show()
 	_set_etage1_collisions(true)
+	_setup_etage1_guards()
 
 	time_aunote.global_position = $FondEtage1/Marker/Entrée.global_position
 	time_aunote.scale = Vector2(0.35, 0.35)
@@ -610,11 +614,66 @@ func _on_sortie_fond_entered(body: Node2D) -> void:
 		collision_node.disabled = false
 
 	$ObjectiveHUD.show()
-	_update_objective("Explorer le premier étage de la tour")
+	_update_objective("Éviter les gardes et monter à l'étage")
 
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade.finished
+
+	can_move = true
+
+
+func _setup_etage1_guards() -> void:
+	for g in _etage1_guards:
+		if is_instance_valid(g):
+			g.queue_free()
+	_etage1_guards.clear()
+
+	var marker_names := ["garde1", "garde2", "garde3", "garde4"]
+	for m in marker_names:
+		var marker = $FondEtage1/Marker.get_node_or_null(m)
+		if not marker:
+			continue
+		var guard: Node2D = load("res://Scripts/GardeEtage.gd").new()
+		guard.position = marker.position
+		guard.scale = Vector2(0.35, 0.35)
+		guard.player_caught.connect(_on_guard_caught)
+		$FondEtage1.add_child(guard)
+		_etage1_guards.append(guard)
+
+
+func _on_guard_caught() -> void:
+	can_move = false
+	time_aunote.modulate = Color(1, 0.3, 0.3)
+	for g in _etage1_guards:
+		if is_instance_valid(g):
+			g.set_active(false)
+
+	var vp := get_viewport().get_visible_rect().size
+	var label := Label.new()
+	label.text = "Vous avez été repéré !"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 28)
+	label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+	label.add_theme_constant_override("outline_size", 2)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	label.position = Vector2(vp.x / 2.0 - 200, vp.y / 2.0 - 40)
+	label.size = Vector2(400, 80)
+	fade_layer.add_child(label)
+
+	await get_tree().create_timer(1.2).timeout
+
+	if is_instance_valid(label):
+		label.queue_free()
+
+	time_aunote.global_position = $FondEtage1/Marker/Entrée.global_position
+	time_aunote.modulate = Color(1, 1, 1)
+
+	for g in _etage1_guards:
+		if is_instance_valid(g):
+			g.set_active(true)
+			g.modulate = Color(1, 1, 1)
 
 	can_move = true
 
@@ -681,8 +740,14 @@ func _trigger_etage1_sortie() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
 	await tween_fade.finished
 
+	for g in _etage1_guards:
+		if is_instance_valid(g):
+			g.set_active(false)
 	$FondEtage1.hide()
 	_set_etage1_collisions(false)
+	var sortie1 := $FondEtage1.get_node_or_null("SortieEtage1")
+	if sortie1 is Area2D:
+		sortie1.monitoring = false
 
 	$FondEtage2.show()
 	_set_etage2_collisions(true)
@@ -743,6 +808,12 @@ func _trigger_etage2_sortie() -> void:
 
 	$FondEtage2.hide()
 	_set_etage2_collisions(false)
+	var sortie2 := $FondEtage2.get_node_or_null("SortieEtage2")
+	if sortie2 is Area2D:
+		sortie2.monitoring = false
+		var shape := sortie2.get_node_or_null("SortieEtage2")
+		if shape is CollisionShape2D:
+			shape.disabled = true
 
 	$FondEtage3.show()
 	_set_etage3_collisions(true)
@@ -801,8 +872,29 @@ func _trigger_etage3_sortie() -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
 	await tween_fade.finished
 
+	var vp := get_viewport().get_visible_rect().size
+	var label := Label.new()
+	label.text = "Vous arrivez au sommet de la tour..."
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 28)
+	label.add_theme_color_override("font_color", Color(1, 1, 1))
+	label.add_theme_constant_override("outline_size", 2)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	label.position = Vector2(vp.x / 2.0 - 200, vp.y / 2.0 - 40)
+	label.size = Vector2(400, 80)
+	fade_layer.add_child(label)
+
+	await get_tree().create_timer(1.5).timeout
+
+	if is_instance_valid(label):
+		label.queue_free()
+
 	$FondEtage3.hide()
 	_set_etage3_collisions(false)
+	var sortie3 := $FondEtage3.get_node_or_null("SortieEtage3")
+	if sortie3 is Area2D:
+		sortie3.monitoring = false
 
 	$FondBureau.show()
 	_set_bureau_collisions(true)
@@ -1070,6 +1162,9 @@ func start(spawn_id: String = "entree") -> void:
 		if zone_escalier:
 			zone_escalier.monitoring = false
 		$FondTour.show()
+		for g in _etage1_guards:
+			if is_instance_valid(g):
+				g.set_active(false)
 		$FondEtage1.hide()
 		_set_etage1_collisions(false)
 		var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
@@ -1217,6 +1312,11 @@ func stop() -> void:
 		_combat_boss_instance.queue_free()
 		_combat_boss_instance = null
 
+	for g in _etage1_guards:
+		if is_instance_valid(g):
+			g.queue_free()
+	_etage1_guards.clear()
+
 
 func _setup_car_minigame() -> void:
 	if _car_minigame:
@@ -1265,7 +1365,7 @@ func _setup_car_prompt() -> void:
 
 
 func _on_car_zone_entered(body: Node2D) -> void:
-	if body == time_aunote:
+	if body == time_aunote and $fondFutur.visible:
 		_player_near_car = true
 		_car_prompt.visible = true
 

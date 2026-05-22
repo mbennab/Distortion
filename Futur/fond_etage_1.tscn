@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://df3b7w0b50pea"]
+[gd_scene format=3 uid="uid://cbgw2d3ln8fom"]
 
 [ext_resource type="Texture2D" uid="uid://ypw7uurou3eb" path="res://art/Futur/fondEtage1.png" id="1_20x1l"]
 
@@ -22,13 +22,16 @@ zoom = Vector2(0.422, 0.422)
 position = Vector2(1217, 1488)
 
 [node name="garde1" type="Marker2D" parent="Marker" unique_id=906685386]
-position = Vector2(759, 1162)
+position = Vector2(759, 1096)
 
 [node name="garde2" type="Marker2D" parent="Marker" unique_id=1694637018]
-position = Vector2(1626, 1135)
+position = Vector2(1626, 1010)
 
 [node name="garde3" type="Marker2D" parent="Marker" unique_id=1607999076]
-position = Vector2(805, 679)
+position = Vector2(1208, 679)
+
+[node name="garde4" type="Marker2D" parent="Marker" unique_id=1601862406]
+position = Vector2(1294, 1206)
 
 [node name="Limites-etage-1" type="StaticBody2D" parent="." unique_id=1477282438]
 collision_layer = 0
