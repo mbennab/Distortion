@@ -25,6 +25,7 @@ const MAX_HISTORY = 15
 var http_request: HTTPRequest
 var dimension: Dictionary = {}
 var game_state: Dictionary = {}
+var should_load_save: bool = false
 var current_npc: Dictionary = {}
 var current_npc_id: String = ""
 var api_key: String = ""
@@ -730,6 +731,7 @@ func complete_step(quest_id: String, step_id: String) -> void:
 		qs["status"] = "done"
 
 	quest_updated.emit(quest_id, qs["status"], next_step)
+	save_game_state()
 
 
 func mark_quest_done(quest_id: String) -> void:
@@ -740,6 +742,7 @@ func mark_quest_done(quest_id: String) -> void:
 	qs["status"] = "done"
 	qs["current_step"] = ""
 	quest_updated.emit(quest_id, "done", "")
+	save_game_state()
 
 
 func reset_quest(quest_id: String) -> void:
@@ -757,6 +760,7 @@ func reset_quest(quest_id: String) -> void:
 		"completed_steps": [],
 	}
 	quest_updated.emit(quest_id, "not_started", first_step)
+	save_game_state()
 
 
 func _find_npc(npc_id: String) -> Dictionary:
@@ -866,3 +870,87 @@ func _fallback_keyword_evaluation(text: String) -> int:
 			return 0
 	else:
 		return -5
+
+
+func save_game_state() -> void:
+	var current_zone := "hub"
+	var main = get_tree().current_scene
+	if main and "current_zone" in main:
+		current_zone = main.current_zone
+
+	var time_aunote_class = load("res://Personnage/TimeAunote.gd")
+	var disguised_state := false
+	if time_aunote_class:
+		disguised_state = time_aunote_class.disguised
+
+	var save_data := {
+		"current_zone": current_zone,
+		"game_state": game_state,
+		"disguised": disguised_state
+	}
+
+	var file = FileAccess.open("user://save_game.json", FileAccess.WRITE)
+	if file:
+		var json_str = JSON.stringify(save_data)
+		file.store_string(json_str)
+		file.close()
+		print("[DialogueSystem] Game successfully saved to user://save_game.json")
+
+
+func load_game_state() -> bool:
+	if not FileAccess.file_exists("user://save_game.json"):
+		print("[DialogueSystem] No save file found.")
+		return false
+
+	var file = FileAccess.open("user://save_game.json", FileAccess.READ)
+	if not file:
+		return false
+
+	var json_str = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	var parse_err = json.parse(json_str)
+	if parse_err != OK:
+		push_error("[DialogueSystem] JSON Parse Error in save file")
+		return false
+
+	var data = json.get_data()
+	if not data is Dictionary:
+		return false
+
+	# Restore game_state
+	var loaded_state = data.get("game_state", {})
+	for qid in loaded_state:
+		if qid in game_state:
+			var loaded_q: Dictionary = loaded_state[qid] as Dictionary
+			var current_q: Dictionary = game_state[qid] as Dictionary
+			current_q["status"] = loaded_q.get("status", "not_started")
+			current_q["current_step"] = loaded_q.get("current_step", "")
+			current_q["completed_steps"] = loaded_q.get("completed_steps", [])
+			quest_updated.emit(qid, current_q["status"], current_q["current_step"])
+
+	# Restore disguise
+	var disguised = data.get("disguised", false)
+	var time_aunote_class = load("res://Personnage/TimeAunote.gd")
+	if time_aunote_class:
+		time_aunote_class.disguised = disguised
+
+	# Transition/Warp to the saved era
+	var saved_zone = data.get("current_zone", "hub")
+	var main = get_tree().current_scene
+	if main and main.has_method("warp_to_era"):
+		# Warp to the saved era with default entree spawn
+		main.warp_to_era(saved_zone, "entree")
+
+		# Synchronize active nodes or minigames
+		if has_node("/root/WarpSystem"):
+			var ws = get_node("/root/WarpSystem")
+			if ws:
+				ws.update_minigames_status_from_game()
+				for key in ws.minigames_status:
+					var completed = ws.minigames_status[key]
+					ws._apply_active_scene_reactions(key, completed)
+
+	print("[DialogueSystem] Game successfully loaded from user://save_game.json")
+	return true

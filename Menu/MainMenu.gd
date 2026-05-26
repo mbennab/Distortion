@@ -356,7 +356,14 @@ func _on_new_game() -> void:
 func _on_load() -> void:
 	if fading:
 		return
-	_show_stub("Charger — bientot disponible")
+	if not FileAccess.file_exists("user://save_game.json"):
+		_show_stub("Aucune sauvegarde trouvee")
+		return
+
+	DialogueSystem.should_load_save = true
+	fading = true
+	await _play_outro()
+	get_tree().change_scene_to_file("res://Main.tscn")
 
 
 func _on_options() -> void:
