@@ -181,10 +181,51 @@ func _connect_portal_signals():
 	zonePorteRouge.body_exited.connect(_on_porte_rouge_exited)
 
 
+func _is_era_stabilized(era: String) -> bool:
+	var ma_done := false
+	var pr_done := false
+	var fu_done := false
+	
+	if has_node("/root/WarpSystem"):
+		var ws: Node = get_node("/root/WarpSystem")
+		if ws:
+			if ws.has_method("update_minigames_status_from_game"):
+				ws.call("update_minigames_status_from_game")
+			ma_done = ws.minigames_status.get("combat_assassin", false) as bool
+			pr_done = ws.minigames_status.get("cablage", false) as bool
+			fu_done = ws.minigames_status.get("boss_rpg", false) as bool
+	
+	# Fallback checks from DialogueSystem.game_state
+	if not ma_done:
+		var q: Dictionary = DialogueSystem.game_state.get("quete_piste_assassin", {}) as Dictionary
+		if q.get("status") == "done":
+			ma_done = true
+	if not pr_done:
+		var q: Dictionary = DialogueSystem.game_state.get("quete_preparation", {}) as Dictionary
+		if q.get("status") == "done":
+			pr_done = true
+	if not fu_done:
+		var q: Dictionary = DialogueSystem.game_state.get("futur_completed", {}) as Dictionary
+		if q.get("status") == "done":
+			fu_done = true
+
+	match era:
+		"MoyenAge":
+			return ma_done
+		"Present":
+			return pr_done
+		"Futur":
+			return fu_done
+		_:
+			return false
+
 func _on_porte_jaune_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
 		_active_portal = "MoyenAge"
-		DialogueUI.show_custom_prompt("Appuyez sur E pour voyager vers le Moyen-Âge")
+		if _is_era_stabilized("MoyenAge"):
+			DialogueUI.show_custom_prompt("Cette époque est déjà stabilisée")
+		else:
+			DialogueUI.show_custom_prompt("Appuyez sur E pour voyager vers le Moyen-Âge")
 
 
 func _on_porte_jaune_exited(body):
@@ -197,7 +238,10 @@ func _on_porte_jaune_exited(body):
 func _on_porte_bleue_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
 		_active_portal = "Present"
-		DialogueUI.show_custom_prompt("Appuyez sur E pour voyager vers le Présent")
+		if _is_era_stabilized("Present"):
+			DialogueUI.show_custom_prompt("Cette époque est déjà stabilisée")
+		else:
+			DialogueUI.show_custom_prompt("Appuyez sur E pour voyager vers le Présent")
 
 
 func _on_porte_bleue_exited(body):
@@ -210,7 +254,10 @@ func _on_porte_bleue_exited(body):
 func _on_porte_rouge_entered(body):
 	if body == timeAunote and not timerSortie.time_left > 0:
 		_active_portal = "Futur"
-		DialogueUI.show_custom_prompt("Appuyez sur E pour voyager vers le Futur")
+		if _is_era_stabilized("Futur"):
+			DialogueUI.show_custom_prompt("Cette époque est déjà stabilisée")
+		else:
+			DialogueUI.show_custom_prompt("Appuyez sur E pour voyager vers le Futur")
 
 
 func _on_porte_rouge_exited(body):
@@ -264,6 +311,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("interagir"):
 		if _active_portal != "" and not timerSortie.time_left > 0 and not DialogueUI.is_dialogue_active():
+			if _is_era_stabilized(_active_portal):
+				return
 			get_viewport().set_input_as_handled()
 			_activate_current_portal()
 
