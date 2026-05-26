@@ -85,6 +85,9 @@ position = Vector2(1195, 870)
 [node name="chienPos" type="Marker2D" parent="Markers2D" unique_id=1760368016]
 position = Vector2(358, 409)
 
+[node name="pcMinisJeux" type="Marker2D" parent="Markers2D" unique_id=49374409]
+position = Vector2(2028, 1007)
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=368604864]
 position = Vector2(0, 1)
 anchor_mode = 0
