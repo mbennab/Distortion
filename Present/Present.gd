@@ -3,6 +3,7 @@ extends Node2D
 const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
 const MiniJeuTuyauScene = preload("res://Scripts/MiniJeuTuyau.tscn")
 const MiniJeuCablageScene = preload("res://Scripts/MiniJeuCablage.tscn")
+const MiniJeuHackingScript = preload("res://Scripts/MiniJeuHacking.gd")
 
 var time_aunote: CharacterBody2D
 var pnj_secu
@@ -70,6 +71,11 @@ var _disjoncteur_done: bool = false
 var _disjoncteur_prompt: Label
 var _disjoncteur_locked_prompt: Label
 var _player_has_changed_once: bool = false
+var _hacking_minigame: CanvasLayer = null
+var _hacking_done: bool = false
+var _trapped_in_control: bool = false
+var _thought_bubble_label: Label
+var _thought_bubble_layer: CanvasLayer
 
 # Audio ambient
 var _ambient_player: AudioStreamPlayer
@@ -458,7 +464,7 @@ func _setup_subroom_retours() -> void:
 	_salle_electricite_retour_prompt.visible = false
 	_subroom_retour_prompt_layer.add_child(_salle_electricite_retour_prompt)
 
-	var ret_pc = pc_controle.get_node_or_null("couloir")
+	var ret_pc = pc_controle.get_node_or_null("event")
 	if ret_pc:
 		ret_pc.body_entered.connect(_on_pc_controle_retour_entered)
 		ret_pc.body_exited.connect(_on_pc_controle_retour_exited)
@@ -494,6 +500,28 @@ func _setup_subroom_retours() -> void:
 	_disjoncteur_locked_prompt = _create_portal_prompt("L'armoire electrique fonctionne normalement")
 	_disjoncteur_locked_prompt.visible = false
 	_subroom_retour_prompt_layer.add_child(_disjoncteur_locked_prompt)
+
+
+func _setup_thought_bubble() -> void:
+	_thought_bubble_layer = CanvasLayer.new()
+	_thought_bubble_layer.layer = 55
+	add_child(_thought_bubble_layer)
+
+	_thought_bubble_label = Label.new()
+	_thought_bubble_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_thought_bubble_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_thought_bubble_label.add_theme_font_size_override("font_size", 15)
+	_thought_bubble_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.2))
+	var tstyle := StyleBoxFlat.new()
+	tstyle.bg_color = Color(0.82, 0.9, 1.0, 0.93)
+	tstyle.corner_radius_top_left = 10
+	tstyle.corner_radius_top_right = 10
+	tstyle.corner_radius_bottom_left = 10
+	tstyle.corner_radius_bottom_right = 10
+	_thought_bubble_label.add_theme_stylebox_override("normal", tstyle)
+	_thought_bubble_label.custom_minimum_size = Vector2(280, 0)
+	_thought_bubble_label.visible = false
+	_thought_bubble_layer.add_child(_thought_bubble_label)
 
 
 func _on_pc_controle_retour_entered(body: Node2D) -> void:
@@ -694,10 +722,13 @@ func _go_to_pc_controle() -> void:
 		return
 
 	can_move = true
+	_hide_thought_bubble()
 
 
 func _return_from_pc_controle() -> void:
 	if not is_inside_tree() or couloir.visible:
+		return
+	if _trapped_in_control:
 		return
 	can_move = false
 	_pc_controle_retour_prompt.visible = false
@@ -965,6 +996,10 @@ func _set_couloir_collisions(enabled: bool) -> void:
 	var limites = couloir.get_node_or_null("limites")
 	if limites:
 		limites.collision_layer = 8 if enabled else 0
+	for area_name in ["retour_hall", "porte_pc_controle", "porte_machines", "porte_electricite", "porte_vestiaires"]:
+		var area = couloir.get_node_or_null(area_name)
+		if area:
+			area.monitoring = enabled
 
 
 func _input(event: InputEvent) -> void:
@@ -973,6 +1008,10 @@ func _input(event: InputEvent) -> void:
 	if DialogueUI.is_dialogue_active():
 		return
 	if not event.is_action_pressed("interagir"):
+		return
+	if _trapped_in_control:
+		get_viewport().set_input_as_handled()
+		_escape_to_nexus()
 		return
 	if _player_in_couloir and hall.visible:
 		get_viewport().set_input_as_handled()
@@ -1022,7 +1061,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_parking_entered(body: Node2D) -> void:
-	if body == time_aunote and can_move:
+	if body == time_aunote and can_move and $"fondPresent".visible:
 		_go_to_parking()
 
 
@@ -1089,14 +1128,15 @@ func _return_from_parking() -> void:
 	can_move = true
 
 
-func _go_to_hall() -> void:
+func _go_to_hall(skip_delay: bool = false) -> void:
 	if _hall_transition_started or hall.visible:
 		return
 	_hall_transition_started = true
 	can_move = false
-	await get_tree().create_timer(3.0).timeout
-	if not is_inside_tree():
-		return
+	if not skip_delay:
+		await get_tree().create_timer(3.0).timeout
+		if not is_inside_tree():
+			return
 	DialogueUI.close_dialogue()
 
 	var tween_fade := create_tween()
@@ -1107,6 +1147,7 @@ func _go_to_hall() -> void:
 
 	$fondPresent.hide()
 	_set_fond_collisions(false)
+	$"fondPresent/zone escape parking".monitoring = false
 	if pnj_secu:
 		pnj_secu.hide()
 		var zone = pnj_secu.get_node_or_null("ZoneDialogue")
@@ -1148,6 +1189,9 @@ func _set_hall_collisions(enabled: bool) -> void:
 	var limites = hall.get_node_or_null("Camera2D/limites")
 	if limites:
 		limites.collision_layer = 8 if enabled else 0
+	var couloir_zone = hall.get_node_or_null("Camera2D/couloir")
+	if couloir_zone:
+		couloir_zone.monitoring = enabled
 
 
 func _set_zone_camera(zone_name: String) -> void:
@@ -1226,7 +1270,7 @@ func _on_dialogue_response(npc_name: String, text: String) -> void:
 	# mais l'IA peut ne pas émettre l'action JSON. On laisse 3s de lecture.
 	await get_tree().create_timer(3.0).timeout
 	if started and not hall.visible and not _hall_transition_started:
-		_go_to_hall()
+		_go_to_hall(true)
 
 
 func _on_dialogue_ended() -> void:
@@ -1242,6 +1286,13 @@ func _on_dialogue_ended() -> void:
 	
 	if _last_dialogue_npc_id == "npc_secretaire_present_courtcircuit":
 		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_panique")
+	elif _last_dialogue_npc_id == "npc_secretaire_present_maj":
+		_update_objective("Aller en salle de contrôle")
+	elif _last_dialogue_npc_id == "npc_pc_controle_maj":
+		_update_objective("Skipper la mise à jour sur le laptop")
+	elif _last_dialogue_npc_id == "npc_pc_controle_sauve":
+		_trapped_in_control = true
+		_update_objective("Retourner aux nexus")
 	elif _last_dialogue_npc_id == "npc_secretaire_present_retabli":
 		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_fin")
 		
@@ -1252,8 +1303,10 @@ func _on_dialogue_ended() -> void:
 func _update_secretaire_npc_id() -> void:
 	if not pnj_secretaire:
 		return
-	if _disjoncteur_done:
+	if _hacking_done:
 		pnj_secretaire.npc_id = "npc_secretaire_present_retabli"
+	elif _disjoncteur_done:
+		pnj_secretaire.npc_id = "npc_secretaire_present_maj"
 	elif _salle_machine_done:
 		pnj_secretaire.npc_id = "npc_secretaire_present_courtcircuit"
 	elif TimeAunoteScript.disguised_present:
@@ -1277,7 +1330,11 @@ func _update_pc_controle_state() -> void:
 	if alerte: alerte.visible = false
 	if secours: secours.visible = false
 
-	if _disjoncteur_done:
+	if _hacking_done:
+		if alerte: alerte.visible = true
+		if pnj_pc_controle:
+			pnj_pc_controle.npc_id = "npc_pc_controle_sauve"
+	elif _disjoncteur_done:
 		if maj: maj.visible = true
 		if pnj_pc_controle:
 			pnj_pc_controle.npc_id = "npc_pc_controle_maj"
@@ -1375,10 +1432,19 @@ func _process(delta: float) -> void:
 	if not can_move:
 		return
 	_handle_movement(delta)
+	_update_thought_bubble_position()
+	if _trapped_in_control:
+		_pc_controle_retour_prompt.text = "Appuyez sur E pour retourner aux nexus"
+		_pc_controle_retour_prompt.visible = true
+		_update_portal_prompt_position(_pc_controle_retour_prompt)
 
 
 func _handle_movement(delta: float) -> void:
 	if DialogueUI.is_dialogue_active():
+		if is_instance_valid(time_aunote):
+			time_aunote.animation(Vector2.ZERO)
+		return
+	if _trapped_in_control:
 		if is_instance_valid(time_aunote):
 			time_aunote.animation(Vector2.ZERO)
 		return
@@ -1409,6 +1475,53 @@ func _update_objective(text: String) -> void:
 			panel.size.y = maxf(80.0, 36.0 + _objective_label.size.y + 16.0)
 
 
+func _show_thought_bubble(text: String) -> void:
+	if not _thought_bubble_label:
+		return
+	_thought_bubble_label.text = text
+	_thought_bubble_label.visible = true
+	_thought_bubble_label.reset_size()
+	_update_thought_bubble_position()
+
+
+func _hide_thought_bubble() -> void:
+	if _thought_bubble_label:
+		_thought_bubble_label.visible = false
+
+
+func _update_thought_bubble_position() -> void:
+	if not _thought_bubble_label or not _thought_bubble_label.visible:
+		return
+	if not is_instance_valid(time_aunote):
+		return
+	var cam = get_viewport().get_camera_2d()
+	if not cam:
+		return
+	var player_global: Vector2 = time_aunote.global_position
+	var screen: Vector2 = cam.get_screen_center_position()
+	var zoom_val: Vector2 = cam.zoom
+	var vp_size: Vector2 = get_viewport().get_visible_rect().size
+	var sx: float = (player_global.x - screen.x) * zoom_val.x + vp_size.x / 2.0
+	var sy: float = (player_global.y - screen.y) * zoom_val.y + vp_size.y / 2.0
+	_thought_bubble_label.position = Vector2(sx - _thought_bubble_label.size.x / 2.0, sy - 180.0)
+
+
+func _escape_to_nexus() -> void:
+	can_move = false
+	_hide_thought_bubble()
+	_pc_controle_retour_prompt.visible = false
+
+	var tween_fade := create_tween()
+	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 1.5)
+	await tween_fade.finished
+	if not is_inside_tree():
+		return
+
+	var main = get_parent()
+	if main and main.has_method("warp_to_era"):
+		main.warp_to_era("hub", "")
+
+
 
 func start(spawn_id: String = "entree") -> void:
 	process_mode = PROCESS_MODE_INHERIT
@@ -1416,7 +1529,9 @@ func start(spawn_id: String = "entree") -> void:
 	_player_has_changed_once = false
 	_salle_machine_done = false
 	_disjoncteur_done = false
+	_hacking_done = false
 	_couloir_unlocked = false
+	_trapped_in_control = false
 	show()
 	_objective_label = $ObjectiveHUD/Panel/Objective
 	$ObjectiveHUD.show()
@@ -1539,6 +1654,7 @@ func start(spawn_id: String = "entree") -> void:
 		_player_has_changed_once = false
 		_salle_machine_done = false
 		_disjoncteur_done = false
+		_hacking_done = false
 		_couloir_unlocked = false
 		_update_secretaire_npc_id()
 		_update_objective("Parler à la secrétaire")
@@ -1866,10 +1982,38 @@ func _on_disjoncteur_minigame_done(success: bool) -> void:
 		_remove_darkness_overlay()
 		_update_secretaire_npc_id()
 		_update_pc_controle_state()
+		_update_objective("Aller voir Sophie")
 	else:
 		if _darkness_active and _darkness_layer:
 			_darkness_layer.show()
 		_disjoncteur_done = false
+
+
+func _start_hacking_minigame() -> void:
+	if _hacking_minigame != null or _hacking_done:
+		return
+	can_move = false
+	time_aunote.hide()
+	if vestiaire:
+		vestiaire._player_near_ordi = false
+		vestiaire._update_ordi_prompt()
+	_hacking_minigame = MiniJeuHackingScript.new()
+	_hacking_minigame.done.connect(_on_hacking_minigame_done)
+	get_tree().root.add_child(_hacking_minigame)
+
+
+func _on_hacking_minigame_done(success: bool) -> void:
+	_hacking_minigame = null
+	_hacking_done = success
+	if is_instance_valid(time_aunote):
+		time_aunote.show()
+	can_move = true
+	if success:
+		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_fin")
+		_update_secretaire_npc_id()
+		_update_pc_controle_state()
+		_update_objective("Retourner en salle de contrôle")
+		_show_thought_bubble("Hmm, je devrais voir si j'ai résolu le problème")
 
 
 
@@ -1926,6 +2070,7 @@ func stop() -> void:
 	_hall_transition_started = false
 	_player_at_machines_repair = false
 	_player_at_disjoncteur = false
+	_trapped_in_control = false
 	if _machines_repair_prompt:
 		_machines_repair_prompt.visible = false
 	if _disjoncteur_prompt:
@@ -1938,5 +2083,9 @@ func stop() -> void:
 	if _cablage_minigame and is_instance_valid(_cablage_minigame):
 		_cablage_minigame.queue_free()
 		_cablage_minigame = null
+	if _hacking_minigame and is_instance_valid(_hacking_minigame):
+		_hacking_minigame.queue_free()
+		_hacking_minigame = null
+	_hide_thought_bubble()
 	if _darkness_layer:
 		_darkness_layer.hide()

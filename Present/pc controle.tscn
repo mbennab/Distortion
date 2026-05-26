@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://b37iu2280wk6q"]
+[gd_scene format=3 uid="uid://crvud71454eik"]
 
 [ext_resource type="Texture2D" uid="uid://biulrg1l58qig" path="res://art/Present/pc_controle.png" id="1_jhfkv"]
 [ext_resource type="Texture2D" uid="uid://d1gmlftceh3k6" path="res://art/Present/pc_controle_maj.png" id="2_assvv"]
@@ -51,13 +51,13 @@ position = Vector2(306, 1448)
 position = Vector2(2133, 1444)
 
 [node name="pnj pc principal" type="Marker2D" parent="Node2D" unique_id=1807544791]
-position = Vector2(1009, 1125)
+position = Vector2(709, 1131)
 
 [node name="event" type="Area2D" parent="." unique_id=912812924]
 collision_layer = 0
 
 [node name="couloir" type="CollisionShape2D" parent="event" unique_id=696588291]
-position = Vector2(1154.75, 1670)
+position = Vector2(1153, 1610)
 shape = SubResource("RectangleShape2D_0f3ii")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=601496767]

@@ -49,6 +49,7 @@ var minigames_status := {
 	"infiltration": false,
 	"tuyaux": false,
 	"cablage": false,
+	"hacking": false,
 	"conduite": false,
 	"lasers": false,
 	"boss_rpg": false
@@ -62,6 +63,7 @@ var minigames_list := [
 	{"key": "infiltration", "name": "☀️ Infiltration", "zone": "present"},
 	{"key": "tuyaux", "name": "🔧 Tuyaux", "zone": "present"},
 	{"key": "cablage", "name": "⚡ Câblage", "zone": "present"},
+	{"key": "hacking", "name": "💻 Piratage PC", "zone": "present"},
 	{"key": "conduite", "name": "🚗 Conduite", "zone": "futur"},
 	{"key": "lasers", "name": "🔴 Lasers", "zone": "futur"},
 	{"key": "boss_rpg", "name": "👑 Boss RPG", "zone": "futur"},
@@ -584,6 +586,13 @@ func _apply_single_override_to_dialogue_system(key: String, toggled_on: bool) ->
 			_set_step_state("quete_preparation", "etape_aller_vestiaires", toggled_on)
 			_set_step_state("quete_preparation", "etape_reparer_machines", toggled_on)
 			_set_step_state("quete_preparation", "etape_reparer_electricite", toggled_on)
+		"hacking":
+			_set_step_state("quete_preparation", "etape_parler_secretaire", toggled_on)
+			_set_step_state("quete_preparation", "etape_aller_vestiaires", toggled_on)
+			_set_step_state("quete_preparation", "etape_reparer_machines", toggled_on)
+			_set_step_state("quete_preparation", "etape_reparer_electricite", toggled_on)
+			_set_step_state("quete_preparation", "etape_retour_secretaire_panique", toggled_on)
+			_set_step_state("quete_preparation", "etape_retour_secretaire_fin", toggled_on)
 
 
 func _set_step_state(quest_id: String, step_id: String, completed: bool) -> void:
@@ -672,6 +681,9 @@ func _apply_active_scene_reactions(key: String, toggled_on: bool) -> void:
 				"cablage":
 					if toggled_on:
 						present._on_disjoncteur_minigame_done(true)
+				"hacking":
+					if present.has_method("_on_hacking_minigame_done"):
+						present._on_hacking_minigame_done(toggled_on)
 
 	# --- Futur ---
 	elif current_zone == "futur":
@@ -754,6 +766,7 @@ func _apply_quest_validation_reactions(quest_id: String) -> void:
 		"quete_preparation":
 			_apply_active_scene_reactions("tuyaux", true)
 			_apply_active_scene_reactions("cablage", true)
+			_apply_active_scene_reactions("hacking", true)
 
 
 func _apply_quest_reversal_reactions(quest_id: String) -> void:
@@ -779,11 +792,13 @@ func _apply_quest_reversal_reactions(quest_id: String) -> void:
 		"quete_preparation":
 			_apply_active_scene_reactions("tuyaux", false)
 			_apply_active_scene_reactions("cablage", false)
+			_apply_active_scene_reactions("hacking", false)
 			if current_zone == "present":
 				var present = main.get_node_or_null("Present")
 				if present and present.get("started") == true:
 					present._salle_machine_done = false
 					present._disjoncteur_done = false
+					present._hacking_done = false
 					present._player_has_changed_once = false
 					present._show_darkness_overlay() # Restore darkness overlay since breaker is reset
 					present._update_secretaire_npc_id()

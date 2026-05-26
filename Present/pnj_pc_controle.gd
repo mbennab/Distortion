@@ -83,7 +83,7 @@ func _on_body_exited(body: Node2D) -> void:
 
 func apparition(pos: Vector2) -> void:
 	self.position = pos
-	z_index = 10
+	z_index = 5
 	animated_sprite.play()
 	show()
 

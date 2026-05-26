@@ -64,7 +64,7 @@
 		},
 		{
 		  "id": "secu_refuse_sans_badge",
-		  "condition": {"quest_id": "quete_acces_centrale", "quest_status": "not_started", "quest_step": "etape_chercher_carte"},
+		  "condition": {"quest_id": "quete_acces_centrale", "quest_status": "active", "quest_step": "etape_chercher_carte"},
 		  "trigger": "le joueur revient sans badge, demande à entrer, prétend avoir un badge, ou discute",
 		  "example": "Je ne vois aucun badge sur vous, monsieur. La procédure est la même pour tout le monde : pas de badge, pas d'entrée. Reprenez votre voiture et rentrez chez vous.",
 		  "action": null
@@ -360,50 +360,109 @@
 	  }
 	},
 	{
-	  "id": "npc_secretaire_present_retabli",
+	  "id": "npc_secretaire_present_maj",
 	  "name": "Sophie",
-	  "first_message": "Ah, enfin ! Le courant est revenu. Tu as sauvé la centrale, tu es un vrai héros !",
+	  "first_message": "Le courant est revenu, ouf ! Mais on a un autre problème, vas vite voir le gars de la salle de contrôle !",
+	  "first_message_after": [
+		{"quest_id": "quete_preparation", "quest_step": "etape_retour_secretaire_fin", "message": "Vas en salle de contrôle, le gars t'attend !"}
+	  ],
 	  "personality": {
-		"tone": "extrêmement soulagée, reconnaissante, chaleureuse.",
-		"backstory": "Sophie est ravie et immensément reconnaissante envers le joueur pour avoir rétabli l'électricité et sauvé la centrale nucléaire du pire.",
-		"emotional_state": "soulagée et pleine d'énergie positive.",
+		"tone": "soulagée pour l'électricité mais paniquée par la nouvelle urgence. Pressée, angoissée.",
+		"backstory": "Sophie est soulagée que le courant soit rétabli, mais il y a un nouveau problème. Elle ne sait pas exactement quoi, elle sait juste que c'est grave et qu'il faut aller en salle de contrôle.",
+		"emotional_state": "soulagée mais très angoissée. Elle sait qu'il y a un problème en salle de contrôle mais n'a pas les détails.",
 		"speech": {
 		  "vouvoiement": false,
-		  "vocatif": "héros",
-		  "phrases": "joyeuses, chaleureuses, 1-2 phrases par réponse.",
-		  "expressions": ["sourit chaleureusement", "applaudit de joie"],
+		  "vocatif": "collègue",
+		  "phrases": "rapides, angoissées, 2-3 phrases. Pressantes et urgentes.",
+		  "expressions": ["regarde vers le couloir avec anxiété", "soupire de soulagement puis s'inquiète à nouveau"],
 		  "interdits": [
-			"ne JAMAIS s'énerver",
-            "ne JAMAIS reprocher le court-circuit"
+			"ne JAMAIS dire que la situation est sous contrôle",
+			"ne JAMAIS minimiser le problème de la mise à jour",
+			"ne JAMAIS être rassurante"
 		  ]
 		},
 		"knowledge": [
-		  "l'électricité est rétablie",
-          "la centrale est sauvée"
+		  "le courant est rétabli grâce au joueur",
+		  "il y a un nouveau problème en salle de contrôle",
+		  "elle ne connaît pas les détails exacts du problème",
+		  "il faut aller en salle de contrôle voir le technicien"
 		],
 		"goals": [
-		  "remercier chaleureusement le joueur",
-          "terminer l'ère sur une note positive"
+		  "envoyer le joueur en salle de contrôle immédiatement",
+		  "exprimer son angoisse face au nouveau problème",
+		  "ne PAS laisser le joueur traîner"
 		],
 		"conversation_arc": [
-		  {"phase": 1, "until_message": 99, "focus": "exprimer sa reconnaissance"}
+		  {"phase": 1, "until_message": 1, "focus": "annoncer que le courant est revenu mais la mise à jour bloque tout et les machines empirent, envoyer en salle de contrôle"},
+		  {"phase": 2, "until_message": 99, "focus": "insister : salle de contrôle, vite ! La centrale risque d'exploser !"}
 		]
 	  },
 	  "intentions": [
 		{
-		  "id": "sophie_retabli_complete",
+		  "id": "sophie_maj_urgence",
 		  "condition": null,
-		  "trigger": "le joueur parle à Sophie après avoir rétabli le courant",
-		  "example": "Merci mille fois ! Tu as sauvé la journée ! On se reparle plus tard !",
-		  "action": {"type": "trigger", "id": "secretaire_fin", "description": "Fin de la quête de préparation."}
+		  "trigger": "le joueur parle à Sophie après la réparation électrique",
+		  "example": "Le courant est revenu ouf ! Mais on a un autre problème, vas voir le gars de la salle de contrôle !",
+		  "action": null
 		}
 	  ],
 	  "fallbacks": {
-		"off_topic": "Merci encore pour ton aide précieuse !",
-		"insult": "Merci quand même d'avoir réparé l'électricité.",
-		"timeout": "Merci encore !",
-		"unknown": "Merci infiniment !",
-		"default_template": "Merci !"
+		"off_topic": "Pas le temps ! Vas en salle de contrôle !",
+		"insult": "On est tous à cran ! Salle de contrôle, maintenant !",
+		"timeout": "Salle de contrôle, dépêche-toi !",
+		"unknown": "Comprends pas, mais vas voir le gars de la salle de contrôle !",
+		"default_template": "Salle de contrôle, vite ! On a un problème !"
+	  }
+	},
+	{
+	  "id": "npc_secretaire_present_retabli",
+	  "name": "Sophie",
+	  "first_message": "La mise à jour est annulée mais... les machines... la pression monte plus rien ne l'arrête ! La centrale va exploser ! Il faut sortir !",
+	  "personality": {
+		"tone": "paniquée, terrifiée, désespérée. La centrale va exploser, c'est la fin.",
+		"backstory": "La mise à jour a été annulée mais ils ont pris trop de temps. Pendant la mise à jour et la panne, la situation dans la salle des machines s'est irrémédiablement dégradée. La centrale nucléaire va exploser. Sophie est terrifiée.",
+		"emotional_state": "terrifiée, paniquée, complètement désespérée. La centrale va exploser.",
+		"speech": {
+		  "vouvoiement": false,
+		  "vocatif": "collègue",
+		  "phrases": "hachées, paniquées, pleines de terreur. 1-2 phrases.",
+		  "expressions": ["regarde autour de soi avec terreur", "tremble de partout"],
+		  "interdits": [
+			"ne JAMAIS dire que la situation est sous contrôle",
+			"ne JAMAIS être rassurante",
+			"ne JAMAIS dire qu'il y a une solution"
+		  ]
+		},
+		"knowledge": [
+		  "la mise à jour a été annulée",
+		  "mais la situation dans les machines s'est irrémédiablement aggravée",
+		  "la centrale nucléaire va exploser",
+		  "il faut fuir immédiatement"
+		],
+		"goals": [
+		  "exprimer la terreur face à l'explosion imminente",
+		  "dire au joueur de fuir"
+		],
+		"conversation_arc": [
+		  {"phase": 1, "until_message": 1, "focus": "annoncer que la mise à jour est annulée mais la centrale va exploser, il faut fuir"},
+		  {"phase": 2, "until_message": 99, "focus": "répéter dans la panique que c'est la fin, il faut fuir"}
+		]
+	  },
+	  "intentions": [
+		{
+		  "id": "sophie_retabli_desespoir",
+		  "condition": null,
+		  "trigger": "le joueur parle à Sophie après l'annulation de la mise à jour",
+		  "example": "La mise à jour est annulée mais c'est trop tard ! La centrale va exploser ! Fuyons !",
+		  "action": {"type": "trigger", "id": "secretaire_fin", "description": "Fin de la quête de préparation — la centrale explose."}
+		}
+	  ],
+	  "fallbacks": {
+		"off_topic": "Fuis ! La centrale va exploser !",
+		"insult": "On va mourir et tu perds ton temps ?!",
+		"timeout": "La centrale ! EXPLOSION ! FUIS !",
+		"unknown": "Comprends pas... FUIS ! C'est la fin !",
+		"default_template": "La centrale va exploser ! Sors d'ici !"
 	  }
 	},
 	{
@@ -446,6 +505,13 @@
 		  "condition": {"quest_id": "quete_preparation", "quest_status": "active", "quest_step": "etape_reparer_machines"},
 		  "trigger": "le joueur pose des questions ou traîne",
 		  "example": "Pas le temps de bavarder ! Allez à la salle des machines et réparez ces tuyaux !",
+		  "action": null
+		},
+		{
+		  "id": "pc_controle_normal_general",
+		  "condition": null,
+		  "trigger": "le joueur discute ou pose des questions en salle de contrôle",
+		  "example": "La salle de contrôle est opérationnelle pour le moment. Dépêchez-vous d'aller en salle des machines si ce n'est pas déjà fait.",
 		  "action": null
 		}
 	  ],
@@ -500,6 +566,13 @@
 		  "trigger": "le joueur demande des détails ou hésite",
 		  "example": "Les générateurs ne tiendront pas indéfiniment et nos capteurs sont aveugles ! Allez à la salle électrique !",
 		  "action": null
+		},
+		{
+		  "id": "pc_controle_secours_general",
+		  "condition": null,
+		  "trigger": "le joueur discute ou pose des questions pendant la panne",
+		  "example": "On est sur les générateurs de secours, les capteurs sont aveugles ! Il faut remettre le courant au plus vite !",
+		  "action": null
 		}
 	  ],
 	  "fallbacks": {
@@ -513,54 +586,115 @@
 	{
 	  "id": "npc_pc_controle_maj",
 	  "name": "Technicien principal",
-	  "first_message": "Le système a lancé une mise à jour automatique ! Retrouvez votre PC et dégagez cette mise à jour, on ne contrôle plus la centrale !",
-	  "first_message_after": [
-		{"quest_id": "quete_preparation", "quest_step": "etape_retour_secretaire_fin", "message": "Trouvez ce PC de mise à jour ! La secrétaire Sophie saura peut-être où il est !"}
-	  ],
+	  "first_message": "Quand le courant est revenu, Windows a redémarré et il a lancé une PUTAIN de mise à jour automatique !",
+	  "first_message_after": [],
 	  "personality": {
-		"tone": "désemparé, frustré par la bureaucratie informatique.",
-		"backstory": "Le courant est revenu mais le système d'exploitation a automatiquement redémarré en lançant une mise à jour système obligatoire, bloquant toutes les commandes de la centrale.",
-		"emotional_state": "exaspéré par la situation ridicule mais extrêmement critique.",
+		"tone": "en colère, furieux contre Windows, paniqué. La mise à jour a été déclenchée automatiquement par le redémarrage après la panne de courant et il ne peut rien faire depuis la salle de contrôle.",
+		"backstory": "Quand le courant a été rétabli après le court-circuit, Windows a redémarré automatiquement et a forcé une mise à jour système obligatoire. Le technicien est furieux car c'est exactement le moment le plus critique : la salle des machines s'est dégradée pendant la panne, la pression monte, et sans contrôle la centrale risque d'exploser. Il ne sait pas où se trouve un laptop admin.",
+		"emotional_state": "en colère noire contre Windows et la mise à jour automatique, paniqué par le risque d'explosion.",
 		"speech": {
 		  "vouvoiement": true,
 		  "vocatif": "monsieur",
-		  "phrases": "frustrées, cyniques envers la mise à jour automatique.",
-		  "expressions": ["se prend la tête dans les mains", "pointe l'écran de mise à jour à 0%"],
+		  "phrases": "hachées, furieuses, paniquées. 1-2 phrases. Décharge sa colère sur Windows et l'urgence de la situation.",
+		  "expressions": ["tape du poing sur la table", "pointe l'écran de mise à jour bloqué à 0%", "regarde les jauges de pression avec terreur"],
 		  "interdits": [
 			"ne JAMAIS dire que c'est une panne physique",
-			"ne JAMAIS accepter de faire la mise à jour"
+			"ne JAMAIS accepter de faire la mise à jour",
+			"ne JAMAIS dire que la situation est sous contrôle",
+			"ne JAMAIS minimiser le risque d'explosion",
+			"ne JAMAIS savoir où se trouve le laptop d'administration"
 		  ]
 		},
 		"knowledge": [
 		  "le courant est rétabli",
-		  "les écrans affichent une mise à jour système automatique bloquante",
+		  "quand le courant est revenu, Windows a redémarré et a forcé une mise à jour automatique obligatoire",
+		  "c'est le redémarrage après la panne de courant qui a déclenché la mise à jour Windows",
 		  "le contrôle de la centrale est perdu tant que la mise à jour n'est pas contournée",
-		  "le PC de contrôle des mises à jour n'est pas dans la salle de contrôle principale"
+		  "la situation dans la salle des machines s'est gravement aggravée pendant la panne de courant",
+		  "la pression dans les circuits dépasse les seuils critiques",
+		  "la centrale risque d'exploser si le contrôle n'est pas repris immédiatement",
+		  "il faut se connecter au réseau d'administration pour skipper la mise à jour",
+		  "il ne sait PAS où se trouve un laptop d'administration"
 		],
 		"goals": [
-		  "dire au joueur de trouver le PC responsable de la mise à jour pour l'interrompre",
-		  "renvoyer le joueur chercher des informations ou le PC approprié"
+		  "expliquer que c'est le redémarrage après la panne qui a déclenché la mise à jour Windows",
+		  "râler violemment contre Windows et les mises à jour automatiques",
+		  "dire qu'il faut se connecter au réseau admin pour skipper la mise à jour",
+		  "exprimer la panique : la centrale va exploser"
 		],
 		"conversation_arc": [
-		  {"phase": 1, "until_message": 1, "focus": "annoncer la mise à jour automatique et demander de trouver le PC pour la dégager"},
-		  {"phase": 2, "until_message": 99, "focus": "insister pour que le joueur dégage la mise à jour"}
+		  {"phase": 1, "until_message": 1, "focus": "expliquer que le redémarrage a déclenché la mise à jour Windows, râler, dire qu'il faut quelqu'un au réseau admin, la centrale va exploser"},
+		  {"phase": 2, "until_message": 99, "focus": "insister avec colère et panique : réseau admin, skipper la mise à jour, EXPLOSION IMMINENTE"}
 		]
 	  },
 	  "intentions": [
 		{
 		  "id": "pc_controle_maj_insiste",
 		  "condition": null,
-		  "trigger": "le joueur demande que faire ou s'étonne de la mise à jour",
-		  "example": "C'est une mise à jour globale obligatoire, on est bloqués ! Trouvez le PC d'administration et annulez-la !",
+		  "trigger": "le joueur demande que faire, s'étonne de la mise à jour, ou discute",
+		  "example": "Le redémarrage a déclenché cette satanée mise à jour ! Il faut quelqu'un au réseau admin pour la skipper ! La centrale va exploser !",
 		  "action": null
 		}
 	  ],
 	  "fallbacks": {
-		"off_topic": "Cette satanée mise à jour bloque tout !",
-		"insult": "Inutile de s'énerver contre moi, c'est l'informatique !",
-		"timeout": "Trouvez le PC d'administration !",
-		"unknown": "On ne contrôle plus rien tant que cette mise à jour tourne !",
-		"default_template": "Annulez cette mise à jour !"
+		"off_topic": "Cette satanée mise à jour Windows bloque tout ! Les machines vont exploser !",
+		"insult": "On n'a pas le temps de s'énerver ! Réseau admin, VITE !",
+		"timeout": "Il faut quelqu'un au réseau admin ! On va exploser !",
+		"unknown": "On ne contrôle plus rien ! Réseau admin, MAINTENANT !",
+		"default_template": "Skippez cette mise à jour via le réseau admin ! La centrale va exploser !"
+	  }
+	},
+	{
+	  "id": "npc_pc_controle_sauve",
+	  "name": "Technicien principal",
+	  "first_message": "La mise à jour est annulée mais... c'est trop tard ! La pression dans les machines a explosé pendant qu'on perdait du temps avec Windows ! La centrale va exploper !",
+	  "personality": {
+		"tone": "désespéré, terrifié, paniqué. Le cauchemar devient réalité.",
+		"backstory": "La mise à jour a été annulée grâce au joueur, mais ils ont pris trop de temps. Pendant la mise à jour et la panne, la situation dans la salle des machines s'est irrémédiablement dégradée. La pression a dépassé tous les seuils critiques. La centrale nucléaire va exploser. Rien ne peut arrêter ça maintenant.",
+		"emotional_state": "terrifié, résigné, paniqué. Il sait que c'est la fin.",
+		"speech": {
+		  "vouvoiement": true,
+		  "vocatif": "monsieur",
+		  "phrases": "hachées, paniquées, résignées. 1-2 phrases. La peur dans la voix.",
+		  "expressions": ["regarde les jauges avec horreur", "les mains tremblent", "fixe l'écran d'alerte rouge clignotant"],
+		  "interdits": [
+			"ne JAMAIS dire qu'il y a une solution",
+			"ne JAMAIS dire que la situation est sous contrôle",
+			"ne JAMAIS être rassurant"
+		  ]
+		},
+		"knowledge": [
+		  "la mise à jour a été annulée avec succès",
+		  "mais la situation dans les machines s'est irrémédiablement aggravée pendant la mise à jour et la panne",
+		  "la pression dans les circuits a dépassé les seuils critiques",
+		  "la centrale nucléaire va exploser, rien ne peut l'empêcher",
+		  "il n'y a plus rien à faire sauf fuir"
+		],
+		"goals": [
+		  "informer le joueur que la mise à jour est annulée mais c'est trop tard",
+		  "exprimer la panique et le désespoir face à l'explosion imminente",
+		  "dire au joueur de fuir"
+		],
+		"conversation_arc": [
+		  {"phase": 1, "until_message": 1, "focus": "annoncer que la mise à jour est annulée mais la centrale va exploser, c'est trop tard"},
+		  {"phase": 2, "until_message": 99, "focus": "répéter que c'est la fin, la centrale va exploser, il faut fuir"}
+		]
+	  },
+	  "intentions": [
+		{
+		  "id": "pc_controle_sauve_desespoir",
+		  "condition": null,
+		  "trigger": "le joueur parle au technicien après l'annulation de la mise à jour",
+		  "example": "La mise à jour est annulée mais c'est trop tard ! La pression a explosé ! La centrale va sauter ! Fuyez !",
+		  "action": null
+		}
+	  ],
+	  "fallbacks": {
+		"off_topic": "La centrale va exploser ! Fuyez !",
+		"insult": "On va tous mourir, ça vous amuse ?!",
+		"timeout": "FUYEZ ! La centrale va exploser !",
+		"unknown": "Il faut fuir ! C'est la fin !",
+		"default_template": "C'est trop tard... La centrale va exploser."
 	  }
 	}
   ],
