@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://d6j0p2at5s4y"
-path="res://.godot/imported/hacking.mp3-4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a.mp3str"
+path="res://.godot/imported/hacking.mp3-1ac6acd3703db4e30d7da07bdfce9d66.mp3str"
 
 [deps]
 
 source_file="res://audio/present/minijeu_hacking/hacking.mp3"
-dest_files=["res://.godot/imported/hacking.mp3-4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a.mp3str"]
+dest_files=["res://.godot/imported/hacking.mp3-1ac6acd3703db4e30d7da07bdfce9d66.mp3str"]
 
 [params]
 

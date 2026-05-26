@@ -2,13 +2,13 @@
 
 importer="mp3"
 type="AudioStreamMP3"
-uid="uid://c5i9o1zs4r3x"
-path="res://.godot/imported/cablage.mp3-3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f.mp3str"
+uid="uid://c5jao10s4r3x"
+path="res://.godot/imported/cablage.mp3-a6f167c83d0c544381b074bb57f3b2ef.mp3str"
 
 [deps]
 
 source_file="res://audio/present/minijeu_cablage/cablage.mp3"
-dest_files=["res://.godot/imported/cablage.mp3-3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f.mp3str"]
+dest_files=["res://.godot/imported/cablage.mp3-a6f167c83d0c544381b074bb57f3b2ef.mp3str"]
 
 [params]
 

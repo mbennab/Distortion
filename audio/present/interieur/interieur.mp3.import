@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://02fb3f4cb6fc"
-path="res://.godot/imported/interieur.mp3-02fb3f4cb6fc16f27a2e895ada7af918.mp3str"
+path="res://.godot/imported/interieur.mp3-e114dbf4c70894418ee28d40e067590d.mp3str"
 
 [deps]
 
 source_file="res://audio/present/interieur/interieur.mp3"
-dest_files=["res://.godot/imported/interieur.mp3-02fb3f4cb6fc16f27a2e895ada7af918.mp3str"]
+dest_files=["res://.godot/imported/interieur.mp3-e114dbf4c70894418ee28d40e067590d.mp3str"]
 
 [params]
 

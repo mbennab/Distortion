@@ -2,13 +2,13 @@
 
 importer="mp3"
 type="AudioStreamMP3"
-uid="uid://b7k3m9xq2p1v"
-path="res://.godot/imported/soleil.mp3-9a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d.mp3str"
+uid="uid://b7k3naxq2p1v"
+path="res://.godot/imported/soleil.mp3-8d94937f1ceb05bbfd72f9feafb0538e.mp3str"
 
 [deps]
 
 source_file="res://audio/present/minijeu_soleil/soleil.mp3"
-dest_files=["res://.godot/imported/soleil.mp3-9a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d.mp3str"]
+dest_files=["res://.godot/imported/soleil.mp3-8d94937f1ceb05bbfd72f9feafb0538e.mp3str"]
 
 [params]
 

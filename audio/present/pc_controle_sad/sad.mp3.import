@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://486c21627d70"
-path="res://.godot/imported/sad.mp3-486c21627d7062ee9dd0e4753b3180d7.mp3str"
+path="res://.godot/imported/sad.mp3-ede9ea8b22745de88fac9ee9ff5876c6.mp3str"
 
 [deps]
 
 source_file="res://audio/present/pc_controle_sad/sad.mp3"
-dest_files=["res://.godot/imported/sad.mp3-486c21627d7062ee9dd0e4753b3180d7.mp3str"]
+dest_files=["res://.godot/imported/sad.mp3-ede9ea8b22745de88fac9ee9ff5876c6.mp3str"]
 
 [params]
 

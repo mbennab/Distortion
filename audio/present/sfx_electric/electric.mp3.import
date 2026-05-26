@@ -2,13 +2,13 @@
 
 importer="mp3"
 type="AudioStreamMP3"
-uid="uid://df73bba5d9ad"
-path="res://.godot/imported/electric.mp3-df73bba5d9ade7c73aa0bae7228d6767.mp3str"
+uid="uid://df73bba5eaad"
+path="res://.godot/imported/electric.mp3-8363b6394230278ea2dafd75c1e867f5.mp3str"
 
 [deps]
 
 source_file="res://audio/present/sfx_electric/electric.mp3"
-dest_files=["res://.godot/imported/electric.mp3-df73bba5d9ade7c73aa0bae7228d6767.mp3str"]
+dest_files=["res://.godot/imported/electric.mp3-8363b6394230278ea2dafd75c1e867f5.mp3str"]
 
 [params]
 
