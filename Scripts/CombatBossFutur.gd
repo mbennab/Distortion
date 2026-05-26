@@ -801,13 +801,21 @@ func _boss_turn() -> void:
 	await get_tree().create_timer(1.0).timeout
 
 	var roll := randi() % 10
-	var phase2_dmg_bonus := 7 if _phase2_active else 0
-	var dmg_mult := 1.50 if _phase2_active else 1.05
+	var phase2_dmg_bonus := 12 if _phase2_active else 0
+	var dmg_mult := 1.70 if _phase2_active else 1.05
 	if roll < 7:
 		if randf() < 0.1:
 			_show_message("Alfredo charge, mais trébuche et rate complètement son attaque !")
 		elif player_defending and parry_qte_success:
-			_show_message("Parade parfaite ! Vous neutralisez l'attaque d'Alfredo !\nAucun dégât subi !")
+			var effective_def := player_def * 2
+			var potential_dmg = maxi(5, ceili((boss_atk + boss_atk_buff + phase2_dmg_bonus - effective_def / 2 + randi() % 6 - 2) * dmg_mult))
+			if randf() < 0.5:
+				var reflect_dmg = ceili(potential_dmg * 0.5)
+				boss_hp = maxi(0, boss_hp - reflect_dmg)
+				_update_hp_bars()
+				_show_message("Parade parfaite ! Vous reflétez %d dégâts\nsur Alfredo !" % reflect_dmg)
+			else:
+				_show_message("Parade parfaite ! Vous neutralisez l'attaque d'Alfredo !\nAucun dégât subi !")
 		else:
 			var effective_def := player_def * 2 if player_defending else player_def
 			var dmg = maxi(5, ceili((boss_atk + boss_atk_buff + phase2_dmg_bonus - effective_def / 2 + randi() % 6 - 2) * dmg_mult))
@@ -846,6 +854,13 @@ func _boss_turn() -> void:
 		if player_hp <= 0:
 			await _on_defeat()
 			return
+
+	if boss_hp <= 0:
+		if not _phase2_active:
+			await _trigger_phase2()
+		else:
+			await _on_victory()
+		return
 
 	_start_player_turn()
 

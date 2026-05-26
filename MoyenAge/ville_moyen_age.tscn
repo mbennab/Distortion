@@ -79,3 +79,6 @@ position = Vector2(2120, 1233)
 
 [node name="parc" type="Marker2D" parent="markers2D" unique_id=2100455306]
 position = Vector2(2318, 1314)
+
+[node name="exclamation" type="Marker2D" parent="markers2D" unique_id=1291697764]
+position = Vector2(2374, 1337)

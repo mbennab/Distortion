@@ -54,6 +54,9 @@ position = Vector2(841, 337)
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("4_bul_mag")
 
+[node name="exclamation" type="Marker2D" parent="Markers2D" unique_id=987654321]
+position = Vector2(1581, 900)
+
 [node name="areas2D" type="Node2D" parent="." unique_id=1082903381]
 
 [node name="sortie" type="Area2D" parent="areas2D" unique_id=1844464081]

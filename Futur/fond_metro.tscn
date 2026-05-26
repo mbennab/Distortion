@@ -1,9 +1,36 @@
 [gd_scene format=3 uid="uid://bk1ygcs1v5s80"]
 
 [ext_resource type="Texture2D" uid="uid://b3jrp28tb4fy8" path="res://art/Futur/fondMetro.png" id="1_vmnwc"]
+[ext_resource type="Script" uid="uid://d0321mdga4ggl" path="res://Futur/pnj_koiai2.gd" id="2_koiai"]
+[ext_resource type="Texture2D" uid="uid://ccmtq7klubp0g" path="res://art/Futur/pnj-koiai2.png" id="3_koiaitex"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vmnwc"]
 size = Vector2(20, 362)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_koiai_f0"]
+atlas = ExtResource("3_koiaitex")
+region = Rect2(0, 0, 375, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_koiai_f1"]
+atlas = ExtResource("3_koiaitex")
+region = Rect2(375, 0, 375, 640)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_koiai"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_koiai_f0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_koiai_f1")
+}],
+"loop": true,
+"name": &"pnj-koiai",
+"speed": 3.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_koiai"]
+radius = 45.833344
 
 [node name="fondMetro" type="Node2D" unique_id=413393767]
 
@@ -27,6 +54,28 @@ position = Vector2(2359, 864)
 [node name="sortie" type="CollisionShape2D" parent="Sortie" unique_id=2123376047]
 position = Vector2(58, -24)
 shape = SubResource("RectangleShape2D_vmnwc")
+
+[node name="Markers" type="Node2D" parent="." unique_id=595760595]
+
+[node name="koiai" type="Marker2D" parent="Markers" unique_id=1659570393]
+position = Vector2(1200, 722)
+
+[node name="pnj-koiai-2" type="Node2D" parent="." unique_id=438623932]
+scale = Vector2(2.4, 2.4)
+script = ExtResource("2_koiai")
+
+[node name="pnjkoiai2Animation" type="AnimatedSprite2D" parent="pnj-koiai-2" unique_id=1700286549]
+position = Vector2(0, -9)
+scale = Vector2(0.19641668, 0.18027343)
+sprite_frames = SubResource("SpriteFrames_koiai")
+animation = &"pnj-koiai"
+
+[node name="ZoneDialogue" type="Area2D" parent="pnj-koiai-2" unique_id=1600456750]
+collision_layer = 0
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-koiai-2/ZoneDialogue" unique_id=1662725813]
+shape = SubResource("CircleShape2D_koiai")
 
 [node name="limite-metro" type="StaticBody2D" parent="." unique_id=340093161]
 collision_layer = 4194304

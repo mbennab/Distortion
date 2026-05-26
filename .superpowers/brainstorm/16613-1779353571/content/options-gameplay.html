@@ -1,0 +1,54 @@
+<h2>🐶 Mini-Jeu du Chien dans le HUB Central</h2>
+<p class="subtitle">Sélectionnez le concept qui vous plaît le plus pour remplacer l'interaction de base.</p>
+
+<div class="options" data-choice-group="gameplay">
+  <div class="option" data-choice="chasse" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>🕵️‍♂️ La Chasse aux Failles Temporelles (Sniffing & Hot/Cold)</h3>
+      <p>Le chien devient un détecteur de micro-anomalies temporelles instables dans le HUB. 3 failles invisibles y apparaissent.</p>
+      <ul style="margin-top: 8px; padding-left: 20px; font-size: 14px; color: #b0a8c5;">
+        <li><b>Gameplay :</b> Suivez le chien dans le HUB. Plus vous vous approchez d'une faille, plus il aboie rapidement avec un pitch dynamique (frénétique).</li>
+        <li><b>Interface :</b> Un radar/sonar rétro transparent dessiné en HUD sur l'écran (balayages circulaires) avec des particules 2D.</li>
+        <li><b>Objectif :</b> Sceller les 3 failles en appuyant sur <b>E</b> quand le chien s'assoit dessus, avant la fin du chrono.</li>
+      </ul>
+      <span class="label" style="background: #2b1f4d; color: #cc80ff; margin-top: 8px; display: inline-block;">Recommandé - Dynamique & Immersif</span>
+    </div>
+  </div>
+
+  <div class="option" data-choice="distorsion" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>🎛️ La Distorsion de Fréquence (Audio Tuning Game)</h3>
+      <p>Le chien émet une distorsion temporelle. Une interface d'oscilloscope rétro apparaît.</p>
+      <ul style="margin-top: 8px; padding-left: 20px; font-size: 14px; color: #b0a8c5;">
+        <li><b>Gameplay :</b> Le chien aboie en boucle modifiée. Ajustez les potards "Tension" et "Fréquence" via des sliders pour aligner votre signal sur le sien.</li>
+        <li><b>Effets Audio :</b> Modifier les sliders déforme la hauteur (pitch), la vitesse de lecture et la réverbération de l'aboiement en temps réel !</li>
+        <li><b>Objectif :</b> Stabiliser la courbe de signal rouge sur la verte.</li>
+      </ul>
+      <span class="label" style="background: #1b3835; color: #3df2c9; margin-top: 8px; display: inline-block;">Original & Audio-actif</span>
+    </div>
+  </div>
+
+  <div class="option" data-choice="neuronal" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>💻 Le Réseau Neuronal Cyber-Dog (Grid Deduction)</h3>
+      <p>Piratez le collier cybernétique du chien pour extraire des logs de distorsion cryptés.</p>
+      <ul style="margin-top: 8px; padding-left: 20px; font-size: 14px; color: #b0a8c5;">
+        <li><b>Gameplay :</b> Un mini-réseau de nœuds 6x6. Vous déplacez un flux de données. Le chien aboie des indices directionnels.</li>
+        <li><b>Clés d'aboiements :</b> Aboiement sourd = mauvaise direction, aboiement aigu = bonne direction, double aboiement rapide = chemin dégagé.</li>
+        <li><b>Objectif :</b> Déduire le chemin d'accès sécurisé en moins de 10 coups.</li>
+      </ul>
+      <span class="label" style="background: #3e261a; color: #ff9966; margin-top: 8px; display: inline-block;">Réflexion & Déduction</span>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 30px;">
+  <h3>✨ Contraintes respectées</h3>
+  <ul>
+    <li>Aucun asset externe requis : nous réutilisons les animations du chien et les sons d'aboiements existants.</li>
+    <li>Tous les éléments visuels additionnels seront construits via des nœuds Godot natifs (Label, Line2D, CPUParticles2D) avec des palettes rétro harmonieuses.</li>
+  </ul>
+</div>

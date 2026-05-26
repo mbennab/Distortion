@@ -19,14 +19,18 @@ var _car_minigame: Node2D
 var _was_in_basement := false
 var _player_near_car := false
 var _car_prompt: Label
-var _player_near_etage1_sortie := false
-var _etage1_prompt: Label
+
 
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
 var _objective_label: Label
 var _combat_boss_instance: Node2D
 var _etage1_guards: Array = []
+
+# Audio ambient
+var _ambient_player: AudioStreamPlayer
+var _current_zone: String = ""
+var _audio_buffers: Dictionary = {}
 
 
 func _ready() -> void:
@@ -48,6 +52,7 @@ func _ready() -> void:
 	_connect_etage1_sortie_signal()
 	_connect_etage2_sortie_signal()
 	_connect_etage3_sortie_signal()
+	_setup_ambient_audio()
 
 
 func _setup_fade_overlay() -> void:
@@ -85,6 +90,11 @@ func _on_metro_sortie_entered(body: Node2D) -> void:
 		return
 
 	can_move = false
+	var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+	if metro_koiai:
+		var zone = metro_koiai.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
 	time_aunote.hide()
 	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 	if collision_node:
@@ -114,6 +124,7 @@ func _on_metro_sortie_entered(body: Node2D) -> void:
 	if is_instance_valid(text_label):
 		text_label.queue_free()
 
+	_play_zone_audio("tour")
 	_transition_to_tower()
 
 
@@ -150,6 +161,7 @@ func _go_to_basement() -> void:
 	await tween_fade.finished
 
 	_update_objective("Parler aux personnes du sous-sol")
+	_play_zone_audio("parking")
 	can_move = true
 
 
@@ -184,6 +196,7 @@ func _return_from_basement() -> void:
 	await tween_fade.finished
 
 	_update_objective("Parler à la cheffe")
+	_play_zone_audio("hall")
 	can_move = true
 
 
@@ -324,6 +337,7 @@ func _show_superette_scene() -> void:
 
 	$ObjectiveHUD.show()
 	_update_objective("Explorer la supérette")
+	_play_zone_audio("superette")
 	can_move = true
 
 	_auto_start_cheffe_dialogue()
@@ -333,17 +347,23 @@ func _auto_start_cheffe_dialogue() -> void:
 	await get_tree().process_frame
 	if not is_inside_tree():
 		return
-	if DialogueSystem.is_active:
+	if pnjcheffe and pnjcheffe.has_method("show_bubble"):
+		pnjcheffe.show_bubble("Attention aux tourelles ! Va te cacher !!!")
+	await get_tree().create_timer(3.0).timeout
+	if not is_inside_tree():
 		return
-	var npcs = DialogueSystem.dimension.get("npcs", [])
-	for npc in npcs:
-		if npc.get("id") == "npc_cheffe_futur":
-			npc["first_message"] = "Nous sommes enfin en sécurité, essayons de fouiller l'endroit à la recherche de... Attention aux tourelles va te cacher !!!"
-			break
-	DialogueSystem._spoken_to.erase("npc_cheffe_futur")
-	if not DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
-		DialogueSystem.dialogue_ended.connect(_on_superette_dialogue_ended)
-	DialogueSystem.start_dialogue("npc_cheffe_futur")
+	if pnjcheffe and pnjcheffe.has_method("hide_bubble"):
+		pnjcheffe.hide_bubble()
+	pnjcheffe.hide()
+	var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+	if zone:
+		zone.monitoring = false
+	var minijeu = $FondSuperette/MiniJeuTourelles
+	if minijeu and not minijeu.game_active:
+		if not minijeu.finished.is_connected(_on_tourelle_minigame_done):
+			minijeu.finished.connect(_on_tourelle_minigame_done)
+		_update_objective("Survivez 30 secondes!")
+		minijeu.start_game()
 
 
 func _start_cheffe_post_tourelle_dialogue() -> void:
@@ -390,6 +410,7 @@ func _start_combat_boss() -> void:
 	if _combat_boss_instance:
 		return
 
+	_stop_ambient()
 	$FondBureau.hide()
 	$ObjectiveHUD.hide()
 	_set_bureau_collisions(false)
@@ -465,6 +486,7 @@ func _on_superette_dialogue_ended() -> void:
 			minijeu.finished.connect(_on_tourelle_minigame_done)
 		_update_objective("Survivez 30 secondes!")
 		minijeu.start_game()
+		# Garde la musique de la supérette (pas de changement)
 		if pnjcheffe:
 			pnjcheffe.hide()
 			var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
@@ -481,6 +503,7 @@ func _on_tourelle_minigame_done(success: bool) -> void:
 
 	if success:
 		_update_objective("Vous avez survécu !")
+		_play_zone_audio("superette")
 		if pnjcheffe:
 			pnjcheffe.apparition($"FondSuperette/Markers2D/cheffe".position)
 			var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
@@ -565,6 +588,12 @@ func _transition_to_metro() -> void:
 	var metro_collision = $FondMetro.get_node("limite-metro")
 	if metro_collision:
 		metro_collision.collision_layer = 256
+	var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+	if metro_koiai:
+		metro_koiai.apparition($FondMetro/Markers/koiai.position)
+		var zone = metro_koiai.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = true
 	if is_instance_valid(time_aunote):
 		time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
 		time_aunote.show()
@@ -581,12 +610,12 @@ func _transition_to_metro() -> void:
 	await tween_fade.finished
 
 	can_move = true
+	_play_zone_audio("exterieur")
 
 
 func _connect_sortie_fond_signal() -> void:
 	var sortie = $FondTour/sortie
 	if sortie:
-		sortie.collision_mask = 1
 		sortie.body_entered.connect(_on_sortie_fond_entered)
 
 
@@ -621,6 +650,7 @@ func _on_sortie_fond_entered(body: Node2D) -> void:
 	await tween_fade.finished
 
 	can_move = true
+	_play_zone_audio("etage1")
 
 
 func _setup_etage1_guards() -> void:
@@ -689,45 +719,12 @@ func _connect_etage1_sortie_signal() -> void:
 		sortie.collision_mask = 1
 		if not sortie.body_entered.is_connected(_on_etage1_sortie_entered):
 			sortie.body_entered.connect(_on_etage1_sortie_entered)
-		if not sortie.body_exited.is_connected(_on_etage1_sortie_exited):
-			sortie.body_exited.connect(_on_etage1_sortie_exited)
-	
-	_setup_etage1_prompt()
-
-
-func _setup_etage1_prompt() -> void:
-	var prompt_layer = get_node_or_null("PromptLayer")
-	if not prompt_layer:
-		prompt_layer = CanvasLayer.new()
-		prompt_layer.name = "PromptLayer"
-		prompt_layer.layer = 100
-		add_child(prompt_layer)
-
-	_etage1_prompt = Label.new()
-	_etage1_prompt.text = "[E] Monter à l'étage"
-	_etage1_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_etage1_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_etage1_prompt.add_theme_font_size_override("font_size", 14)
-	_etage1_prompt.add_theme_color_override("font_color", Color.CYAN)
-	_etage1_prompt.visible = false
-	_etage1_prompt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_etage1_prompt.position = Vector2(342, 600)
-	_etage1_prompt.size = Vector2(340, 40)
-	prompt_layer.add_child(_etage1_prompt)
 
 
 func _on_etage1_sortie_entered(body: Node2D) -> void:
 	if body == time_aunote and $FondEtage1.visible:
-		_player_near_etage1_sortie = true
-		if _etage1_prompt:
-			_etage1_prompt.visible = true
+		_trigger_etage1_sortie()
 
-
-func _on_etage1_sortie_exited(body: Node2D) -> void:
-	if body == time_aunote:
-		_player_near_etage1_sortie = false
-		if _etage1_prompt:
-			_etage1_prompt.visible = false
 
 
 func _trigger_etage1_sortie() -> void:
@@ -776,6 +773,7 @@ func _trigger_etage1_sortie() -> void:
 	await tween_fade_out.finished
 
 	can_move = true
+	_play_zone_audio("etage1")
 
 
 func _connect_etage2_sortie_signal() -> void:
@@ -818,6 +816,19 @@ func _trigger_etage2_sortie() -> void:
 	$FondEtage3.show()
 	_set_etage3_collisions(true)
 
+	var et3_meca = $FondEtage3.get_node_or_null("pnj-mecano")
+	if et3_meca:
+		et3_meca.apparition($FondEtage3/Marker/npc_mecano.position)
+	var et3_cheffe = $FondEtage3.get_node_or_null("pnj-cheffe")
+	if et3_cheffe:
+		et3_cheffe.apparition($FondEtage3/Marker/npc_cheffe.position)
+	var et3_vukovi = $FondEtage3.get_node_or_null("pnj-vukovi")
+	if et3_vukovi:
+		et3_vukovi.apparition($FondEtage3/Marker/npc_vukovi.position)
+	var et3_koiai = $FondEtage3.get_node_or_null("pnj-koiai-2")
+	if et3_koiai:
+		et3_koiai.apparition($FondEtage3/Marker/npc_koiai.position)
+
 	var marker = $FondEtage3.get_node_or_null("Marker/entreeEtage3")
 	if not marker:
 		marker = $FondEtage3.get_node_or_null("Marker/EntreeEtage3")
@@ -835,13 +846,14 @@ func _trigger_etage2_sortie() -> void:
 		collision_node.disabled = false
 
 	$ObjectiveHUD.show()
-	_update_objective("Explorer le troisième étage de la tour")
+	_update_objective("Parler aux alliés et monter affronter Alfredo Sinko Nochez")
 
 	var tween_fade_out := create_tween()
 	tween_fade_out.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
 	await tween_fade_out.finished
 
 	can_move = true
+	_play_zone_audio("etage1")
 
 
 func _connect_etage3_sortie_signal() -> void:
@@ -967,13 +979,23 @@ func _transition_to_tower() -> void:
 	if zone_escalier:
 		zone_escalier.monitoring = false
 
+	var sortie_metro = $FondMetro.get_node_or_null("Sortie")
+	if sortie_metro:
+		sortie_metro.monitoring = false
+	var limite_metro = $FondMetro.get_node_or_null("limite-metro")
+	if limite_metro:
+		limite_metro.collision_layer = 0
+	var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+	if metro_koiai:
+		var zone = metro_koiai.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+
 	$FondMetro.hide()
 	$FondTour.show()
 	$FondEtage1.hide()
 	_set_etage1_collisions(false)
-	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
-	if tour_limite:
-		tour_limite.collision_layer = 512
+	_set_tour_collisions(true)
 
 	time_aunote.global_position = $FondTour/Marker/Entrée.global_position
 	time_aunote.show()
@@ -1046,9 +1068,7 @@ func _disable_all_collisions() -> void:
 	var metro_limite = $FondMetro.get_node_or_null("limite-metro")
 	if metro_limite:
 		metro_limite.collision_layer = 0
-	var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
-	if tour_limite:
-		tour_limite.collision_layer = 0
+	_set_tour_collisions(false)
 	_set_etage1_collisions(false)
 	_set_etage2_collisions(false)
 	_set_etage3_collisions(false)
@@ -1077,6 +1097,59 @@ func _disable_all_collisions() -> void:
 		var zone = ssol_koiai.get_node_or_null("ZoneDialogue")
 		if zone:
 			zone.monitoring = false
+	var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+	if metro_koiai:
+		var zone = metro_koiai.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+
+
+# ===== Audio Ambient System =====
+
+func _setup_ambient_audio() -> void:
+	_ambient_player = AudioStreamPlayer.new()
+	_ambient_player.bus = "Master"
+	_ambient_player.volume_db = -8.0
+	add_child(_ambient_player)
+
+
+func _load_zone_audio(zone: String) -> void:
+	if zone in _audio_buffers and not _audio_buffers[zone].is_empty():
+		return
+	var dir := DirAccess.open("res://audio/futur/" + zone + "/")
+	if not dir:
+		return
+	var streams: Array[AudioStream] = []
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+			var stream := load("res://audio/futur/" + zone + "/" + file_name) as AudioStream
+			if stream:
+				streams.append(stream)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	_audio_buffers[zone] = streams
+
+
+func _play_zone_audio(zone: String) -> void:
+	if zone == _current_zone:
+		return
+	_stop_ambient()
+	_load_zone_audio(zone)
+	var streams: Array = _audio_buffers.get(zone, [])
+	if streams.is_empty():
+		_current_zone = zone
+		return
+	var idx := randi() % streams.size()
+	_ambient_player.stream = streams[idx]
+	_ambient_player.play()
+	_current_zone = zone
+
+
+func _stop_ambient() -> void:
+	_ambient_player.stop()
+	_current_zone = ""
 
 
 func start(spawn_id: String = "entree") -> void:
@@ -1112,6 +1185,7 @@ func start(spawn_id: String = "entree") -> void:
 		started = true
 		stopped = false
 		_auto_start_cheffe_dialogue()
+		_play_zone_audio("superette")
 		return
 
 	if spawn_id == "soussol":
@@ -1133,6 +1207,7 @@ func start(spawn_id: String = "entree") -> void:
 		stopped = false
 		_update_objective("Parler aux personnes du sous-sol")
 		_setup_car_minigame()
+		_play_zone_audio("parking")
 		return
 
 	if spawn_id == "metro":
@@ -1143,6 +1218,12 @@ func start(spawn_id: String = "entree") -> void:
 		var metro_collision = $FondMetro.get_node("limite-metro")
 		if metro_collision:
 			metro_collision.collision_layer = 256
+		var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+		if metro_koiai:
+			metro_koiai.apparition($FondMetro/Markers/koiai.position)
+			var zone = metro_koiai.get_node_or_null("ZoneDialogue")
+			if zone:
+				zone.monitoring = true
 		time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
@@ -1155,6 +1236,7 @@ func start(spawn_id: String = "entree") -> void:
 		stopped = false
 		$ObjectiveHUD.show()
 		_update_objective("Trouver le QG d'Alfredo")
+		_play_zone_audio("exterieur")
 		return
 
 	if spawn_id == "tour":
@@ -1167,9 +1249,7 @@ func start(spawn_id: String = "entree") -> void:
 				g.set_active(false)
 		$FondEtage1.hide()
 		_set_etage1_collisions(false)
-		var tour_limite = $FondTour.get_node_or_null("limite-entree-tour")
-		if tour_limite:
-			tour_limite.collision_layer = 512
+		_set_tour_collisions(true)
 		time_aunote.global_position = $FondTour/Marker/Entrée.global_position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
@@ -1182,6 +1262,7 @@ func start(spawn_id: String = "entree") -> void:
 		stopped = false
 		$ObjectiveHUD.show()
 		_update_objective("Entrer dans la tour d'Alfredo Sinko Nochez")
+		_play_zone_audio("tour")
 		return
 
 	if spawn_id == "bureau":
@@ -1219,9 +1300,10 @@ func start(spawn_id: String = "entree") -> void:
 		time_aunote.position = position_entree_principale
 		time_aunote.hide()
 		time_aunote.modulate.a = 0.0
-		time_aunote.scale = Vector2.ZERO
-		time_aunote.rotation = TAU
-		_play_spawn_animation()
+	time_aunote.scale = Vector2.ZERO
+	time_aunote.rotation = TAU
+	_play_zone_audio("hall")
+	_play_spawn_animation()
 
 
 func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale) -> void:
@@ -1282,6 +1364,7 @@ func start_from_escalier() -> void:
 
 
 func stop() -> void:
+	_stop_ambient()
 	process_mode = PROCESS_MODE_DISABLED
 	hide()
 	$ObjectiveHUD.hide()
@@ -1382,11 +1465,6 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("interagir") and _player_near_car and $fondFutur.visible:
 		get_viewport().set_input_as_handled()
 		_start_car_minigame()
-	elif event.is_action_pressed("interagir") and _player_near_etage1_sortie and $FondEtage1.visible:
-		get_viewport().set_input_as_handled()
-		if _etage1_prompt:
-			_etage1_prompt.visible = false
-		_trigger_etage1_sortie()
 
 
 func _start_car_minigame() -> void:
@@ -1408,6 +1486,7 @@ func _start_car_minigame() -> void:
 
 	if _car_minigame:
 		_car_minigame.start_game()
+	_play_zone_audio("minijeu_car")
 
 
 func _on_car_minigame_done(success: bool) -> void:
@@ -1423,11 +1502,13 @@ func _on_car_minigame_done(success: bool) -> void:
 			$"SousSol/pnj-futur".show()
 			$"pnj-futur".hide()
 			$"pnj-cheffe".hide()
+			_play_zone_audio("parking")
 		else:
 			$fondFutur.show()
 			_set_upper_collisions(true)
 			$"pnj-futur".show()
 			$"pnj-cheffe".show()
+			_play_zone_audio("hall")
 
 		if is_instance_valid(time_aunote):
 			time_aunote.show()

@@ -1,6 +1,105 @@
 [gd_scene format=3 uid="uid://cd08cisuqoe1b"]
 
 [ext_resource type="Texture2D" uid="uid://cll21ea7xnmko" path="res://art/Futur/fondEtage3.png" id="1_mxtm0"]
+[ext_resource type="Texture2D" uid="uid://bliy5eebt7ssv" path="res://art/Futur/pnj-punk.png" id="2_punk"]
+[ext_resource type="Texture2D" uid="uid://c8cbwosqxjxmg" path="res://art/Futur/pnj-cheffe.png" id="3_cheffe"]
+[ext_resource type="Texture2D" uid="uid://c6srf4t10wwht" path="res://art/Futur/pnj-vukovi3.png" id="4_vukovi"]
+[ext_resource type="Texture2D" uid="uid://ccmtq7klubp0g" path="res://art/Futur/pnj-koiai2.png" id="5_koiai"]
+[ext_resource type="Script" uid="uid://cdp7mybuyb4kd" path="res://Futur/pnj_mecano.gd" id="6_meca"]
+[ext_resource type="Script" uid="uid://crt0c7ceuwj0f" path="res://Futur/pnj_cheffe.gd" id="7_chef"]
+[ext_resource type="Script" uid="uid://ba0ytj6fhkxsq" path="res://Futur/pnj_futur.gd" id="8_vuko"]
+[ext_resource type="Script" uid="uid://d0321mdga4ggl" path="res://Futur/pnj_koiai2.gd" id="9_koi"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_punk_f0"]
+atlas = ExtResource("2_punk")
+region = Rect2(0, 0, 306, 542)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_punk_f1"]
+atlas = ExtResource("2_punk")
+region = Rect2(306, 0, 306, 542)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_punk"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_punk_f0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_punk_f1")
+}],
+"loop": true,
+"name": &"idle-futur1",
+"speed": 0.5
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_npc"]
+radius = 120.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cheffe_f0"]
+atlas = ExtResource("3_cheffe")
+region = Rect2(0, 0, 369, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cheffe_f1"]
+atlas = ExtResource("3_cheffe")
+region = Rect2(369, 0, 369, 640)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_cheffe"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cheffe_f0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cheffe_f1")
+}],
+"loop": true,
+"name": &"idle-cheffe",
+"speed": 2.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vukovi_f0"]
+atlas = ExtResource("4_vukovi")
+region = Rect2(0, 0, 362, 641)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vukovi_f1"]
+atlas = ExtResource("4_vukovi")
+region = Rect2(362, 0, 362, 641)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_vukovi"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vukovi_f0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vukovi_f1")
+}],
+"loop": true,
+"name": &"idle-futur1",
+"speed": 2.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_koiai_f0"]
+atlas = ExtResource("5_koiai")
+region = Rect2(0, 0, 375, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_koiai_f1"]
+atlas = ExtResource("5_koiai")
+region = Rect2(375, 0, 375, 640)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_koiai"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_koiai_f0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_koiai_f1")
+}],
+"loop": true,
+"name": &"pnj-koiai",
+"speed": 3.0
+}]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mxtm0"]
 size = Vector2(171.75, 82)
@@ -21,14 +120,83 @@ zoom = Vector2(0.422, 0.422)
 [node name="entreeEtage3" type="Marker2D" parent="Marker" unique_id=1958568779]
 position = Vector2(1149, 1522)
 
-[node name="garde33" type="Marker2D" parent="Marker" unique_id=1719305883]
-position = Vector2(1388, 469)
+[node name="npc_cheffe" type="Marker2D" parent="Marker" unique_id=465520864]
+position = Vector2(1082, 1215)
 
-[node name="garde32" type="Marker2D" parent="Marker" unique_id=938129415]
-position = Vector2(1388, 1217)
+[node name="npc_koiai" type="Marker2D" parent="Marker" unique_id=727450462]
+position = Vector2(956, 993)
 
-[node name="garde31" type="Marker2D" parent="Marker" unique_id=484039087]
-position = Vector2(976, 861)
+[node name="npc_vukovi" type="Marker2D" parent="Marker" unique_id=1954950987]
+position = Vector2(1397, 845)
+
+[node name="npc_mecano" type="Marker2D" parent="Marker" unique_id=327524183]
+position = Vector2(1456, 1012)
+
+[node name="pnj-mecano" type="Node2D" parent="." unique_id=1297777078]
+scale = Vector2(0.35, 0.35)
+script = ExtResource("6_meca")
+npc_id = "npc_punk_futur_etage3"
+
+[node name="pnjfuturAnimation" type="AnimatedSprite2D" parent="pnj-mecano" unique_id=1796661515]
+scale = Vector2(0.606, 0.606)
+sprite_frames = SubResource("SpriteFrames_punk")
+animation = &"idle-futur1"
+
+[node name="ZoneDialogue" type="Area2D" parent="pnj-mecano" unique_id=175102579]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-mecano/ZoneDialogue" unique_id=81237931]
+shape = SubResource("CircleShape2D_npc")
+
+[node name="pnj-cheffe" type="Node2D" parent="." unique_id=550007357]
+scale = Vector2(0.35, 0.35)
+script = ExtResource("7_chef")
+npc_id = "npc_cheffe_futur_etage3"
+
+[node name="pnjcheffeAnimation" type="AnimatedSprite2D" parent="pnj-cheffe" unique_id=1404915070]
+scale = Vector2(0.513, 0.513)
+sprite_frames = SubResource("SpriteFrames_cheffe")
+animation = &"idle-cheffe"
+
+[node name="ZoneDialogue" type="Area2D" parent="pnj-cheffe" unique_id=2109014385]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-cheffe/ZoneDialogue" unique_id=1039880999]
+shape = SubResource("CircleShape2D_npc")
+
+[node name="pnj-vukovi" type="Node2D" parent="." unique_id=904293557]
+scale = Vector2(0.35, 0.35)
+script = ExtResource("8_vuko")
+npc_id = "npc_vukovi_futur_etage3"
+
+[node name="pnjfuturAnimation" type="AnimatedSprite2D" parent="pnj-vukovi" unique_id=671727310]
+scale = Vector2(0.512, 0.512)
+sprite_frames = SubResource("SpriteFrames_vukovi")
+animation = &"idle-futur1"
+
+[node name="ZoneDialogue" type="Area2D" parent="pnj-vukovi" unique_id=381624770]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-vukovi/ZoneDialogue" unique_id=224461854]
+shape = SubResource("CircleShape2D_npc")
+
+[node name="pnj-koiai-2" type="Node2D" parent="." unique_id=985246816]
+scale = Vector2(0.35, 0.35)
+script = ExtResource("9_koi")
+npc_id = "npc_koiai2_futur_etage3"
+
+[node name="pnjkoiai2Animation" type="AnimatedSprite2D" parent="pnj-koiai-2" unique_id=489300082]
+position = Vector2(0, -9)
+scale = Vector2(0.513, 0.513)
+sprite_frames = SubResource("SpriteFrames_koiai")
+animation = &"pnj-koiai"
+
+[node name="ZoneDialogue" type="Area2D" parent="pnj-koiai-2" unique_id=2660730]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="pnj-koiai-2/ZoneDialogue" unique_id=1046992655]
+position = Vector2(-1, 0)
+shape = SubResource("CircleShape2D_npc")
 
 [node name="LimiteEtage3" type="StaticBody2D" parent="." unique_id=1310533930]
 

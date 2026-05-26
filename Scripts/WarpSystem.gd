@@ -132,6 +132,40 @@ func _setup_ui() -> void:
 	hint.offset_bottom = 78
 	container.add_child(hint)
 
+	# Manual Save button on the top right
+	var save_btn := Button.new()
+	save_btn.text = "💾 SAUVEGARDER"
+	save_btn.custom_minimum_size = Vector2(150, 36)
+	save_btn.position = Vector2(834, 20)
+	
+	var s_normal := StyleBoxFlat.new()
+	s_normal.bg_color = Color(0.1, 0.35, 0.18, 0.8) # emerald green normal
+	s_normal.border_color = Color(0.2, 0.9, 0.45, 0.9)
+	s_normal.border_width_left = 1
+	s_normal.border_width_right = 1
+	s_normal.border_width_top = 1
+	s_normal.border_width_bottom = 1
+	s_normal.corner_radius_top_left = 6
+	s_normal.corner_radius_top_right = 6
+	s_normal.corner_radius_bottom_left = 6
+	s_normal.corner_radius_bottom_right = 6
+
+	var s_hover := s_normal.duplicate() as StyleBoxFlat
+	s_hover.bg_color = Color(0.12, 0.42, 0.22, 0.9)
+	s_hover.border_color = Color(0.3, 1.0, 0.55, 1.0)
+
+	save_btn.add_theme_stylebox_override("normal", s_normal)
+	save_btn.add_theme_stylebox_override("hover", s_hover)
+	save_btn.add_theme_color_override("font_color", Color(0.9, 1.0, 0.95))
+	save_btn.pressed.connect(func():
+		DialogueSystem.save_game_state()
+		save_btn.text = "✅ SAUVEGARDÉ !"
+		var t := create_tween()
+		t.tween_interval(1.5)
+		t.tween_callback(func(): save_btn.text = "💾 SAUVEGARDER")
+	)
+	container.add_child(save_btn)
+
 	# Main horizontal grid layout (944px width, perfectly centered and stretched)
 	var columns_hbox := HBoxContainer.new()
 	columns_hbox.anchor_right = 1.0

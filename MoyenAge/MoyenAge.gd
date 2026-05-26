@@ -137,9 +137,15 @@ func _setup_ambient_audio() -> void:
 
 
 func _load_zone_audio(zone: String) -> void:
-	if zone in _audio_buffers and not _audio_buffers[zone].is_empty():
+	var target_zone := zone
+	if zone == "foret":
+		target_zone = "parc"
+	elif zone == "campement":
+		target_zone = "minijeu_crochetage"
+
+	if target_zone in _audio_buffers and not _audio_buffers[target_zone].is_empty():
 		return
-	var dir := DirAccess.open("res://audio/moyen_age/" + zone + "/")
+	var dir := DirAccess.open("res://audio/moyen_age/" + target_zone + "/")
 	if not dir:
 		return
 	var streams: Array[AudioStream] = []
@@ -147,12 +153,12 @@ func _load_zone_audio(zone: String) -> void:
 	var file_name := dir.get_next()
 	while file_name != "":
 		if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
-			var stream := load("res://audio/moyen_age/" + zone + "/" + file_name) as AudioStream
+			var stream := load("res://audio/moyen_age/" + target_zone + "/" + file_name) as AudioStream
 			if stream:
 				streams.append(stream)
 		file_name = dir.get_next()
 	dir.list_dir_end()
-	_audio_buffers[zone] = streams
+	_audio_buffers[target_zone] = streams
 
 
 func _play_zone_audio(zone: String) -> void:
@@ -160,7 +166,14 @@ func _play_zone_audio(zone: String) -> void:
 		return
 	_stop_ambient()
 	_load_zone_audio(zone)
-	var streams: Array = _audio_buffers.get(zone, [])
+	
+	var target_zone := zone
+	if zone == "foret":
+		target_zone = "parc"
+	elif zone == "campement":
+		target_zone = "minijeu_crochetage"
+
+	var streams: Array = _audio_buffers.get(target_zone, [])
 	if streams.is_empty():
 		_current_zone = zone
 		return

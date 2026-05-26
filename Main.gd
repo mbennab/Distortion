@@ -8,10 +8,17 @@ var current_zone: String = "hub"
 
 func _ready():
 	sceneHUB = $TimeAunoteDansHUBCentral
-	sceneHUB.start()
 	sceneMoyenAge = $MoyenAge
 	scenePresent = $Present
 	sceneFutur = $Futur
+
+	if DialogueSystem.should_load_save:
+		DialogueSystem.should_load_save = false
+		var ok = DialogueSystem.load_game_state()
+		if not ok:
+			sceneHUB.start()
+	else:
+		sceneHUB.start()
 
 func _process(_delta):
 	if sceneHUB == null:
