@@ -5,7 +5,7 @@ signal player_hit
 func _ready():
 	var t = Timer.new()
 	t.one_shot = true
-	t.wait_time = 4.0
+	t.wait_time = 9.0
 	t.timeout.connect(_on_timeout)
 	add_child(t)
 	t.start()

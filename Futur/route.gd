@@ -12,11 +12,15 @@ var collision_label: Label
 var _timer_panel: Panel
 var _timer_title: Label
 var _timer_value: Label
+var _elapsed: float = 0.0
 
 const OBSTACLE_SPEED: float = 1600.0
 const LANE_COUNT: int = 3
 const RESTART_DELAY: float = 1.0
 const GAME_DURATION: float = 30.0
+const BASE_SPAWN_MIN: float = 0.4
+const BASE_SPAWN_MAX: float = 0.8
+const SPAWN_SPEEDUP: float = 0.002
 
 
 func _ready() -> void:
@@ -82,12 +86,13 @@ func _setup_timer_panel() -> void:
 
 func start_game() -> void:
 	game_active = true
+	_elapsed = 0.0
 	show()
 	collision_label.hide()
 	_timer_panel.show()
 	voiture.position = lane_positions[1]
 	current_lane = 1
-	$obstacle_timer.start(randf_range(0.5, 1.0))
+	$obstacle_timer.start(randf_range(0.3, 0.6))
 	$game_timer.start(GAME_DURATION)
 
 
@@ -104,6 +109,7 @@ func _process(delta: float) -> void:
 	if not game_active:
 		return
 
+	_elapsed += delta
 	_handle_input()
 	_move_obstacles(delta)
 	_update_timer_display()
@@ -163,7 +169,10 @@ func _spawn_obstacle() -> void:
 
 	add_child(obstacle)
 
-	$obstacle_timer.start(randf_range(0.4, 0.9))
+	var speedup := _elapsed * SPAWN_SPEEDUP
+	var min_t := maxf(0.08, BASE_SPAWN_MIN - speedup)
+	var max_t := maxf(0.15, BASE_SPAWN_MAX - speedup)
+	$obstacle_timer.start(randf_range(min_t, max_t))
 
 
 func _move_obstacles(delta: float) -> void:
@@ -193,11 +202,12 @@ func _crash() -> void:
 		return
 
 	_clear_obstacles()
+	_elapsed = 0.0
 	voiture.position = lane_positions[1]
 	current_lane = 1
 	game_active = true
 	collision_label.hide()
-	$obstacle_timer.start(randf_range(0.4, 0.9))
+	$obstacle_timer.start(randf_range(0.3, 0.6))
 
 
 func _clear_obstacles() -> void:

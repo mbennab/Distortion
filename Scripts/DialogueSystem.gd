@@ -770,7 +770,7 @@ func _find_npc(npc_id: String) -> Dictionary:
 		correct_dim = "res://MoyenAge/dimension_moyenage.json"
 	elif npc_id in ["npc_securite_present", "npc_securite_present_retour", "npc_secretaire_present"]:
 		correct_dim = "res://Present/dimension_present.json"
-	elif npc_id in ["npc_punk_futur", "npc_cheffe_futur", "npc_koiai2_futur", "npc_vukovi_futur", "npc_boss_futur"]:
+	elif npc_id in ["npc_punk_futur", "npc_cheffe_futur", "npc_koiai2_futur", "npc_vukovi_futur", "npc_boss_futur", "npc_punk_futur_etage3", "npc_cheffe_futur_etage3", "npc_koiai2_futur_etage3", "npc_vukovi_futur_etage3"]:
 		correct_dim = "res://Futur/dimension_futur.json"
 	elif npc_id in ["npc_guide_hub"]:
 		correct_dim = "res://HUB Central/dimension_hub.json"
