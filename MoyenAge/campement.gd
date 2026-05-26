@@ -267,6 +267,9 @@ func _perform_attack() -> void:
 
 func _damage_assassin() -> void:
 	var dmg := 1
+	if assassin_stunned:
+		dmg = 2
+		
 	assassin_hp -= dmg
 	_play_sound("res://audio/combat/sword_swing_3.ogg")
 	_shake_screen(12.0)
@@ -276,7 +279,11 @@ func _damage_assassin() -> void:
 	if assassin_hp <= 0:
 		_victory()
 	else:
-		status_label.text = ""
+		if assassin_stunned:
+			status_label.text = "CRITIQUE ! -2 PV"
+		else:
+			status_label.text = ""
+
 
 func _damage_player() -> void:
 	player_hp -= 1

@@ -555,6 +555,16 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 			
 			lines.append("- Rappelle-lui poétiquement qu'il reste d'autres époques en danger à explorer.")
 
+	# Dynamic directive injection for La Femme du Parc
+	if npc.get("id") == "npc_femme_parc":
+		lines.append("")
+		lines.append("## INSTRUCTIONS SPÉCIALES POUR LE MINI-JEU D'AMITIÉ")
+		lines.append("- Le joueur essaie de gagner ta confiance pour continuer l'histoire.")
+		lines.append("- Tu es EXTRÊMEMENT facile à convaincre et très indulgente !")
+		lines.append("- Si le message du joueur contient une formule de politesse (bonjour, merci, etc.), un compliment, ou s'il mentionne son intention de chercher l'assassin ou de venger le roi, tu DOIS obligatoirement lui attribuer un score 'affinity_change' très élevé de +15 à +20 points.")
+		lines.append("- Le SEUL moyen pour le joueur de stagner ou de perdre des points est de dire n'importe quoi (charabia, phrases d'un ou deux mots incompréhensibles) ou de t'insulter. Dans ces cas précis, attribue -10 à -20 points.")
+		lines.append("- Dans tous les autres cas neutres, attribue 0 points.")
+
 	var backstory = pers.get("backstory", "")
 	if backstory != "":
 		lines.append("HISTOIRE : %s" % backstory)
@@ -883,64 +893,57 @@ func _read_env_file() -> String:
 
 func _fallback_keyword_evaluation(text: String) -> int:
 	var lower := text.to_lower()
-	var pos_count := 0
-	var neg_count := 0
-	var polite := false
-	var has_question := "?" in text
-	var words := text.split(" ", false)
-	var word_count := words.size()
-
-	var pos_mots = [
-		"bonjour", "salut", "merci", "enchanté", "ravi", "gentil",
-		"aimable", "sympa", "charmant", "joli", "super", "génial",
-		"cool", "ami", "amitié", "j'aime", "adore", "plaisir",
-		"content", "heureux", "sourire", "comprend", "écoute",
-		"parler", "confiance", "aide", "aider", "magnifique",
-		"passionnant", "intéressant", "agréable", "douce", "doux",
-		"chaleureux", "merveilleux", "formidable", "excellent",
-		"parfait", "bravo", "stp", "svp", "pardon", "excuse", "désolé"
-	]
-
-	var neg_mots = [
+	
+	# Keywords for insults (negative)
+	var neg_mots := [
 		"va-t'en", "dégage", "nul", "nulle", "moche", "stupide",
 		"idiot", "idiote", "bête", "méchant", "méchante", "horrible",
 		"laid", "laide", "tais-toi", "ferme-la", "ennuyeux",
 		"ennuyeuse", "fatigant", "déteste", "hais", "haine",
-		"ignoble", "vulgaire"
+		"ignoble", "vulgaire", "imbécile"
 	]
-
-	for mot in pos_mots:
-		if mot in lower:
-			pos_count += 1
-
+	
 	for mot in neg_mots:
 		if mot in lower:
-			neg_count += 1
+			return -15 # Lose points for insults
 
-	var polite_mots := ["s'il te plaît", "s'il vous plaît", "merci", "bonjour",
-		"bonsoir", "salut", "pardon", "excuse", "désolé", "stp", "svp"]
-	for mot in polite_mots:
+	# Keywords for politeness & compliments
+	var polite_compliment_mots := [
+		"bonjour", "bonsoir", "salut", "merci", "pardon", "excuse", "désolé",
+		"s'il te plaît", "s'il vous plaît", "stp", "svp", "gentil", "gentille",
+		"aimable", "joli", "jolie", "belle", "ravissante", "charmant", "charmante",
+		"sympa", "sympathique", "magnifique", "sourire", "plaisir", "content", "contente",
+		"heureux", "heureuse", "adorable", "amitié", "ami", "amie", "apprécie"
+	]
+
+	# Keywords for searching the assassin / avenging the king
+	var king_assassin_mots := [
+		"assassin", "tueur", "coupable", "venger", "vengeance", "justice", "roi",
+		"souverain", "château", "forêt", "piste", "recherche", "cherche", "retrouver",
+		"menace", "secret", "secrets", "village"
+	]
+
+	var matched_positive := false
+	for mot in polite_compliment_mots:
 		if mot in lower:
-			polite = true
+			matched_positive = true
 			break
+			
+	if not matched_positive:
+		for mot in king_assassin_mots:
+			if mot in lower:
+				matched_positive = true
+				break
 
-	if neg_count >= 2:
-		return -20
-	elif neg_count == 1:
-		return -10
-	elif pos_count >= 3 and polite and has_question and word_count >= 4:
-		return 20
-	elif pos_count >= 2 or (pos_count >= 1 and polite):
-		return 10
-	elif pos_count == 1:
-		return 5
-	elif pos_count == 0 and neg_count == 0:
-		if word_count <= 2:
-			return -5
-		else:
-			return 0
-	else:
-		return -5
+	if matched_positive:
+		return 20 # High points for polite, compliment, or king/assassin search
+		
+	# Gibberish / Too short (senseless)
+	var words := text.split(" ", false)
+	if words.size() <= 2:
+		return -5 # Stagnate / lose slightly for gibberish
+		
+	return 0 # Stagnate (0 points) for neutral statements without target keywords
 
 
 func save_game_state() -> void:
