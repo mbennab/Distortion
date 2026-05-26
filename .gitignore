@@ -3,7 +3,7 @@
 
 # Godot-specific ignores
 *.translation
-*.import
+.godot/imported/
 
 # OS generated files
 .DS_Store
