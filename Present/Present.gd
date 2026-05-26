@@ -96,6 +96,7 @@ func _ready() -> void:
 	_setup_spawn_particles()
 	_setup_fade_overlay()
 	_setup_darkness_overlay()
+	_setup_thought_bubble()
 	pnj_secu = $"PnjSecurité"
 	pnj_secretaire = $"PnjSecretaire"
 	pnj_pc_controle = $"PnjPcControle"
@@ -508,7 +509,7 @@ func _setup_subroom_retours() -> void:
 
 func _setup_thought_bubble() -> void:
 	_thought_bubble_layer = CanvasLayer.new()
-	_thought_bubble_layer.layer = 55
+	_thought_bubble_layer.layer = 210
 	add_child(_thought_bubble_layer)
 
 	_thought_bubble_label = Label.new()
@@ -807,6 +808,7 @@ func _return_from_vestiaire() -> void:
 	if not is_inside_tree() or couloir.visible:
 		return
 	can_move = false
+	_hide_thought_bubble()
 
 	var tween_fade := create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
@@ -2320,7 +2322,7 @@ func _on_hacking_minigame_done(success: bool) -> void:
 		_update_secretaire_npc_id()
 		_update_pc_controle_state()
 		_update_objective("Retourner en salle de contrôle")
-		_show_thought_bubble("Hmm, je devrais voir si j'ai résolu le problème")
+		_show_thought_bubble("Tiens, pourquoi l'alarme se déclenche ? Je devrais aller voir ce qui se passe à la salle de contrôle.")
 
 
 
