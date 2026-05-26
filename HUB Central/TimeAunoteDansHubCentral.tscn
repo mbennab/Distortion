@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://bp22n8tog4j0g" path="res://HUB Central/pnj_hub.gd" id="5_fu3hc"]
 [ext_resource type="Script" uid="uid://rart0ycc8m8p" path="res://HUB Central/chien_hub.gd" id="6_fu3hc"]
 [ext_resource type="Texture2D" uid="uid://b1hwjmw8hu2o7" path="res://art/chien-hub.png" id="7_pfj0h"]
+[ext_resource type="Script" path="res://HUB Central/PcArcade.gd" id="8_pc_arcade"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vgvcy"]
 atlas = ExtResource("7_pfj0h")
@@ -63,6 +64,10 @@ script = ExtResource("5_fu3hc")
 
 [node name="chien-hub" type="Node2D" parent="." unique_id=1034956542]
 script = ExtResource("6_fu3hc")
+
+[node name="pc-arcade" type="Node2D" parent="."]
+position = Vector2(2029, 1007)
+script = ExtResource("8_pc_arcade")
 
 [node name="animation_chien_hub" type="AnimatedSprite2D" parent="chien-hub" unique_id=1240581489]
 scale = Vector2(0.22, 0.22)

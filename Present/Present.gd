@@ -1727,6 +1727,9 @@ func _escape_to_nexus() -> void:
 
 	var chernobyl_fade_in := create_tween()
 	chernobyl_fade_in.tween_property(chernobyl_label, "modulate:a", 1.0, 2.0)
+	_play_sfx("sfx_explosion")
+	await get_tree().create_timer(0.8).timeout
+	_play_sfx("sfx_explosion")
 	await chernobyl_fade_in.finished
 
 	if not is_inside_tree():
@@ -2084,6 +2087,7 @@ func _setup_ambient_audio() -> void:
 	_ambient_player.bus = "Master"
 	_ambient_player.volume_db = -8.0
 	add_child(_ambient_player)
+	_ambient_player.finished.connect(_ambient_player.play)
 	
 	_bgm_player = AudioStreamPlayer.new()
 	_bgm_player.bus = "Master"
@@ -2151,6 +2155,10 @@ func _update_audio_stage() -> void:
 
 func _set_zone(zone: String) -> void:
 	_last_zone = zone
+	# Special: pc_controle apres cablage = musique triste (mise a jour obligatoire)
+	if zone == "pc_controle" and _disjoncteur_done and not _hacking_done:
+		_play_stage_audio("pc_controle_sad")
+		return
 	_update_audio_stage()
 
 
@@ -2179,6 +2187,31 @@ func _play_bgm(folder: String) -> void:
 func _stop_bgm() -> void:
 	if _bgm_player:
 		_bgm_player.stop()
+
+
+func _play_sfx(folder: String) -> void:
+	var dir := DirAccess.open("res://audio/present/" + folder + "/")
+	if not dir:
+		return
+	var streams: Array[AudioStream] = []
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+			var stream := load("res://audio/present/" + folder + "/" + file_name) as AudioStream
+			if stream:
+				streams.append(stream)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	if streams.is_empty():
+		return
+	var sfx_player := AudioStreamPlayer.new()
+	sfx_player.bus = "Master"
+	sfx_player.volume_db = 0.0
+	sfx_player.stream = streams[0]
+	sfx_player.finished.connect(sfx_player.queue_free)
+	add_child(sfx_player)
+	sfx_player.play()
 
 
 func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale) -> void:
@@ -2234,6 +2267,8 @@ func _start_salle_machine_minigame() -> void:
 
 func _on_salle_machine_minigame_done(success: bool) -> void:
 	_stop_bgm()
+	if success:
+		_play_sfx("sfx_electric")
 	_salle_machine_minigame = null
 	_salle_machine_done = true
 	if _machines_repair_prompt:
@@ -2242,6 +2277,11 @@ func _on_salle_machine_minigame_done(success: bool) -> void:
 	if is_instance_valid(time_aunote):
 		time_aunote.show()
 	can_move = true
+	# Alarme SFX 10-15s avant de lancer la musique d'alarme
+	_play_sfx("sfx_alarme")
+	await get_tree().create_timer(12.0).timeout
+	if not is_inside_tree():
+		return
 	_update_audio_stage()
 	if success:
 		DialogueSystem.complete_step("quete_preparation", "etape_reparer_machines")
@@ -2315,6 +2355,11 @@ func _on_hacking_minigame_done(success: bool) -> void:
 	if is_instance_valid(time_aunote):
 		time_aunote.show()
 	can_move = true
+	# Alarme SFX puis alarme_finale
+	_play_sfx("sfx_alarme")
+	await get_tree().create_timer(12.0).timeout
+	if not is_inside_tree():
+		return
 	_update_audio_stage()
 	if success:
 		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_fin")

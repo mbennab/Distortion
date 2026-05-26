@@ -192,6 +192,10 @@ func _start_minigame() -> void:
 	parent.can_move = false
 	if parent.time_aunote:
 		parent.time_aunote.hide()
+	
+	# Stop parking music, play minigame BGM
+	parent._stop_ambient()
+	parent._play_bgm("minijeu_soleil")
 
 	var map_pnj = get_node_or_null("pnjMaintenanceMap")
 	if map_pnj:
@@ -206,6 +210,11 @@ func _on_minigame_done(success: bool) -> void:
 	_minigame_running = false
 	_minigame_instance = null
 	var parent = get_parent()
+	
+	# Stop minigame BGM, resume zone music
+	parent._stop_bgm()
+	parent._update_audio_stage()
+	
 	if parent.time_aunote:
 		parent.time_aunote.show()
 

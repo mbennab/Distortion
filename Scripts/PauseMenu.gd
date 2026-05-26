@@ -377,8 +377,10 @@ func toggle() -> void:
 		show()
 	else:
 		get_tree().paused = false
-		options_panel.hide()
-		music_panel.hide()
+		if options_panel:
+			options_panel.hide()
+		if music_panel:
+			music_panel.hide()
 		hide()
 
 

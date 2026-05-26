@@ -8,6 +8,7 @@ var chienHub
 var positionEntreePrincipale
 var pnjPos
 var chienPos
+var pcArcade
 var started = false
 var stopped = true
 var limites
@@ -26,6 +27,7 @@ var _ambient_streams: Array[AudioStream] = []
 var _portal_glows: Array[Sprite2D] = []
 var _glow_tweens: Array[Tween] = []
 var _objective_label: Label
+var _is_arcade_open := false
 
 func _ready():
 	process_mode = PROCESS_MODE_DISABLED
@@ -42,6 +44,7 @@ func _ready():
 	pnjPos = $"fondHubCentral/Markers2D/pnjPos".position
 	chienHub = $"chien-hub"
 	chienPos = $"fondHubCentral/Markers2D/chienPos".position
+	pcArcade = $"pc-arcade"
 	_setup_particles()
 	_setup_portal_glows()
 	_setup_ambient_audio()
@@ -395,6 +398,9 @@ func stop():
 	stopped = true
 	if has_node("MiniJeuChien"):
 		get_node("MiniJeuChien").queue_free()
+	if has_node("ArcadeMenu"):
+		get_node("ArcadeMenu").queue_free()
+	_is_arcade_open = false
 
 func _set_collisions_enabled(enable: bool) -> void:
 	limites.collision_layer = 2 if enable else 0
@@ -404,6 +410,8 @@ func _set_collisions_enabled(enable: bool) -> void:
 	zonePorteRouge.monitoring = enable
 	pnjHub.get_node("ZoneDialogue").monitoring = enable
 	chienHub.get_node("Area2D").monitoring = enable
+	if is_instance_valid(pcArcade) and pcArcade.has_node("Area2D"):
+		pcArcade.get_node("Area2D").monitoring = enable
 	timeAunote.get_node("collision").disabled = not enable
 
 func _on_timer_sortie_timeout():
@@ -418,7 +426,7 @@ func deplacement(delta: float) -> void:
 		if mini_jeu and not mini_jeu.is_queued_for_deletion() and "is_active" in mini_jeu:
 			is_mini_jeu_active = mini_jeu.get("is_active") as bool
 
-	if not started or DialogueUI.is_dialogue_active() or is_mini_jeu_active:
+	if not started or DialogueUI.is_dialogue_active() or is_mini_jeu_active or _is_arcade_open:
 		timeAunote.animation(Vector2.ZERO)
 		return
 	var velocity = Vector2.ZERO
@@ -446,6 +454,25 @@ func lancer_mini_jeu_chien() -> void:
 		var mini_jeu := get_node("MiniJeuChien") as CanvasLayer
 		if mini_jeu and not mini_jeu.is_queued_for_deletion() and mini_jeu.has_method("open_game"):
 			mini_jeu.call("open_game")
+
+func _open_arcade_menu() -> void:
+	if _is_arcade_open:
+		return
+	if not has_node("ArcadeMenu") or get_node("ArcadeMenu").is_queued_for_deletion():
+		var ArcadeScript := load("res://HUB Central/ArcadeMenu.gd") as GDScript
+		if not ArcadeScript:
+			return
+		var menu := ArcadeScript.new() as CanvasLayer
+		menu.name = "ArcadeMenu"
+		menu.hub = self
+		add_child(menu)
+	var arcade := get_node("ArcadeMenu") as CanvasLayer
+	if arcade and arcade.has_method("open"):
+		_is_arcade_open = true
+		arcade.call("open")
+
+func _on_arcade_menu_closed() -> void:
+	_is_arcade_open = false
 
 func declencher_particles_victoire() -> void:
 	if is_instance_valid(particles) and is_instance_valid(chienHub):
