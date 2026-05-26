@@ -25,6 +25,7 @@ const MAX_HISTORY = 15
 var http_request: HTTPRequest
 var dimension: Dictionary = {}
 var game_state: Dictionary = {}
+var should_load_save: bool = false
 var current_npc: Dictionary = {}
 var current_npc_id: String = ""
 var api_key: String = ""
@@ -730,6 +731,7 @@ func complete_step(quest_id: String, step_id: String) -> void:
 		qs["status"] = "done"
 
 	quest_updated.emit(quest_id, qs["status"], next_step)
+	save_game_state()
 
 
 func mark_quest_done(quest_id: String) -> void:
@@ -740,6 +742,7 @@ func mark_quest_done(quest_id: String) -> void:
 	qs["status"] = "done"
 	qs["current_step"] = ""
 	quest_updated.emit(quest_id, "done", "")
+	save_game_state()
 
 
 func reset_quest(quest_id: String) -> void:
@@ -757,6 +760,7 @@ func reset_quest(quest_id: String) -> void:
 		"completed_steps": [],
 	}
 	quest_updated.emit(quest_id, "not_started", first_step)
+	save_game_state()
 
 
 func _find_npc(npc_id: String) -> Dictionary:
@@ -866,3 +870,191 @@ func _fallback_keyword_evaluation(text: String) -> int:
 			return 0
 	else:
 		return -5
+
+
+func save_game_state() -> void:
+	var current_zone := "hub"
+	var main: Node = get_tree().current_scene
+	if main and "current_zone" in main:
+		current_zone = main.current_zone
+
+	var sub_zone: String = "entree"
+	if main:
+		if current_zone == "moyenage":
+			var ma: Node = main.get_node_or_null("MoyenAge")
+			if ma:
+				if ma.get_node_or_null("prison_moyen_age") and ma.get_node("prison_moyen_age").is_visible_in_tree():
+					sub_zone = "prison"
+				elif ma.get_node_or_null("magasin_moyen_age") and ma.get_node("magasin_moyen_age").is_visible_in_tree():
+					sub_zone = "magasin"
+				elif ma.get_node_or_null("ville_moyen_age") and ma.get_node("ville_moyen_age").is_visible_in_tree():
+					sub_zone = "ville"
+				elif ma.get_node_or_null("auberge_moyen_age") and ma.get_node("auberge_moyen_age").is_visible_in_tree():
+					sub_zone = "auberge"
+				elif ma.get_node_or_null("parc_moyen_age") and ma.get_node("parc_moyen_age").is_visible_in_tree():
+					sub_zone = "parc"
+				elif ma.get_node_or_null("foret") and ma.get_node("foret").is_visible_in_tree():
+					sub_zone = "foret"
+				elif ma.get_node_or_null("campement") and ma.get_node("campement").is_visible_in_tree():
+					sub_zone = "campement"
+		elif current_zone == "present":
+			var pr: Node = main.get_node_or_null("Present")
+			if pr:
+				if pr.get_node_or_null("Parking") and pr.get_node("Parking").is_visible_in_tree():
+					sub_zone = "parking"
+				elif pr.get_node_or_null("Hall") and pr.get_node("Hall").is_visible_in_tree():
+					sub_zone = "hall"
+				elif pr.get_node_or_null("Couloir") and pr.get_node("Couloir").is_visible_in_tree():
+					sub_zone = "couloir"
+				elif pr.get_node_or_null("Vestiaire") and pr.get_node("Vestiaire").is_visible_in_tree():
+					sub_zone = "vestiaire"
+				elif pr.get_node_or_null("SalleMachine") and pr.get_node("SalleMachine").is_visible_in_tree():
+					sub_zone = "salle_machine"
+				elif pr.get_node_or_null("SalleElectricite") and pr.get_node("SalleElectricite").is_visible_in_tree():
+					sub_zone = "salle_electricite"
+				elif pr.get_node_or_null("PcControle") and pr.get_node("PcControle").is_visible_in_tree():
+					sub_zone = "pc_controle"
+		elif current_zone == "futur":
+			var fu: Node = main.get_node_or_null("Futur")
+			if fu:
+				if fu.get_node_or_null("FondSuperette") and fu.get_node("FondSuperette").is_visible_in_tree():
+					sub_zone = "superette"
+				elif fu.get_node_or_null("SousSol") and fu.get_node("SousSol").is_visible_in_tree():
+					sub_zone = "soussol"
+				elif fu.get_node_or_null("FondMetro") and fu.get_node("FondMetro").is_visible_in_tree():
+					sub_zone = "metro"
+				elif fu.get_node_or_null("FondTour") and fu.get_node("FondTour").is_visible_in_tree():
+					sub_zone = "tour"
+				elif fu.get_node_or_null("FondBureau") and fu.get_node("FondBureau").is_visible_in_tree():
+					sub_zone = "bureau"
+
+	var time_aunote_class = load("res://Personnage/TimeAunote.gd")
+	var disguised_state := false
+	if time_aunote_class:
+		disguised_state = time_aunote_class.disguised
+
+	var save_data := {
+		"current_zone": current_zone,
+		"sub_zone": sub_zone,
+		"game_state": game_state,
+		"disguised": disguised_state
+	}
+
+	var file = FileAccess.open("user://save_game.json", FileAccess.WRITE)
+	if file:
+		var json_str = JSON.stringify(save_data)
+		file.store_string(json_str)
+		file.close()
+		print("[DialogueSystem] Game successfully saved to user://save_game.json (sub_zone: " + sub_zone + ")")
+
+
+func load_game_state() -> bool:
+	if not FileAccess.file_exists("user://save_game.json"):
+		print("[DialogueSystem] No save file found.")
+		return false
+
+	var file = FileAccess.open("user://save_game.json", FileAccess.READ)
+	if not file:
+		return false
+
+	var json_str = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	var parse_err = json.parse(json_str)
+	if parse_err != OK:
+		push_error("[DialogueSystem] JSON Parse Error in save file")
+		return false
+
+	var data = json.get_data()
+	if not data is Dictionary:
+		return false
+
+	# Restore game_state
+	var loaded_state = data.get("game_state", {})
+	for qid in loaded_state:
+		if qid in game_state:
+			var loaded_q: Dictionary = loaded_state[qid] as Dictionary
+			var current_q: Dictionary = game_state[qid] as Dictionary
+			current_q["status"] = loaded_q.get("status", "not_started")
+			current_q["current_step"] = loaded_q.get("current_step", "")
+			current_q["completed_steps"] = loaded_q.get("completed_steps", [])
+			quest_updated.emit(qid, current_q["status"], current_q["current_step"])
+
+	# Restore disguise
+	var disguised = data.get("disguised", false)
+	var time_aunote_class = load("res://Personnage/TimeAunote.gd")
+	if time_aunote_class:
+		time_aunote_class.disguised = disguised
+
+	# Transition/Warp to the saved era
+	var saved_zone: String = data.get("current_zone", "hub")
+	var saved_sub_zone: String = data.get("sub_zone", "")
+	var saved_spawn_id: String = "entree"
+
+	if saved_sub_zone != "":
+		saved_spawn_id = saved_sub_zone
+	else:
+		# Fallback logic based on quest states
+		if saved_zone == "moyenage":
+			var q_piste: Dictionary = game_state.get("quete_piste_assassin", {}) as Dictionary
+			var q_deg: Dictionary = game_state.get("quete_deguisement", {}) as Dictionary
+			var q_evasion: Dictionary = game_state.get("quete_evasion", {}) as Dictionary
+			var q_enquete: Dictionary = game_state.get("quete_enquete_roi", {}) as Dictionary
+			
+			if q_piste.get("status") == "active" or q_piste.get("status") == "done":
+				saved_spawn_id = "ville"
+			elif q_deg.get("status") == "active" or q_deg.get("status") == "done":
+				saved_spawn_id = "ville"
+			elif q_evasion.get("status") == "active":
+				saved_spawn_id = "prison"
+			elif q_evasion.get("status") == "done":
+				saved_spawn_id = "ville"
+			elif q_enquete.get("status") == "done":
+				saved_spawn_id = "prison"
+			else:
+				saved_spawn_id = "entree"
+
+		elif saved_zone == "present":
+			var q_prep: Dictionary = game_state.get("quete_preparation", {}) as Dictionary
+			var q_acc: Dictionary = game_state.get("quete_acces_centrale", {}) as Dictionary
+			
+			if q_prep.get("status") == "active" or q_prep.get("status") == "done":
+				var current_step: String = q_prep.get("current_step", "")
+				var completed: Array = q_prep.get("completed_steps", []) as Array
+				if current_step == "etape_reparer_electricite" or "etape_reparer_electricite" in completed:
+					saved_spawn_id = "salle_electricite"
+				elif current_step == "etape_reparer_machines" or "etape_reparer_machines" in completed:
+					saved_spawn_id = "salle_machine"
+				elif current_step == "etape_aller_vestiaires" or "etape_aller_vestiaires" in completed:
+					saved_spawn_id = "vestiaire"
+				else:
+					saved_spawn_id = "hall"
+			elif q_acc.get("status") == "active":
+				var current_step: String = q_acc.get("current_step", "")
+				if current_step == "etape_chercher_carte" or current_step == "etape_retour_gardien":
+					saved_spawn_id = "parking"
+				else:
+					saved_spawn_id = "entree"
+			elif q_acc.get("status") == "done":
+				saved_spawn_id = "hall"
+			else:
+				saved_spawn_id = "entree"
+
+	var main: Node = get_tree().current_scene
+	if main and main.has_method("warp_to_era"):
+		# Warp to the saved era with resolved spawn ID
+		main.warp_to_era(saved_zone, saved_spawn_id)
+
+		# Synchronize active nodes or minigames
+		if has_node("/root/WarpSystem"):
+			var ws: Node = get_node("/root/WarpSystem")
+			if ws:
+				ws.update_minigames_status_from_game()
+				if ws.has_method("_apply_active_scene_reactions"):
+					for key in ws.minigames_status:
+						var completed: bool = ws.minigames_status[key] as bool
+						ws._apply_active_scene_reactions(key, completed)
+
+	print("[DialogueSystem] Game successfully loaded from user://save_game.json (spawn: " + saved_spawn_id + ")")
+	return true
