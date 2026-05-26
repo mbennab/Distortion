@@ -167,8 +167,8 @@ func _setup_footer() -> void:
 
 func _setup_credits() -> void:
 	credits = Panel.new()
-	credits.size = Vector2(500, 360)
-	credits.position = Vector2(W / 2 - 250, H / 2 - 170)
+	credits.size = Vector2(600, 500)
+	credits.position = Vector2(W / 2 - 300, H / 2 - 250)
 	credits.hide()
 	credits.mouse_filter = Control.MOUSE_FILTER_STOP
 
@@ -191,49 +191,41 @@ func _setup_credits() -> void:
 		"",
 		"Projet etudiant CIR2 — ISEN",
 		"",
-		"Game Design & Developpement",
-		"Par les etudiants de CIR2",
+		"Jeu cree par Cloud Company",
+		"Avec Mathilde, Gaston, Rimbaud,",
+		"Noa, Oscar & Alix",
 		"",
-		"Musique : Chronos par Alexander Nakarada (CC BY 4.0)",
-		"Musique : Unsafe Roads par Alexander Nakarada (CC BY 4.0)",
-		"Musique : Space Ambience par Alexander Nakarada (CC BY 4.0)",
-		"Musique : Nightfall par Alexander Nakarada (CC BY 4.0)",
-		"Musique : Sci-Fi-Buzzkiller par Alexander Nakarada (CC BY 4.0)",
-		"Musique : NIGHTCLUB par Alexander Nakarada (CC BY 4.0)",
-		"Musique : The Foreign Tale par Alexander Nakarada (CC BY 4.0)",
-		"Musique : Adventure par Alexander Nakarada (CC BY 4.0)",
-		"Musique : Chase par Alexander Nakarada (CC BY 4.0)",
-		"Musique : The Replicant par Lyra Soundtracks (CC BY 4.0)",
+		"Musiques par Alexander Nakarada (CC BY 4.0)",
+		"Chronos, Unsafe Roads, Space Ambience, Nightfall, Sci-Fi-Buzzkiller,",
+		"NIGHTCLUB, The Foreign Tale, Adventure, Chase",
+		"",
+		"The Replicant par Lyra Soundtracks (CC BY 4.0)",
 		"",
 		"Merci d'avoir joue !",
 	]
 
 	var vb := VBoxContainer.new()
 	vb.position = Vector2(30, 16)
-	vb.size = Vector2(440, 440)
-	vb.add_theme_constant_override("separation", 8)
+	vb.size = Vector2(540, 460)
+	vb.add_theme_constant_override("separation", 6)
 	credits.add_child(vb)
 
-	var sizes := [0, 22, 0, 16, 0, 14, 14, 0, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 0, 16]
+	var sizes := [0, 22, 0, 16, 0, 15, 13, 13, 0, 13, 11, 11, 0, 12, 0, 15]
 	var colors := [
 		Color.WHITE,
 		Color(0.9, 0.95, 1.0),
 		Color.WHITE,
 		Color(0.6, 0.7, 0.9),
 		Color.WHITE,
-		Color(0.5, 0.55, 0.65),
-		Color(0.5, 0.55, 0.65),
+		Color(0.5, 0.8, 1.0),
+		Color(0.7, 0.75, 0.85),
+		Color(0.7, 0.75, 0.85),
 		Color.WHITE,
+		Color(0.4, 0.6, 0.8, 0.9),
 		Color(0.4, 0.6, 0.8, 0.7),
 		Color(0.4, 0.6, 0.8, 0.7),
-		Color(0.4, 0.6, 0.8, 0.7),
-		Color(0.4, 0.6, 0.8, 0.7),
-		Color(0.4, 0.6, 0.8, 0.7),
-		Color(0.4, 0.6, 0.8, 0.7),
-		Color(0.4, 0.6, 0.8, 0.7),
-		Color(0.4, 0.6, 0.8, 0.7),
-		Color(0.4, 0.6, 0.8, 0.7),
-		Color(0.4, 0.6, 0.8, 0.7),
+		Color.WHITE,
+		Color(0.4, 0.6, 0.8, 0.9),
 		Color.WHITE,
 		Color(0.5, 0.8, 1.0),
 	]
@@ -246,13 +238,18 @@ func _setup_credits() -> void:
 			lb.add_theme_font_size_override("font_size", sizes[i])
 		lb.add_theme_color_override("font_color", colors[i])
 		if lines[i] == "":
-			lb.custom_minimum_size = Vector2(0, 4)
+			lb.custom_minimum_size = Vector2(0, 2)
 		vb.add_child(lb)
+
+	# Espace de separation propre avant le bouton
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 16)
+	vb.add_child(spacer)
 
 	var cb := Button.new()
 	cb.text = "Fermer"
 	cb.custom_minimum_size = Vector2(120, 36)
-	cb.position = Vector2(190, 300)
+	cb.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var bs := StyleBoxFlat.new()
 	bs.bg_color = Color(0.15, 0.15, 0.22, 0.8)
 	bs.border_color = Color(0.4, 0.6, 0.9, 0.5)
@@ -268,7 +265,7 @@ func _setup_credits() -> void:
 	cb.add_theme_stylebox_override("hover", bs)
 	cb.add_theme_color_override("font_color", Color(0.9, 0.92, 0.98))
 	cb.pressed.connect(_close_credits)
-	credits.add_child(cb)
+	vb.add_child(cb)
 
 	ui.add_child(credits)
 
