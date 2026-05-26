@@ -82,6 +82,10 @@ var _ambient_player: AudioStreamPlayer
 var _current_zone: String = ""
 var _audio_buffers: Dictionary = {}
 
+# Stage-based audio (Present: une musique par étape, pas par salle)
+var _last_zone: String = ""
+var _bgm_player: AudioStreamPlayer  # for minigames/cinematic overlay
+
 
 
 func _ready() -> void:
@@ -629,7 +633,7 @@ func _go_to_couloir() -> void:
 		return
 
 	can_move = true
-	_play_zone_audio("couloir")
+	_set_zone("couloir")
 
 
 func _return_from_couloir() -> void:
@@ -680,7 +684,7 @@ func _return_from_couloir() -> void:
 		return
 
 	can_move = true
-	_play_zone_audio("hall")
+	_set_zone("hall")
 
 
 func _go_to_pc_controle() -> void:
@@ -721,7 +725,7 @@ func _go_to_pc_controle() -> void:
 	if not is_inside_tree():
 		return
 
-	_play_zone_audio("pc_controle")
+	_set_zone("pc_controle")
 	can_move = true
 	_hide_thought_bubble()
 
@@ -762,7 +766,7 @@ func _return_from_pc_controle() -> void:
 	if not is_inside_tree():
 		return
 
-	_play_zone_audio("couloir")
+	_set_zone("couloir")
 	can_move = true
 
 
@@ -795,7 +799,7 @@ func _go_to_vestiaire() -> void:
 	if not is_inside_tree():
 		return
 
-	_play_zone_audio("vestiaire")
+	_set_zone("vestiaire")
 	can_move = true
 
 
@@ -826,7 +830,7 @@ func _return_from_vestiaire() -> void:
 	if not is_inside_tree():
 		return
 
-	_play_zone_audio("couloir")
+	_set_zone("couloir")
 	can_move = true
 	if TimeAunoteScript.disguised_present:
 		_player_has_changed_once = true
@@ -864,7 +868,7 @@ func _go_to_salle_machine() -> void:
 	if not is_inside_tree():
 		return
 
-	_play_zone_audio("salle_machine")
+	_set_zone("salle_machine")
 	can_move = true
 
 
@@ -896,7 +900,7 @@ func _return_from_salle_machine() -> void:
 	if not is_inside_tree():
 		return
 
-	_play_zone_audio("couloir")
+	_set_zone("couloir")
 	can_move = true
 
 
@@ -928,7 +932,7 @@ func _go_to_salle_electricite() -> void:
 	if not is_inside_tree():
 		return
 
-	_play_zone_audio("salle_electricite")
+	_set_zone("salle_electricite")
 	can_move = true
 
 
@@ -963,7 +967,7 @@ func _return_from_salle_electricite() -> void:
 	if not is_inside_tree():
 		return
 
-	_play_zone_audio("couloir")
+	_set_zone("couloir")
 	can_move = true
 
 
@@ -1099,7 +1103,7 @@ func _go_to_parking() -> void:
 	await tween_fade.finished
 
 	_update_objective("Fouiller le parking")
-	_play_zone_audio("parking")
+	_set_zone("parking")
 	can_move = true
 
 
@@ -1132,7 +1136,7 @@ func _return_from_parking() -> void:
 	var parking = $Parking
 	if parking and parking._badge_obtained:
 		_update_objective("Retourner voir l'agent de sécurité avec la carte")
-	_play_zone_audio("exterieur")
+	_set_zone("exterieur")
 	can_move = true
 
 
@@ -1190,7 +1194,7 @@ func _go_to_hall(skip_delay: bool = false) -> void:
 		qp["status"] = "active"
 		qp["current_step"] = "etape_parler_secretaire"
 	_update_objective("Parler à la secrétaire")
-	_play_zone_audio("hall")
+	_set_zone("hall")
 	can_move = true
 
 func _set_hall_collisions(enabled: bool) -> void:
@@ -1533,6 +1537,10 @@ func _escape_to_nexus() -> void:
 	await tween_fade.finished
 	if not is_inside_tree():
 		return
+	
+	# Start cinematic music
+	_stop_ambient()
+	_play_bgm("cinematique")
 
 	var viewport_size := get_viewport_rect().size
 	if viewport_size.x <= 0 or viewport_size.y <= 0:
@@ -1837,7 +1845,7 @@ func start(spawn_id: String = "entree") -> void:
 		started = true
 		stopped = false
 		_update_objective("Fouiller le parking")
-		_play_zone_audio("parking")
+		_set_zone("parking")
 		return
 
 	if spawn_id == "hall":
@@ -1884,7 +1892,7 @@ func start(spawn_id: String = "entree") -> void:
 		_couloir_unlocked = false
 		_update_secretaire_npc_id()
 		_update_objective("Parler à la secrétaire")
-		_play_zone_audio("hall")
+		_set_zone("hall")
 		return
 
 	if spawn_id == "couloir":
@@ -1914,7 +1922,7 @@ func start(spawn_id: String = "entree") -> void:
 		_ensure_hall_quest_done()
 		_update_secretaire_npc_id()
 		_update_objective("Aller se changer")
-		_play_zone_audio("couloir")
+		_set_zone("couloir")
 		return
 
 	if spawn_id == "vestiaire":
@@ -1944,7 +1952,7 @@ func start(spawn_id: String = "entree") -> void:
 		_ensure_hall_quest_done()
 		_update_secretaire_npc_id()
 		_update_objective("Aller se changer")
-		_play_zone_audio("vestiaire")
+		_set_zone("vestiaire")
 		return
 
 	if spawn_id == "salle_machine":
@@ -1982,7 +1990,7 @@ func start(spawn_id: String = "entree") -> void:
 			time_aunote.apply_disguise()
 		_update_secretaire_npc_id()
 		_update_objective("Aller réparer la salle des machines")
-		_play_zone_audio("salle_machine")
+		_set_zone("salle_machine")
 		return
 
 	if spawn_id == "salle_electricite":
@@ -2022,7 +2030,7 @@ func start(spawn_id: String = "entree") -> void:
 		_show_darkness_overlay()
 		_update_secretaire_npc_id()
 		_update_objective("Remettre le disjoncteur")
-		_play_zone_audio("salle_electricite")
+		_set_zone("salle_electricite")
 		return
 
 	if spawn_id == "pc_controle":
@@ -2052,13 +2060,13 @@ func start(spawn_id: String = "entree") -> void:
 		_ensure_hall_quest_done()
 		_update_secretaire_npc_id()
 		_update_objective("Prendre son service de maintenance")
-		_play_zone_audio("pc_controle")
+		_set_zone("pc_controle")
 		return
 
 
 
 	_update_objective("Parler à l'agent de sécurité")
-	_play_zone_audio("exterieur")
+	_set_zone("exterieur")
 	time_aunote.position = position_entree_principale
 	time_aunote.hide()
 	time_aunote.modulate.a = 0.0
@@ -2074,12 +2082,20 @@ func _setup_ambient_audio() -> void:
 	_ambient_player.bus = "Master"
 	_ambient_player.volume_db = -8.0
 	add_child(_ambient_player)
+	
+	_bgm_player = AudioStreamPlayer.new()
+	_bgm_player.bus = "Master"
+	_bgm_player.volume_db = -8.0
+	add_child(_bgm_player)
 
 
-func _load_zone_audio(zone: String) -> void:
-	if zone in _audio_buffers and not _audio_buffers[zone].is_empty():
+# ===== Stage-based Audio System (Present) =====
+# Étapes : exterieur → interieur → alarme → speed → alarme_finale
+
+func _load_stage_audio(stage: String) -> void:
+	if stage in _audio_buffers and not _audio_buffers[stage].is_empty():
 		return
-	var dir := DirAccess.open("res://audio/present/" + zone + "/")
+	var dir := DirAccess.open("res://audio/present/" + stage + "/")
 	if not dir:
 		return
 	var streams: Array[AudioStream] = []
@@ -2087,32 +2103,80 @@ func _load_zone_audio(zone: String) -> void:
 	var file_name := dir.get_next()
 	while file_name != "":
 		if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
-			var stream := load("res://audio/present/" + zone + "/" + file_name) as AudioStream
+			var stream := load("res://audio/present/" + stage + "/" + file_name) as AudioStream
 			if stream:
 				streams.append(stream)
 		file_name = dir.get_next()
 	dir.list_dir_end()
-	_audio_buffers[zone] = streams
+	_audio_buffers[stage] = streams
 
 
-func _play_zone_audio(zone: String) -> void:
-	if zone == _current_zone:
+func _play_stage_audio(stage: String) -> void:
+	if stage == _current_zone:
 		return
 	_stop_ambient()
-	_load_zone_audio(zone)
-	var streams: Array = _audio_buffers.get(zone, [])
+	_load_stage_audio(stage)
+	var streams: Array = _audio_buffers.get(stage, [])
 	if streams.is_empty():
-		_current_zone = zone
+		_current_zone = stage
 		return
 	var idx := randi() % streams.size()
 	_ambient_player.stream = streams[idx]
 	_ambient_player.play()
-	_current_zone = zone
+	_current_zone = stage
 
 
 func _stop_ambient() -> void:
 	_ambient_player.stop()
 	_current_zone = ""
+
+
+func _update_audio_stage() -> void:
+	# Determine stage based on game progression flags
+	if _hacking_done:
+		_play_stage_audio("alarme_finale")
+	elif _disjoncteur_done:
+		_play_stage_audio("speed")
+	elif _salle_machine_done:
+		_play_stage_audio("alarme")
+	elif _last_zone == "parking":
+		_play_stage_audio("parking")
+	elif _last_zone == "exterieur" or _last_zone == "fond" or _last_zone == "":
+		_play_stage_audio("exterieur")
+	else:
+		_play_stage_audio("interieur")
+
+
+func _set_zone(zone: String) -> void:
+	_last_zone = zone
+	_update_audio_stage()
+
+
+func _play_bgm(folder: String) -> void:
+	_stop_bgm()
+	var dir := DirAccess.open("res://audio/present/" + folder + "/")
+	if not dir:
+		return
+	var streams: Array[AudioStream] = []
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.get_extension() in ["mp3", "ogg", "wav"]:
+			var stream := load("res://audio/present/" + folder + "/" + file_name) as AudioStream
+			if stream:
+				streams.append(stream)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	if streams.is_empty():
+		return
+	var idx := randi() % streams.size()
+	_bgm_player.stream = streams[idx]
+	_bgm_player.play()
+
+
+func _stop_bgm() -> void:
+	if _bgm_player:
+		_bgm_player.stop()
 
 
 func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale) -> void:
@@ -2162,9 +2226,12 @@ func _start_salle_machine_minigame() -> void:
 	_salle_machine_minigame = MiniJeuTuyauScene.instantiate()
 	_salle_machine_minigame.done.connect(_on_salle_machine_minigame_done)
 	get_tree().root.add_child(_salle_machine_minigame)
+	_stop_ambient()
+	_play_bgm("minijeu_tuyau")
 
 
 func _on_salle_machine_minigame_done(success: bool) -> void:
+	_stop_bgm()
 	_salle_machine_minigame = null
 	_salle_machine_done = true
 	if _machines_repair_prompt:
@@ -2173,6 +2240,7 @@ func _on_salle_machine_minigame_done(success: bool) -> void:
 	if is_instance_valid(time_aunote):
 		time_aunote.show()
 	can_move = true
+	_update_audio_stage()
 	if success:
 		DialogueSystem.complete_step("quete_preparation", "etape_reparer_machines")
 		_show_darkness_overlay()
@@ -2191,15 +2259,19 @@ func _start_disjoncteur_minigame() -> void:
 	_cablage_minigame = MiniJeuCablageScene.instantiate()
 	_cablage_minigame.done.connect(_on_disjoncteur_minigame_done)
 	get_tree().root.add_child(_cablage_minigame)
+	_stop_ambient()
+	_play_bgm("minijeu_cablage")
 
 
 func _on_disjoncteur_minigame_done(success: bool) -> void:
+	_stop_bgm()
 	_cablage_minigame = null
 	_disjoncteur_done = success
 	if is_instance_valid(time_aunote):
 		time_aunote.show()
 	can_move = true
 	_player_at_disjoncteur = false
+	_update_audio_stage()
 	if _disjoncteur_prompt:
 		_disjoncteur_prompt.visible = false
 	if success:
@@ -2230,14 +2302,18 @@ func _start_hacking_minigame() -> void:
 	_hacking_minigame = MiniJeuHackingScript.new()
 	_hacking_minigame.done.connect(_on_hacking_minigame_done)
 	get_tree().root.add_child(_hacking_minigame)
+	_stop_ambient()
+	_play_bgm("minijeu_hacking")
 
 
 func _on_hacking_minigame_done(success: bool) -> void:
+	_stop_bgm()
 	_hacking_minigame = null
 	_hacking_done = success
 	if is_instance_valid(time_aunote):
 		time_aunote.show()
 	can_move = true
+	_update_audio_stage()
 	if success:
 		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_fin")
 		_show_darkness_overlay()
@@ -2250,6 +2326,7 @@ func _on_hacking_minigame_done(success: bool) -> void:
 
 func stop() -> void:
 	_stop_ambient()
+	_stop_bgm()
 	process_mode = PROCESS_MODE_DISABLED
 	hide()
 	$ObjectiveHUD.hide()
