@@ -91,6 +91,11 @@ func _on_metro_sortie_entered(body: Node2D) -> void:
 		return
 
 	can_move = false
+	var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+	if metro_koiai:
+		var zone = metro_koiai.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
 	time_aunote.hide()
 	var collision_node := time_aunote.get_node("collision") as CollisionShape2D
 	if collision_node:
@@ -587,6 +592,9 @@ func _transition_to_metro() -> void:
 	var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
 	if metro_koiai:
 		metro_koiai.apparition($FondMetro/Markers/koiai.position)
+		var zone = metro_koiai.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = true
 	if is_instance_valid(time_aunote):
 		time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
 		time_aunote.show()
@@ -1011,6 +1019,11 @@ func _transition_to_tower() -> void:
 	var limite_metro = $FondMetro.get_node_or_null("limite-metro")
 	if limite_metro:
 		limite_metro.collision_layer = 0
+	var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+	if metro_koiai:
+		var zone = metro_koiai.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
 
 	$FondMetro.hide()
 	$FondTour.show()
@@ -1116,6 +1129,11 @@ func _disable_all_collisions() -> void:
 	var ssol_koiai = $"SousSol/pnj-koiai-2"
 	if ssol_koiai:
 		var zone = ssol_koiai.get_node_or_null("ZoneDialogue")
+		if zone:
+			zone.monitoring = false
+	var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+	if metro_koiai:
+		var zone = metro_koiai.get_node_or_null("ZoneDialogue")
 		if zone:
 			zone.monitoring = false
 
@@ -1237,6 +1255,9 @@ func start(spawn_id: String = "entree") -> void:
 		var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
 		if metro_koiai:
 			metro_koiai.apparition($FondMetro/Markers/koiai.position)
+			var zone = metro_koiai.get_node_or_null("ZoneDialogue")
+			if zone:
+				zone.monitoring = true
 		time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
