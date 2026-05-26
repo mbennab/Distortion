@@ -6,6 +6,8 @@ const H := 682
 var open := false
 var container: Control
 var options_panel: Panel
+var music_panel: Panel
+
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS # Crucial to run while game is paused
@@ -13,6 +15,7 @@ func _ready() -> void:
 	hide()
 	_setup_ui()
 	_setup_options()
+	# music_panel créé à la demande dans _on_music() pour éviter les race conditions
 
 
 func _setup_ui() -> void:
@@ -31,8 +34,8 @@ func _setup_ui() -> void:
 
 	# Centered Menu Panel
 	var panel := Panel.new()
-	panel.size = Vector2(300, 360)
-	panel.position = Vector2(W / 2 - 150, H / 2 - 180)
+	panel.size = Vector2(300, 400)
+	panel.position = Vector2(W / 2 - 150, H / 2 - 200)
 	var st := StyleBoxFlat.new()
 	st.bg_color = Color(0.06, 0.06, 0.1, 0.95)
 	st.border_color = Color(0.3, 0.5, 0.8, 0.55)
@@ -50,7 +53,7 @@ func _setup_ui() -> void:
 	# VBoxContainer for buttons
 	var vb := VBoxContainer.new()
 	vb.position = Vector2(25, 20)
-	vb.size = Vector2(250, 320)
+	vb.size = Vector2(250, 360)
 	vb.add_theme_constant_override("separation", 14)
 	panel.add_child(vb)
 
@@ -71,6 +74,7 @@ func _setup_ui() -> void:
 		{"t": "Reprendre", "fn": toggle},
 		{"t": "Sauvegarder", "fn": _on_save},
 		{"t": "Options", "fn": _on_options},
+		{"t": "Musique", "fn": _on_music},
 		{"t": "Menu Principal", "fn": _on_main_menu}
 	]
 
@@ -234,6 +238,120 @@ func _setup_options() -> void:
 	container.add_child(options_panel)
 
 
+func _setup_music_panel() -> void:
+	music_panel = Panel.new()
+	music_panel.size = Vector2(320, 380)
+	music_panel.position = Vector2(W / 2 - 160, H / 2 - 190)
+	music_panel.hide()
+	music_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.06, 0.06, 0.1, 0.95)
+	st.border_color = Color(0.4, 0.7, 1.0, 0.55)
+	st.border_width_left = 1
+	st.border_width_right = 1
+	st.border_width_top = 1
+	st.border_width_bottom = 1
+	st.corner_radius_top_left = 12
+	st.corner_radius_top_right = 12
+	st.corner_radius_bottom_left = 12
+	st.corner_radius_bottom_right = 12
+	music_panel.add_theme_stylebox_override("panel", st)
+
+	var vb := VBoxContainer.new()
+	vb.position = Vector2(25, 16)
+	vb.size = Vector2(270, 348)
+	vb.add_theme_constant_override("separation", 10)
+	music_panel.add_child(vb)
+
+	# Title
+	var title := Label.new()
+	title.text = "MUSIQUE DU HUB"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
+	vb.add_child(title)
+
+	var sep := Control.new()
+	sep.custom_minimum_size = Vector2(0, 4)
+	vb.add_child(sep)
+
+	var track_names := HubMusicSettings.get_track_names()
+	var music_btns: Array[Button] = []
+
+	for i in track_names.size():
+		var btn := Button.new()
+		btn.text = track_names[i]
+		btn.custom_minimum_size = Vector2(0, 32)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.toggle_mode = true
+		btn.button_pressed = (i == HubMusicSettings.get_selected_index())
+
+		var bst := StyleBoxFlat.new()
+		bst.bg_color = Color(0.12, 0.12, 0.18, 0.8)
+		bst.border_color = Color(0.3, 0.5, 0.7, 0.4)
+		bst.border_width_left = 1
+		bst.border_width_right = 1
+		bst.border_width_top = 1
+		bst.border_width_bottom = 1
+		bst.corner_radius_top_left = 6
+		bst.corner_radius_top_right = 6
+		bst.corner_radius_bottom_left = 6
+		bst.corner_radius_bottom_right = 6
+
+		var bst_hover := bst.duplicate()
+		bst_hover.bg_color = Color(0.22, 0.22, 0.32, 0.85)
+		bst_hover.border_color = Color(0.5, 0.8, 1.0, 0.7)
+
+		var bst_selected := bst.duplicate()
+		bst_selected.bg_color = Color(0.2, 0.35, 0.55, 0.85)
+		bst_selected.border_color = Color(0.4, 0.7, 1.0, 0.9)
+
+		btn.add_theme_stylebox_override("normal", bst)
+		btn.add_theme_stylebox_override("hover", bst_hover)
+		btn.add_theme_stylebox_override("pressed", bst_selected)
+		btn.add_theme_color_override("font_color", Color(0.85, 0.88, 0.95))
+
+		var idx := i
+		btn.pressed.connect(func():
+			for j in music_btns.size():
+				music_btns[j].button_pressed = (j == idx)
+			HubMusicSettings.set_selected_index(idx)
+		)
+		vb.add_child(btn)
+		music_btns.append(btn)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 8)
+	vb.add_child(spacer)
+
+	# Close button
+	var cb := Button.new()
+	cb.text = "Fermer"
+	cb.custom_minimum_size = Vector2(120, 32)
+	cb.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var bs := StyleBoxFlat.new()
+	bs.bg_color = Color(0.15, 0.15, 0.22, 0.8)
+	bs.border_color = Color(0.4, 0.6, 0.9, 0.5)
+	bs.border_width_left = 1
+	bs.border_width_right = 1
+	bs.border_width_top = 1
+	bs.border_width_bottom = 1
+	bs.corner_radius_top_left = 6
+	bs.corner_radius_top_right = 6
+	bs.corner_radius_bottom_left = 6
+	bs.corner_radius_bottom_right = 6
+	cb.add_theme_stylebox_override("normal", bs)
+	cb.add_theme_stylebox_override("hover", bs)
+	cb.add_theme_color_override("font_color", Color(0.9, 0.92, 0.98))
+	cb.pressed.connect(func():
+		music_panel.hide()
+	)
+	vb.add_child(cb)
+
+	container.add_child(music_panel)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed and not event.echo:
 		var current_scene := get_tree().current_scene
@@ -242,6 +360,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			if has_node("/root/DialogueUI") and get_node("/root/DialogueUI").current_state != 0: # State.HIDDEN is 0
 				return
 			get_viewport().set_input_as_handled()
+			# Close sub-panels first
+			if music_panel and music_panel.visible:
+				music_panel.hide()
+				return
+			if options_panel and options_panel.visible:
+				options_panel.hide()
+				return
 			toggle()
 
 
@@ -253,6 +378,7 @@ func toggle() -> void:
 	else:
 		get_tree().paused = false
 		options_panel.hide()
+		music_panel.hide()
 		hide()
 
 
@@ -276,6 +402,13 @@ func _on_save() -> void:
 
 func _on_options() -> void:
 	options_panel.show()
+
+
+func _on_music() -> void:
+	# Création à la demande pour éviter les race conditions au démarrage
+	if not is_instance_valid(music_panel):
+		_setup_music_panel()
+	music_panel.show()
 
 
 func _on_main_menu() -> void:

@@ -721,6 +721,7 @@ func _go_to_pc_controle() -> void:
 	if not is_inside_tree():
 		return
 
+	_play_zone_audio("pc_controle")
 	can_move = true
 	_hide_thought_bubble()
 
@@ -761,6 +762,7 @@ func _return_from_pc_controle() -> void:
 	if not is_inside_tree():
 		return
 
+	_play_zone_audio("couloir")
 	can_move = true
 
 
@@ -793,6 +795,7 @@ func _go_to_vestiaire() -> void:
 	if not is_inside_tree():
 		return
 
+	_play_zone_audio("vestiaire")
 	can_move = true
 
 
@@ -823,6 +826,7 @@ func _return_from_vestiaire() -> void:
 	if not is_inside_tree():
 		return
 
+	_play_zone_audio("couloir")
 	can_move = true
 	if TimeAunoteScript.disguised_present:
 		_player_has_changed_once = true
@@ -860,6 +864,7 @@ func _go_to_salle_machine() -> void:
 	if not is_inside_tree():
 		return
 
+	_play_zone_audio("salle_machine")
 	can_move = true
 
 
@@ -891,6 +896,7 @@ func _return_from_salle_machine() -> void:
 	if not is_inside_tree():
 		return
 
+	_play_zone_audio("couloir")
 	can_move = true
 
 
@@ -922,6 +928,7 @@ func _go_to_salle_electricite() -> void:
 	if not is_inside_tree():
 		return
 
+	_play_zone_audio("salle_electricite")
 	can_move = true
 
 
@@ -956,6 +963,7 @@ func _return_from_salle_electricite() -> void:
 	if not is_inside_tree():
 		return
 
+	_play_zone_audio("couloir")
 	can_move = true
 
 
@@ -1718,6 +1726,7 @@ func start(spawn_id: String = "entree") -> void:
 		_ensure_hall_quest_done()
 		_update_secretaire_npc_id()
 		_update_objective("Aller se changer")
+		_play_zone_audio("vestiaire")
 		return
 
 	if spawn_id == "salle_machine":
@@ -1755,6 +1764,7 @@ func start(spawn_id: String = "entree") -> void:
 			time_aunote.apply_disguise()
 		_update_secretaire_npc_id()
 		_update_objective("Aller réparer la salle des machines")
+		_play_zone_audio("salle_machine")
 		return
 
 	if spawn_id == "salle_electricite":
@@ -1794,6 +1804,7 @@ func start(spawn_id: String = "entree") -> void:
 		_show_darkness_overlay()
 		_update_secretaire_npc_id()
 		_update_objective("Remettre le disjoncteur")
+		_play_zone_audio("salle_electricite")
 		return
 
 	if spawn_id == "pc_controle":
@@ -1823,6 +1834,7 @@ func start(spawn_id: String = "entree") -> void:
 		_ensure_hall_quest_done()
 		_update_secretaire_npc_id()
 		_update_objective("Prendre son service de maintenance")
+		_play_zone_audio("pc_controle")
 		return
 
 

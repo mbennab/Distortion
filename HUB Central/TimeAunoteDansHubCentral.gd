@@ -90,6 +90,11 @@ func _setup_ambient_audio() -> void:
 	_ambient_player.volume_db = -8.0
 	add_child(_ambient_player)
 
+	_load_hub_streams()
+	HubMusicSettings.music_changed.connect(_on_hub_music_changed)
+
+func _load_hub_streams() -> void:
+	_ambient_streams.clear()
 	var dir := DirAccess.open("res://audio/hub/")
 	if dir:
 		dir.list_dir_begin()
@@ -102,11 +107,18 @@ func _setup_ambient_audio() -> void:
 			file_name = dir.get_next()
 		dir.list_dir_end()
 
+func _on_hub_music_changed(_track_name: String) -> void:
+	# Immediately switch to the newly selected track
+	_play_ambient()
+
 func _play_ambient() -> void:
-	if not _ambient_streams.is_empty():
-		var idx := randi() % _ambient_streams.size()
-		_ambient_player.stream = _ambient_streams[idx]
-		_ambient_player.play()
+	if _ambient_streams.is_empty():
+		return
+	var idx := HubMusicSettings.get_selected_index()
+	if idx < 0 or idx >= _ambient_streams.size():
+		idx = 0
+	_ambient_player.stream = _ambient_streams[idx]
+	_ambient_player.play()
 
 func _stop_ambient() -> void:
 	_ambient_player.stop()
