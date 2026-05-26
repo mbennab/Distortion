@@ -11,6 +11,43 @@
 	  "id": "npc_guide_hub",
 	  "name": "Le Gardien du Nexus",
 	  "first_message": "Te voilà, voyageur. La distorsion fracture l'espace-temps et menace tous les mondes. Ta mission est de traverser ces trois portails et de rétablir l'équilibre dans chaque époque. Commence par celui qui t'appelle.",
+	  "first_message_after": [
+		{
+		  "quest_id": "quete_piste_assassin",
+		  "quest_status": "done",
+		  "message": "Ah, te voilà de retour, voyageur. Je ressens un écho de paix venant du passé. L'assassin du Moyen Âge a été neutralisé, et le flux temporel y est plus stable... Mais d'autres époques t'appellent encore. Rétablis l'équilibre !"
+		},
+		{
+		  "quest_id": "quete_preparation",
+		  "quest_status": "done",
+		  "message": "Voyageur... Les grondements énergétiques du nexus s'apaisent. Tu as réparé la centrale nucléaire du Présent, libérant cette époque de son destin atomique. Cependant, la distorsion menace toujours le passé et l'avenir. Continue ton voyage !"
+		},
+		{
+		  "quest_id": "futur_completed",
+		  "quest_status": "done",
+		  "message": "Tu as traversé l'acier et le feu du Futur... Alfredo Sinko Nochez a été vaincu, et les machines se sont tues. Je ressens que la distorsion recule... Mais le tissu du passé et du présent est encore fragile. Reste concentré !"
+		},
+		{
+		  "quest_id": "quete_ma_pr_completed",
+		  "quest_status": "done",
+		  "message": "Le passé et le présent sont maintenant apaisés. La menace du château fort s'est éteinte et la centrale nucléaire fonctionne en harmonie. Seul le portail rouge du Futur continue de gronder... Va, voyageur, l'ultime épreuve t'attend !"
+		},
+		{
+		  "quest_id": "quete_ma_fu_completed",
+		  "quest_status": "done",
+		  "message": "Le passé et le futur sont sécurisés. Tu as vaincu l'assassin médiéval et arrêté la rébellion d'Alfredo. Seul le Présent nucléaire a encore besoin de ton aide. Répare la centrale et libère le nexus !"
+		},
+		{
+		  "quest_id": "quete_pr_fu_completed",
+		  "quest_status": "done",
+		  "message": "Le présent et le futur sont guéris. La centrale nucléaire est stable et l'empire d'Alfredo s'est effondré. Seul le portail jaune du Moyen Âge gronde encore de distorsion. Retourne dans le passé et rétablis l'équilibre !"
+		},
+		{
+		  "quest_id": "quete_all_completed",
+		  "quest_status": "done",
+		  "message": "C'est accompli, voyageur... Les trois époques sont en parfaite harmonie. Le Moyen Âge, le Présent et le Futur sont sauvés de la distorsion. Le flux temporel est entièrement réparé, et ton voyage touche à sa fin. Tu as sauvé le temps lui-même !"
+		}
+	  ],
 
 	  "personality": {
 		"tone": "énigmatique, bienveillant, détaché du temps. Parle par énigmes et paraboles. Ni vivant ni mort.",

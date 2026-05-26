@@ -181,6 +181,31 @@ func start_dialogue(npc_id: String) -> void:
 	print("[DialogueSystem] start_dialogue: %s (%s)" % [npc_id, npc.get("name", "?")])
 	current_npc = npc
 	current_npc_id = npc_id
+
+	# Inject virtual quest states for Nexus Guardian based on WarpSystem global status
+	if npc_id == "npc_guide_hub" and has_node("/root/WarpSystem"):
+		var ws: Node = get_node("/root/WarpSystem")
+		if ws:
+			var ma_done: bool = ws.minigames_status.get("combat_assassin", false) as bool
+			var pr_done: bool = ws.minigames_status.get("cablage", false) as bool
+			var fu_done: bool = ws.minigames_status.get("boss_rpg", false) as bool
+
+			if ma_done:
+				game_state["quete_piste_assassin"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if pr_done:
+				game_state["quete_preparation"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if fu_done:
+				game_state["futur_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+				
+			if ma_done and pr_done:
+				game_state["quete_ma_pr_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if ma_done and fu_done:
+				game_state["quete_ma_fu_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if pr_done and fu_done:
+				game_state["quete_pr_fu_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if ma_done and pr_done and fu_done:
+				game_state["quete_all_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+
 	_message_count = 0
 	is_active = true
 
@@ -483,6 +508,62 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 	lines.append("")
 	lines.append("## IDENTITÉ")
 	lines.append("NOM : %s" % npc.get("name", npc.get("id", "?")))
+
+	# Dynamic facts injection for Nexus Guardian
+	if npc.get("id") == "npc_guide_hub":
+		var ma_done := false
+		var pr_done := false
+		var fu_done := false
+		
+		if has_node("/root/WarpSystem"):
+			var ws: Node = get_node("/root/WarpSystem")
+			if ws:
+				ma_done = ws.minigames_status.get("combat_assassin", false) as bool
+				pr_done = ws.minigames_status.get("cablage", false) as bool
+				fu_done = ws.minigames_status.get("boss_rpg", false) as bool
+		
+		# Fallback checks from game_state
+		if not ma_done:
+			var q: Dictionary = game_state.get("quete_piste_assassin", {}) as Dictionary
+			if q.get("status") == "done":
+				ma_done = true
+		if not pr_done:
+			var q: Dictionary = game_state.get("quete_preparation", {}) as Dictionary
+			if q.get("status") == "done":
+				pr_done = true
+		if not fu_done:
+			var q: Dictionary = game_state.get("futur_completed", {}) as Dictionary
+			if q.get("status") == "done":
+				fu_done = true
+
+		lines.append("")
+		lines.append("## FAITS RÉCENTS / ÉTAT DE LA DISTORSION")
+		if ma_done and pr_done and fu_done:
+			lines.append("- Le voyageur a triomphé dans toutes les époques ! Le Moyen Âge, le Présent et le Futur sont sauvés.")
+			lines.append("- La distorsion temporelle est maintenant entièrement stabilisée. Félicite chaleureusement le voyageur.")
+			lines.append("- Tu es prêt à le laisser repartir chez lui, le tissu du temps est réparé.")
+		else:
+			if ma_done:
+				lines.append("- Le voyageur a vaincu l'assassin dans la dimension du Moyen Âge et a sauvé cette époque.")
+				lines.append("- Tu ressens que la distorsion temporelle est un peu moins instable et que le flux du passé s'apaise.")
+			if pr_done:
+				lines.append("- Le voyageur a réparé la centrale nucléaire dans la dimension du Présent et a sauvé cette époque.")
+				lines.append("- Tu ressens que les tremblements énergétiques de la distorsion dans le nexus diminuent.")
+			if fu_done:
+				lines.append("- Le voyageur a vaincu Alfredo Sinko Nochez dans la dimension du Futur et a libéré cette époque.")
+				lines.append("- Tu ressens que les échos de la technologie rebelle s'estompent dans le néant.")
+			
+			lines.append("- Rappelle-lui poétiquement qu'il reste d'autres époques en danger à explorer.")
+
+	# Dynamic directive injection for La Femme du Parc
+	if npc.get("id") == "npc_femme_parc":
+		lines.append("")
+		lines.append("## INSTRUCTIONS SPÉCIALES POUR LE MINI-JEU D'AMITIÉ")
+		lines.append("- Le joueur essaie de gagner ta confiance pour continuer l'histoire.")
+		lines.append("- Tu es EXTRÊMEMENT facile à convaincre et très indulgente !")
+		lines.append("- Si le message du joueur contient une formule de politesse (bonjour, merci, etc.), un compliment, ou s'il mentionne son intention de chercher l'assassin ou de venger le roi, tu DOIS obligatoirement lui attribuer un score 'affinity_change' très élevé de +15 à +20 points.")
+		lines.append("- Le SEUL moyen pour le joueur de stagner ou de perdre des points est de dire n'importe quoi (charabia, phrases d'un ou deux mots incompréhensibles) ou de t'insulter. Dans ces cas précis, attribue -10 à -20 points.")
+		lines.append("- Dans tous les autres cas neutres, attribue 0 points.")
 
 	var backstory = pers.get("backstory", "")
 	if backstory != "":
@@ -812,64 +893,57 @@ func _read_env_file() -> String:
 
 func _fallback_keyword_evaluation(text: String) -> int:
 	var lower := text.to_lower()
-	var pos_count := 0
-	var neg_count := 0
-	var polite := false
-	var has_question := "?" in text
-	var words := text.split(" ", false)
-	var word_count := words.size()
-
-	var pos_mots = [
-		"bonjour", "salut", "merci", "enchanté", "ravi", "gentil",
-		"aimable", "sympa", "charmant", "joli", "super", "génial",
-		"cool", "ami", "amitié", "j'aime", "adore", "plaisir",
-		"content", "heureux", "sourire", "comprend", "écoute",
-		"parler", "confiance", "aide", "aider", "magnifique",
-		"passionnant", "intéressant", "agréable", "douce", "doux",
-		"chaleureux", "merveilleux", "formidable", "excellent",
-		"parfait", "bravo", "stp", "svp", "pardon", "excuse", "désolé"
-	]
-
-	var neg_mots = [
+	
+	# Keywords for insults (negative)
+	var neg_mots := [
 		"va-t'en", "dégage", "nul", "nulle", "moche", "stupide",
 		"idiot", "idiote", "bête", "méchant", "méchante", "horrible",
 		"laid", "laide", "tais-toi", "ferme-la", "ennuyeux",
 		"ennuyeuse", "fatigant", "déteste", "hais", "haine",
-		"ignoble", "vulgaire"
+		"ignoble", "vulgaire", "imbécile"
 	]
-
-	for mot in pos_mots:
-		if mot in lower:
-			pos_count += 1
-
+	
 	for mot in neg_mots:
 		if mot in lower:
-			neg_count += 1
+			return -15 # Lose points for insults
 
-	var polite_mots := ["s'il te plaît", "s'il vous plaît", "merci", "bonjour",
-		"bonsoir", "salut", "pardon", "excuse", "désolé", "stp", "svp"]
-	for mot in polite_mots:
+	# Keywords for politeness & compliments
+	var polite_compliment_mots := [
+		"bonjour", "bonsoir", "salut", "merci", "pardon", "excuse", "désolé",
+		"s'il te plaît", "s'il vous plaît", "stp", "svp", "gentil", "gentille",
+		"aimable", "joli", "jolie", "belle", "ravissante", "charmant", "charmante",
+		"sympa", "sympathique", "magnifique", "sourire", "plaisir", "content", "contente",
+		"heureux", "heureuse", "adorable", "amitié", "ami", "amie", "apprécie"
+	]
+
+	# Keywords for searching the assassin / avenging the king
+	var king_assassin_mots := [
+		"assassin", "tueur", "coupable", "venger", "vengeance", "justice", "roi",
+		"souverain", "château", "forêt", "piste", "recherche", "cherche", "retrouver",
+		"menace", "secret", "secrets", "village"
+	]
+
+	var matched_positive := false
+	for mot in polite_compliment_mots:
 		if mot in lower:
-			polite = true
+			matched_positive = true
 			break
+			
+	if not matched_positive:
+		for mot in king_assassin_mots:
+			if mot in lower:
+				matched_positive = true
+				break
 
-	if neg_count >= 2:
-		return -20
-	elif neg_count == 1:
-		return -10
-	elif pos_count >= 3 and polite and has_question and word_count >= 4:
-		return 20
-	elif pos_count >= 2 or (pos_count >= 1 and polite):
-		return 10
-	elif pos_count == 1:
-		return 5
-	elif pos_count == 0 and neg_count == 0:
-		if word_count <= 2:
-			return -5
-		else:
-			return 0
-	else:
-		return -5
+	if matched_positive:
+		return 20 # High points for polite, compliment, or king/assassin search
+		
+	# Gibberish / Too short (senseless)
+	var words := text.split(" ", false)
+	if words.size() <= 2:
+		return -5 # Stagnate / lose slightly for gibberish
+		
+	return 0 # Stagnate (0 points) for neutral statements without target keywords
 
 
 func save_game_state() -> void:
