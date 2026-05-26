@@ -350,7 +350,7 @@ func _on_new_game() -> void:
 	if fading:
 		return
 	await _play_outro()
-	get_tree().change_scene_to_file("res://Main.tscn")
+	_start_async_load("res://Main.tscn")
 
 
 func _on_load() -> void:
@@ -363,7 +363,72 @@ func _on_load() -> void:
 	DialogueSystem.should_load_save = true
 	fading = true
 	await _play_outro()
-	get_tree().change_scene_to_file("res://Main.tscn")
+	_start_async_load("res://Main.tscn")
+
+
+func _start_async_load(scene_path: String) -> void:
+	var err := ResourceLoader.load_threaded_request(scene_path)
+	if err != OK:
+		push_error("Failed to start threaded loading for " + scene_path)
+		get_tree().change_scene_to_file(scene_path)
+		return
+
+	var panel := Panel.new()
+	panel.size = Vector2(500, 70)
+	panel.position = Vector2((W - 500) / 2.0, (H - 70) / 2.0)
+	
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.02, 0.02, 0.05, 0.85)
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(0.4, 0.8, 1.0, 0.5)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	panel.add_theme_stylebox_override("panel", style)
+	
+	var loading_label := Label.new()
+	loading_label.text = "SYNCHRONISATION TEMPORELLE... 0%"
+	loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	loading_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	loading_label.add_theme_font_size_override("font_size", 16)
+	loading_label.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
+	loading_label.size = panel.size
+	
+	panel.add_child(loading_label)
+	ui.add_child(panel)
+	panel.modulate.a = 0.0
+	
+	var fade_in := create_tween()
+	fade_in.tween_property(panel, "modulate:a", 1.0, 0.3)
+
+	var progress: Array = []
+	var loaded := false
+	while not loaded:
+		await get_tree().create_timer(0.05).timeout
+		var status := ResourceLoader.load_threaded_get_status(scene_path, progress)
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			loaded = true
+			loading_label.text = "DISTORSION OK ! CHARGEMENT..."
+			await get_tree().create_timer(0.15).timeout
+			var packed_scene := ResourceLoader.load_threaded_get(scene_path) as PackedScene
+			if packed_scene:
+				get_tree().change_scene_to_packed(packed_scene)
+			else:
+				get_tree().change_scene_to_file(scene_path)
+			break
+		elif status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			if not progress.is_empty():
+				var pct: int = int((progress[0] as float) * 100.0)
+				loading_label.text = "SYNCHRONISATION TEMPORELLE... %d%%" % pct
+		elif status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+			push_error("Asynchronous loading failed!")
+			get_tree().change_scene_to_file(scene_path)
+			break
+
 
 
 func _on_options() -> void:
