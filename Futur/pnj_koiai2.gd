@@ -2,6 +2,7 @@ extends Node2D
 
 @export var npc_id: String = "npc_koiai2_futur"
 @export var npc_name: String = "Koiai"
+@export var portrait_path: String = "res://art/Futur/pnj-koiai-HD.png"
 
 var pnjkoiai2Animation: AnimatedSprite2D
 var zone_dialogue: Area2D
