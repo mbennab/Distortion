@@ -7,6 +7,7 @@ var music_list: Array[AudioStream] = []
 var music: AudioStreamPlayer
 var buttons: Array[Button] = []
 var credits: Panel
+var options_panel: Panel
 var distortion: ColorRect
 var fading := false
 
@@ -30,6 +31,7 @@ func _ready() -> void:
 	_setup_btns()
 	_setup_footer()
 	_setup_credits()
+	_setup_options()
 	_setup_distortion()
 	_setup_music()
 	_play_intro()
@@ -360,7 +362,7 @@ func _on_load() -> void:
 func _on_options() -> void:
 	if fading:
 		return
-	_show_stub("Options — bientot disponible")
+	options_panel.show()
 
 
 func _on_credits() -> void:
@@ -396,3 +398,138 @@ func _show_stub(msg: String) -> void:
 	tw.tween_interval(2.0)
 	tw.tween_property(lb, "modulate", Color(1, 1, 1, 0), 0.5)
 	tw.tween_callback(lb.queue_free)
+
+
+func _setup_options() -> void:
+	options_panel = Panel.new()
+	options_panel.size = Vector2(400, 300)
+	options_panel.position = Vector2(W / 2 - 200, H / 2 - 150)
+	options_panel.hide()
+	options_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.06, 0.06, 0.1, 0.95)
+	st.border_color = Color(0.3, 0.5, 0.8, 0.55)
+	st.border_width_left = 1
+	st.border_width_right = 1
+	st.border_width_top = 1
+	st.border_width_bottom = 1
+	st.corner_radius_top_left = 12
+	st.corner_radius_top_right = 12
+	st.corner_radius_bottom_left = 12
+	st.corner_radius_bottom_right = 12
+	options_panel.add_theme_stylebox_override("panel", st)
+
+	var vb := VBoxContainer.new()
+	vb.position = Vector2(30, 20)
+	vb.size = Vector2(340, 260)
+	vb.add_theme_constant_override("separation", 12)
+	options_panel.add_child(vb)
+
+	# Titre
+	var title := Label.new()
+	title.text = "OPTIONS"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
+	vb.add_child(title)
+
+	var spacer1 := Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 4)
+	vb.add_child(spacer1)
+
+	# Option Volume Master
+	var bus_idx := AudioServer.get_bus_index("Master")
+	var current_vol := 100
+	if bus_idx != -1:
+		current_vol = int(db_to_linear(AudioServer.get_bus_volume_db(bus_idx)) * 100.0)
+
+	var vol_label := Label.new()
+	vol_label.text = "Volume Master : " + str(current_vol) + "%"
+	vol_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vol_label.add_theme_font_size_override("font_size", 14)
+	vol_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
+	vb.add_child(vol_label)
+
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 100.0
+	slider.value = float(current_vol)
+	slider.custom_minimum_size = Vector2(200, 20)
+	slider.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	slider.value_changed.connect(func(value: float):
+		var db := linear_to_db(value / 100.0)
+		if value <= 0.0:
+			db = -80.0
+		if bus_idx != -1:
+			AudioServer.set_bus_volume_db(bus_idx, db)
+		vol_label.text = "Volume Master : " + str(int(value)) + "%"
+	)
+	vb.add_child(slider)
+
+	var spacer2 := Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 4)
+	vb.add_child(spacer2)
+
+	# Option Mode Ecran
+	var is_fullscreen := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+	var mode_btn := Button.new()
+	mode_btn.text = "Mode : Plein Ecran" if is_fullscreen else "Mode : Fenetre"
+	mode_btn.custom_minimum_size = Vector2(180, 30)
+	mode_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	
+	var btn_st := StyleBoxFlat.new()
+	btn_st.bg_color = Color(0.12, 0.12, 0.18, 0.8)
+	btn_st.border_color = Color(0.3, 0.5, 0.7, 0.4)
+	btn_st.border_width_left = 1
+	btn_st.border_width_right = 1
+	btn_st.border_width_top = 1
+	btn_st.border_width_bottom = 1
+	btn_st.corner_radius_top_left = 4
+	btn_st.corner_radius_top_right = 4
+	btn_st.corner_radius_bottom_left = 4
+	btn_st.corner_radius_bottom_right = 4
+	mode_btn.add_theme_stylebox_override("normal", btn_st)
+	mode_btn.add_theme_stylebox_override("hover", btn_st)
+	mode_btn.add_theme_color_override("font_color", Color(0.85, 0.88, 0.95))
+	
+	mode_btn.pressed.connect(func():
+		var is_fs := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+		if is_fs:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			mode_btn.text = "Mode : Fenetre"
+		else:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+			mode_btn.text = "Mode : Plein Ecran"
+	)
+	vb.add_child(mode_btn)
+
+	var spacer3 := Control.new()
+	spacer3.custom_minimum_size = Vector2(0, 12)
+	vb.add_child(spacer3)
+
+	# Bouton Fermer
+	var cb := Button.new()
+	cb.text = "Fermer"
+	cb.custom_minimum_size = Vector2(120, 32)
+	cb.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var bs := StyleBoxFlat.new()
+	bs.bg_color = Color(0.15, 0.15, 0.22, 0.8)
+	bs.border_color = Color(0.4, 0.6, 0.9, 0.5)
+	bs.border_width_left = 1
+	bs.border_width_right = 1
+	bs.border_width_top = 1
+	bs.border_width_bottom = 1
+	bs.corner_radius_top_left = 6
+	bs.corner_radius_top_right = 6
+	bs.corner_radius_bottom_left = 6
+	bs.corner_radius_bottom_right = 6
+	cb.add_theme_stylebox_override("normal", bs)
+	cb.add_theme_stylebox_override("hover", bs)
+	cb.add_theme_color_override("font_color", Color(0.9, 0.92, 0.98))
+	cb.pressed.connect(func():
+		options_panel.hide()
+	)
+	vb.add_child(cb)
+
+	ui.add_child(options_panel)
