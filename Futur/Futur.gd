@@ -343,17 +343,23 @@ func _auto_start_cheffe_dialogue() -> void:
 	await get_tree().process_frame
 	if not is_inside_tree():
 		return
-	if DialogueSystem.is_active:
+	if pnjcheffe and pnjcheffe.has_method("show_bubble"):
+		pnjcheffe.show_bubble("Attention aux tourelles ! Va te cacher !!!")
+	await get_tree().create_timer(3.0).timeout
+	if not is_inside_tree():
 		return
-	var npcs = DialogueSystem.dimension.get("npcs", [])
-	for npc in npcs:
-		if npc.get("id") == "npc_cheffe_futur":
-			npc["first_message"] = "Nous sommes enfin en sécurité, essayons de fouiller l'endroit à la recherche de... Attention aux tourelles va te cacher !!!"
-			break
-	DialogueSystem._spoken_to.erase("npc_cheffe_futur")
-	if not DialogueSystem.dialogue_ended.is_connected(_on_superette_dialogue_ended):
-		DialogueSystem.dialogue_ended.connect(_on_superette_dialogue_ended)
-	DialogueSystem.start_dialogue("npc_cheffe_futur")
+	if pnjcheffe and pnjcheffe.has_method("hide_bubble"):
+		pnjcheffe.hide_bubble()
+	pnjcheffe.hide()
+	var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
+	if zone:
+		zone.monitoring = false
+	var minijeu = $FondSuperette/MiniJeuTourelles
+	if minijeu and not minijeu.game_active:
+		if not minijeu.finished.is_connected(_on_tourelle_minigame_done):
+			minijeu.finished.connect(_on_tourelle_minigame_done)
+		_update_objective("Survivez 30 secondes!")
+		minijeu.start_game()
 
 
 func _start_cheffe_post_tourelle_dialogue() -> void:
@@ -400,6 +406,7 @@ func _start_combat_boss() -> void:
 	if _combat_boss_instance:
 		return
 
+	_stop_ambient()
 	$FondBureau.hide()
 	$ObjectiveHUD.hide()
 	_set_bureau_collisions(false)
@@ -577,6 +584,9 @@ func _transition_to_metro() -> void:
 	var metro_collision = $FondMetro.get_node("limite-metro")
 	if metro_collision:
 		metro_collision.collision_layer = 256
+	var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+	if metro_koiai:
+		metro_koiai.apparition($FondMetro/Markers/koiai.position)
 	if is_instance_valid(time_aunote):
 		time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
 		time_aunote.show()
@@ -832,6 +842,19 @@ func _trigger_etage2_sortie() -> void:
 	$FondEtage3.show()
 	_set_etage3_collisions(true)
 
+	var et3_meca = $FondEtage3.get_node_or_null("pnj-mecano")
+	if et3_meca:
+		et3_meca.apparition($FondEtage3/Marker/npc_mecano.position)
+	var et3_cheffe = $FondEtage3.get_node_or_null("pnj-cheffe")
+	if et3_cheffe:
+		et3_cheffe.apparition($FondEtage3/Marker/npc_cheffe.position)
+	var et3_vukovi = $FondEtage3.get_node_or_null("pnj-vukovi")
+	if et3_vukovi:
+		et3_vukovi.apparition($FondEtage3/Marker/npc_vukovi.position)
+	var et3_koiai = $FondEtage3.get_node_or_null("pnj-koiai-2")
+	if et3_koiai:
+		et3_koiai.apparition($FondEtage3/Marker/npc_koiai.position)
+
 	var marker = $FondEtage3.get_node_or_null("Marker/entreeEtage3")
 	if not marker:
 		marker = $FondEtage3.get_node_or_null("Marker/EntreeEtage3")
@@ -849,7 +872,7 @@ func _trigger_etage2_sortie() -> void:
 		collision_node.disabled = false
 
 	$ObjectiveHUD.show()
-	_update_objective("Explorer le troisième étage de la tour")
+	_update_objective("Parler aux alliés et monter affronter Alfredo Sinko Nochez")
 
 	var tween_fade_out := create_tween()
 	tween_fade_out.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
@@ -1211,6 +1234,9 @@ func start(spawn_id: String = "entree") -> void:
 		var metro_collision = $FondMetro.get_node("limite-metro")
 		if metro_collision:
 			metro_collision.collision_layer = 256
+		var metro_koiai = $FondMetro.get_node_or_null("pnj-koiai-2")
+		if metro_koiai:
+			metro_koiai.apparition($FondMetro/Markers/koiai.position)
 		time_aunote.global_position = $FondMetro/Marker/Entrée.global_position
 		time_aunote.show()
 		time_aunote.modulate.a = 1.0
