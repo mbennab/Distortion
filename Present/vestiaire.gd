@@ -7,10 +7,12 @@ const TimeAunoteScript = preload("res://Personnage/TimeAunote.gd")
 var _active: bool = false
 var _player_near_vetements: bool = false
 var _player_near_couloir: bool = false
+var _player_near_ordi: bool = false
 var _disguised: bool = false
 var _prompt_layer: CanvasLayer
 var _prompt_label: Label
 var _couloir_prompt_label: Label
+var _ordi_prompt_label: Label
 var _message_labels: Array[Label] = []
 
 
@@ -18,6 +20,7 @@ func _ready() -> void:
 	process_mode = PROCESS_MODE_DISABLED
 	_setup_prompts()
 	_connect_zone_couloir()
+	_connect_zone_ordi()
 
 
 func _setup_prompts() -> void:
@@ -70,12 +73,80 @@ func _setup_prompts() -> void:
 	_couloir_prompt_label.custom_minimum_size = Vector2(340, 40)
 	_prompt_layer.add_child(_couloir_prompt_label)
 
+	_ordi_prompt_label = Label.new()
+	_ordi_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_ordi_prompt_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_ordi_prompt_label.add_theme_font_size_override("font_size", 18)
+	_ordi_prompt_label.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
+	_ordi_prompt_label.modulate = Color(1, 1, 1, 0.85)
+	_ordi_prompt_label.visible = false
+
+	var style3 := StyleBoxFlat.new()
+	style3.bg_color = Color(0.08, 0.08, 0.12, 0.85)
+	style3.border_color = Color(0.6, 0.55, 0.3, 0.7)
+	style3.border_width_top = 2
+	style3.border_width_bottom = 2
+	style3.border_width_left = 2
+	style3.border_width_right = 2
+	style3.corner_radius_top_left = 8
+	style3.corner_radius_top_right = 8
+	style3.corner_radius_bottom_left = 8
+	style3.corner_radius_bottom_right = 8
+	_ordi_prompt_label.add_theme_stylebox_override("normal", style3)
+	_ordi_prompt_label.custom_minimum_size = Vector2(340, 40)
+	_prompt_layer.add_child(_ordi_prompt_label)
+
 
 func _connect_zone_couloir() -> void:
 	var zone_couloir = $event as Area2D
 	if zone_couloir:
 		zone_couloir.body_entered.connect(_on_zone_couloir_entered)
 		zone_couloir.body_exited.connect(_on_zone_couloir_exited)
+
+
+func _connect_zone_ordi() -> void:
+	var zone_ordi = $event3 as Area2D
+	if zone_ordi:
+		zone_ordi.body_entered.connect(_on_zone_ordi_entered)
+		zone_ordi.body_exited.connect(_on_zone_ordi_exited)
+
+
+func _on_zone_ordi_entered(body: Node2D) -> void:
+	if not _active:
+		return
+	if body.name == "TimeAunote":
+		_player_near_ordi = true
+		_update_ordi_prompt()
+
+
+func _on_zone_ordi_exited(body: Node2D) -> void:
+	if body.name == "TimeAunote":
+		_player_near_ordi = false
+		_update_ordi_prompt()
+
+
+func _update_ordi_prompt() -> void:
+	var parent = get_parent()
+	var is_powered := false
+	var is_hacked := false
+	if parent and "_disjoncteur_done" in parent:
+		is_powered = parent._disjoncteur_done
+	if parent and "_hacking_done" in parent:
+		is_hacked = parent._hacking_done
+	
+	if is_powered and not is_hacked:
+		_ordi_prompt_label.text = "Appuyez sur E — Pirater l'ordinateur portable"
+		_ordi_prompt_label.visible = _player_near_ordi and _active
+		_update_ordi_prompt_position()
+	else:
+		_ordi_prompt_label.visible = false
+
+
+func _update_ordi_prompt_position() -> void:
+	if not _ordi_prompt_label or not _ordi_prompt_label.visible:
+		return
+	var vp: Vector2 = get_viewport().get_visible_rect().size
+	_ordi_prompt_label.position = Vector2(vp.x / 2.0 - 170, vp.y - 120)
 
 
 func _on_zone_couloir_entered(body: Node2D) -> void:
@@ -124,6 +195,14 @@ func _input(event: InputEvent) -> void:
 	elif _player_near_couloir:
 		get_viewport().set_input_as_handled()
 		return_to_couloir_requested.emit()
+	elif _player_near_ordi:
+		get_viewport().set_input_as_handled()
+		var parent = get_parent()
+		var is_powered := false
+		if parent and "_disjoncteur_done" in parent:
+			is_powered = parent._disjoncteur_done
+		if is_powered and parent and parent.has_method("_start_hacking_minigame"):
+			parent.call("_start_hacking_minigame")
 
 
 func _process(_delta: float) -> void:
@@ -225,10 +304,13 @@ func start() -> void:
 	_disguised = TimeAunoteScript.disguised_present
 	_player_near_vetements = false
 	_player_near_couloir = false
+	_player_near_ordi = false
 	if _prompt_label:
 		_prompt_label.visible = false
 	if _couloir_prompt_label:
 		_couloir_prompt_label.visible = false
+	if _ordi_prompt_label:
+		_ordi_prompt_label.visible = false
 	var event_area: Area2D = $event as Area2D
 	if event_area:
 		event_area.collision_layer = 8
@@ -237,6 +319,10 @@ func start() -> void:
 	if event2_area:
 		event2_area.collision_layer = 8
 		event2_area.monitoring = true
+	var event3_area: Area2D = $event3 as Area2D
+	if event3_area:
+		event3_area.collision_layer = 8
+		event3_area.monitoring = true
 	show()
 
 
@@ -245,10 +331,13 @@ func stop() -> void:
 	process_mode = PROCESS_MODE_DISABLED
 	_player_near_vetements = false
 	_player_near_couloir = false
+	_player_near_ordi = false
 	if _prompt_label:
 		_prompt_label.visible = false
 	if _couloir_prompt_label:
 		_couloir_prompt_label.visible = false
+	if _ordi_prompt_label:
+		_ordi_prompt_label.visible = false
 	for lbl in _message_labels:
 		if is_instance_valid(lbl):
 			lbl.queue_free()
@@ -261,4 +350,8 @@ func stop() -> void:
 	if event2_area:
 		event2_area.collision_layer = 0
 		event2_area.monitoring = false
+	var event3_area: Area2D = $event3 as Area2D
+	if event3_area:
+		event3_area.collision_layer = 0
+		event3_area.monitoring = false
 	hide()
