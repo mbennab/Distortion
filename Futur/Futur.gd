@@ -19,8 +19,7 @@ var _car_minigame: Node2D
 var _was_in_basement := false
 var _player_near_car := false
 var _car_prompt: Label
-var _player_near_etage1_sortie := false
-var _etage1_prompt: Label
+
 
 var fade_layer: CanvasLayer
 var fade_rect: ColorRect
@@ -720,45 +719,12 @@ func _connect_etage1_sortie_signal() -> void:
 		sortie.collision_mask = 1
 		if not sortie.body_entered.is_connected(_on_etage1_sortie_entered):
 			sortie.body_entered.connect(_on_etage1_sortie_entered)
-		if not sortie.body_exited.is_connected(_on_etage1_sortie_exited):
-			sortie.body_exited.connect(_on_etage1_sortie_exited)
-	
-	_setup_etage1_prompt()
-
-
-func _setup_etage1_prompt() -> void:
-	var prompt_layer = get_node_or_null("PromptLayer")
-	if not prompt_layer:
-		prompt_layer = CanvasLayer.new()
-		prompt_layer.name = "PromptLayer"
-		prompt_layer.layer = 100
-		add_child(prompt_layer)
-
-	_etage1_prompt = Label.new()
-	_etage1_prompt.text = "[E] Monter à l'étage"
-	_etage1_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_etage1_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_etage1_prompt.add_theme_font_size_override("font_size", 14)
-	_etage1_prompt.add_theme_color_override("font_color", Color.CYAN)
-	_etage1_prompt.visible = false
-	_etage1_prompt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_etage1_prompt.position = Vector2(342, 600)
-	_etage1_prompt.size = Vector2(340, 40)
-	prompt_layer.add_child(_etage1_prompt)
 
 
 func _on_etage1_sortie_entered(body: Node2D) -> void:
 	if body == time_aunote and $FondEtage1.visible:
-		_player_near_etage1_sortie = true
-		if _etage1_prompt:
-			_etage1_prompt.visible = true
+		_trigger_etage1_sortie()
 
-
-func _on_etage1_sortie_exited(body: Node2D) -> void:
-	if body == time_aunote:
-		_player_near_etage1_sortie = false
-		if _etage1_prompt:
-			_etage1_prompt.visible = false
 
 
 func _trigger_etage1_sortie() -> void:
@@ -1499,11 +1465,6 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("interagir") and _player_near_car and $fondFutur.visible:
 		get_viewport().set_input_as_handled()
 		_start_car_minigame()
-	elif event.is_action_pressed("interagir") and _player_near_etage1_sortie and $FondEtage1.visible:
-		get_viewport().set_input_as_handled()
-		if _etage1_prompt:
-			_etage1_prompt.visible = false
-		_trigger_etage1_sortie()
 
 
 func _start_car_minigame() -> void:
