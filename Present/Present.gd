@@ -1514,10 +1514,19 @@ func _update_thought_bubble_position() -> void:
 	_thought_bubble_label.position = Vector2(sx - _thought_bubble_label.size.x / 2.0, sy - 180.0)
 
 
+func _typewriter_text(label: Label, target_text: String) -> void:
+	label.text = ""
+	for i in range(target_text.length()):
+		if not is_inside_tree():
+			return
+		label.text += target_text[i]
+		await get_tree().create_timer(0.04).timeout
+
 func _escape_to_nexus() -> void:
 	can_move = false
 	_hide_thought_bubble()
 	_pc_controle_retour_prompt.visible = false
+	_remove_darkness_overlay()
 
 	var tween_fade := create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 1.5)
@@ -1525,9 +1534,218 @@ func _escape_to_nexus() -> void:
 	if not is_inside_tree():
 		return
 
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 0 or viewport_size.y <= 0:
+		viewport_size = Vector2(1024, 682)
+
+	var cinematic_container := Control.new()
+	cinematic_container.size = viewport_size
+	cinematic_container.clip_contents = true
+	fade_layer.add_child(cinematic_container)
+	fade_layer.move_child(cinematic_container, 0)
+
+	var bg_rect := ColorRect.new()
+	bg_rect.color = Color.BLACK
+	bg_rect.size = viewport_size
+	cinematic_container.add_child(bg_rect)
+
+	var image_clipper := Control.new()
+	image_clipper.size = viewport_size
+	image_clipper.clip_contents = true
+	cinematic_container.add_child(image_clipper)
+
+	var tex_rect1 := TextureRect.new()
+	var tex1 := load("res://art/Present/image1.png") as Texture2D
+	tex_rect1.texture = tex1
+	tex_rect1.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tex_rect1.stretch_mode = TextureRect.STRETCH_SCALE
+
+	var aspect_ratio1 := float(tex1.get_width()) / float(tex1.get_height())
+	var tex_height1 := viewport_size.y
+	var tex_width1 := tex_height1 * aspect_ratio1
+	tex_rect1.size = Vector2(tex_width1, tex_height1)
+
+	var start_x1 := 0.0
+	var end_x1 := -(tex_width1 - viewport_size.x)
+	tex_rect1.position = Vector2(start_x1, 0.0)
+	image_clipper.add_child(tex_rect1)
+
+	var subtitles_bg := Panel.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.75)
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0, 0.8, 1.0, 0.4)
+	subtitles_bg.add_theme_stylebox_override("panel", style)
+
+	var bg_width := viewport_size.x * 0.85
+	var bg_height := 120.0
+	subtitles_bg.size = Vector2(bg_width, bg_height)
+	subtitles_bg.position = Vector2(
+		(viewport_size.x - bg_width) / 2.0,
+		viewport_size.y - bg_height - 40.0
+	)
+	subtitles_bg.modulate.a = 0.0
+	cinematic_container.add_child(subtitles_bg)
+
+	var subtitles_label := Label.new()
+	subtitles_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	subtitles_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitles_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	subtitles_label.size = subtitles_bg.size - Vector2(40, 20)
+	subtitles_label.position = Vector2(20, 10)
+	subtitles_label.add_theme_font_override("font", SystemFont.new())
+	subtitles_label.add_theme_font_size_override("font_size", 20)
+	subtitles_label.add_theme_color_override("font_color", Color.WHITE)
+	subtitles_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	subtitles_label.add_theme_constant_override("shadow_offset_x", 2)
+	subtitles_label.add_theme_constant_override("shadow_offset_y", 2)
+	subtitles_bg.add_child(subtitles_label)
+
+	var tween_in1 := create_tween()
+	tween_in1.tween_property(fade_rect, "modulate:a", 0.0, 1.5)
+
+	var pan_tween1 := create_tween()
+	pan_tween1.set_ease(Tween.EASE_IN_OUT)
+	pan_tween1.set_trans(Tween.TRANS_SINE)
+	pan_tween1.tween_property(tex_rect1, "position:x", end_x1, 9.0)
+
+	var bg_tween1 := create_tween()
+	bg_tween1.tween_property(subtitles_bg, "modulate:a", 1.0, 0.8)
+	await bg_tween1.finished
+
+	if not is_inside_tree():
+		return
+
+	await _typewriter_text(subtitles_label, "Vous avez stabilisé la centrale nucléaire. La ligne temporelle de cette époque est désormais hors de danger.")
+
+	if not is_inside_tree():
+		return
+
+	await get_tree().create_timer(2.0).timeout
+	if pan_tween1.is_running():
+		await pan_tween1.finished
+
+	if not is_inside_tree():
+		return
+
+	var bg_fadeout1 := create_tween()
+	bg_fadeout1.tween_property(subtitles_bg, "modulate:a", 0.0, 0.6)
+	await bg_fadeout1.finished
+
+	if not is_inside_tree():
+		return
+
+	var tex_rect2 := TextureRect.new()
+	var tex2 := load("res://art/Present/image2.png") as Texture2D
+	tex_rect2.texture = tex2
+	tex_rect2.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tex_rect2.stretch_mode = TextureRect.STRETCH_SCALE
+
+	var aspect_ratio2 := float(tex2.get_width()) / float(tex2.get_height())
+	var tex_height2 := viewport_size.y
+	var tex_width2 := tex_height2 * aspect_ratio2
+	tex_rect2.size = Vector2(tex_width2, tex_height2)
+	tex_rect2.modulate.a = 0.0
+
+	var start_x2 := 0.0
+	var end_x2 := -(tex_width2 - viewport_size.x)
+	tex_rect2.position = Vector2(start_x2, 0.0)
+	image_clipper.add_child(tex_rect2)
+
+	var cross_fade_in := create_tween()
+	cross_fade_in.tween_property(tex_rect2, "modulate:a", 1.0, 1.5)
+
+	var cross_fade_out := create_tween()
+	cross_fade_out.tween_property(tex_rect1, "modulate:a", 0.0, 1.5)
+
+	var pan_tween2 := create_tween()
+	pan_tween2.set_ease(Tween.EASE_IN_OUT)
+	pan_tween2.set_trans(Tween.TRANS_SINE)
+	pan_tween2.tween_property(tex_rect2, "position:x", end_x2, 9.0)
+
+	await cross_fade_in.finished
+	if not is_inside_tree():
+		return
+
+	tex_rect1.queue_free()
+
+	subtitles_label.text = ""
+
+	var bg_tween2 := create_tween()
+	bg_tween2.tween_property(subtitles_bg, "modulate:a", 1.0, 0.8)
+	await bg_tween2.finished
+
+	if not is_inside_tree():
+		return
+
+	await _typewriter_text(subtitles_label, "La distorsion semble plus stable et nous pouvons retourner au nexus maintenant.")
+
+	if not is_inside_tree():
+		return
+
+	await get_tree().create_timer(3.0).timeout
+
+	if not is_inside_tree():
+		return
+
+	subtitles_bg.queue_free()
+	image_clipper.queue_free()
+
+	var chernobyl_label := Label.new()
+	chernobyl_label.text = "TCHERNOBYL"
+	chernobyl_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	chernobyl_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	chernobyl_label.size = viewport_size
+	chernobyl_label.position = Vector2(0, 0)
+	var chernobyl_font := SystemFont.new()
+	chernobyl_font.font_names = PackedStringArray(["Arial", "Helvetica", "DejaVu Sans", "Liberation Sans"])
+	chernobyl_label.add_theme_font_override("font", chernobyl_font)
+	chernobyl_label.add_theme_font_size_override("font_size", 96)
+	chernobyl_label.add_theme_color_override("font_color", Color.WHITE)
+	chernobyl_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 1.0))
+	chernobyl_label.add_theme_constant_override("shadow_offset_x", 4)
+	chernobyl_label.add_theme_constant_override("shadow_offset_y", 4)
+	chernobyl_label.modulate.a = 0.0
+	cinematic_container.add_child(chernobyl_label)
+
+	var chernobyl_fade_in := create_tween()
+	chernobyl_fade_in.tween_property(chernobyl_label, "modulate:a", 1.0, 2.0)
+	await chernobyl_fade_in.finished
+
+	if not is_inside_tree():
+		return
+
+	await get_tree().create_timer(3.0).timeout
+
+	if not is_inside_tree():
+		return
+
+	var fade_out_tween := create_tween()
+	fade_out_tween.tween_property(fade_rect, "modulate:a", 1.0, 1.5)
+	await fade_out_tween.finished
+
+	if not is_inside_tree():
+		return
+
+	cinematic_container.queue_free()
+	fade_rect.modulate.a = 0.0
+
+	TimeAunoteScript.disguised_present = false
+	if is_instance_valid(time_aunote):
+		time_aunote.remove_disguise_present()
+	DialogueSystem.reset_quest("quete_acces_centrale")
+	DialogueSystem.reset_quest("quete_preparation")
+
 	var main = get_parent()
 	if main and main.has_method("warp_to_era"):
-		main.warp_to_era("hub", "")
+		main.warp_to_era("hub", "entree")
 
 
 
@@ -2022,6 +2240,7 @@ func _on_hacking_minigame_done(success: bool) -> void:
 	can_move = true
 	if success:
 		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_fin")
+		_show_darkness_overlay()
 		_update_secretaire_npc_id()
 		_update_pc_controle_state()
 		_update_objective("Retourner en salle de contrôle")
