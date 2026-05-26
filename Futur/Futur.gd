@@ -982,6 +982,13 @@ func _transition_to_tower() -> void:
 	if zone_escalier:
 		zone_escalier.monitoring = false
 
+	var sortie_metro = $FondMetro.get_node_or_null("Sortie")
+	if sortie_metro:
+		sortie_metro.monitoring = false
+	var limite_metro = $FondMetro.get_node_or_null("limite-metro")
+	if limite_metro:
+		limite_metro.collision_layer = 0
+
 	$FondMetro.hide()
 	$FondTour.show()
 	$FondEtage1.hide()
