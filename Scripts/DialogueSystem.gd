@@ -181,6 +181,31 @@ func start_dialogue(npc_id: String) -> void:
 	print("[DialogueSystem] start_dialogue: %s (%s)" % [npc_id, npc.get("name", "?")])
 	current_npc = npc
 	current_npc_id = npc_id
+
+	# Inject virtual quest states for Nexus Guardian based on WarpSystem global status
+	if npc_id == "npc_guide_hub" and has_node("/root/WarpSystem"):
+		var ws: Node = get_node("/root/WarpSystem")
+		if ws:
+			var ma_done: bool = ws.minigames_status.get("combat_assassin", false) as bool
+			var pr_done: bool = ws.minigames_status.get("cablage", false) as bool
+			var fu_done: bool = ws.minigames_status.get("boss_rpg", false) as bool
+
+			if ma_done:
+				game_state["quete_piste_assassin"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if pr_done:
+				game_state["quete_preparation"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if fu_done:
+				game_state["futur_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+				
+			if ma_done and pr_done:
+				game_state["quete_ma_pr_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if ma_done and fu_done:
+				game_state["quete_ma_fu_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if pr_done and fu_done:
+				game_state["quete_pr_fu_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+			if ma_done and pr_done and fu_done:
+				game_state["quete_all_completed"] = {"status": "done", "current_step": "", "completed_steps": []}
+
 	_message_count = 0
 	is_active = true
 
@@ -483,6 +508,52 @@ func _build_system_prompt(filtered_intentions: Array) -> String:
 	lines.append("")
 	lines.append("## IDENTITÉ")
 	lines.append("NOM : %s" % npc.get("name", npc.get("id", "?")))
+
+	# Dynamic facts injection for Nexus Guardian
+	if npc.get("id") == "npc_guide_hub":
+		var ma_done := false
+		var pr_done := false
+		var fu_done := false
+		
+		if has_node("/root/WarpSystem"):
+			var ws: Node = get_node("/root/WarpSystem")
+			if ws:
+				ma_done = ws.minigames_status.get("combat_assassin", false) as bool
+				pr_done = ws.minigames_status.get("cablage", false) as bool
+				fu_done = ws.minigames_status.get("boss_rpg", false) as bool
+		
+		# Fallback checks from game_state
+		if not ma_done:
+			var q: Dictionary = game_state.get("quete_piste_assassin", {}) as Dictionary
+			if q.get("status") == "done":
+				ma_done = true
+		if not pr_done:
+			var q: Dictionary = game_state.get("quete_preparation", {}) as Dictionary
+			if q.get("status") == "done":
+				pr_done = true
+		if not fu_done:
+			var q: Dictionary = game_state.get("futur_completed", {}) as Dictionary
+			if q.get("status") == "done":
+				fu_done = true
+
+		lines.append("")
+		lines.append("## FAITS RÉCENTS / ÉTAT DE LA DISTORSION")
+		if ma_done and pr_done and fu_done:
+			lines.append("- Le voyageur a triomphé dans toutes les époques ! Le Moyen Âge, le Présent et le Futur sont sauvés.")
+			lines.append("- La distorsion temporelle est maintenant entièrement stabilisée. Félicite chaleureusement le voyageur.")
+			lines.append("- Tu es prêt à le laisser repartir chez lui, le tissu du temps est réparé.")
+		else:
+			if ma_done:
+				lines.append("- Le voyageur a vaincu l'assassin dans la dimension du Moyen Âge et a sauvé cette époque.")
+				lines.append("- Tu ressens que la distorsion temporelle est un peu moins instable et que le flux du passé s'apaise.")
+			if pr_done:
+				lines.append("- Le voyageur a réparé la centrale nucléaire dans la dimension du Présent et a sauvé cette époque.")
+				lines.append("- Tu ressens que les tremblements énergétiques de la distorsion dans le nexus diminuent.")
+			if fu_done:
+				lines.append("- Le voyageur a vaincu Alfredo Sinko Nochez dans la dimension du Futur et a libéré cette époque.")
+				lines.append("- Tu ressens que les échos de la technologie rebelle s'estompent dans le néant.")
+			
+			lines.append("- Rappelle-lui poétiquement qu'il reste d'autres époques en danger à explorer.")
 
 	var backstory = pers.get("backstory", "")
 	if backstory != "":
