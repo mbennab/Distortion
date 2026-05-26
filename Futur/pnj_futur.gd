@@ -2,6 +2,7 @@ extends Node2D
 
 @export var npc_id: String = "npc_vukovi_futur"
 @export var npc_name: String = "Vukovi"
+@export var portrait_path: String = "res://art/Futur/pnj-vukovi-HD.png"
 
 var pnjfuturAnimation: AnimatedSprite2D
 var zone_dialogue: Area2D

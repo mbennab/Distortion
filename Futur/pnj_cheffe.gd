@@ -27,9 +27,9 @@ func _setup_bubble() -> void:
 	bubble.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	bubble.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	bubble.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	bubble.add_theme_font_size_override("font_size", 13)
+	bubble.add_theme_font_size_override("font_size", 16)
 	bubble.add_theme_color_override("font_color", Color(0.4, 0.95, 0.6, 1.0))
-	bubble.custom_minimum_size = Vector2(240, 0)
+	bubble.custom_minimum_size = Vector2(400, 0)
 	var bubble_style = StyleBoxFlat.new()
 	bubble_style.bg_color = Color(0.06, 0.06, 0.1, 0.93)
 	bubble_style.border_width_left = 2
