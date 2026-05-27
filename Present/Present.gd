@@ -543,7 +543,7 @@ func _on_pc_controle_retour_exited(body: Node2D) -> void:
 
 
 func _on_salle_machine_retour_entered(body: Node2D) -> void:
-	if body == time_aunote and salle_machine.visible:
+	if body == time_aunote and salle_machine.visible and _salle_machine_minigame == null:
 		_player_at_salle_machine_retour = true
 		_salle_machine_retour_prompt.visible = true
 		_update_portal_prompt_position(_salle_machine_retour_prompt)
@@ -552,7 +552,8 @@ func _on_salle_machine_retour_entered(body: Node2D) -> void:
 func _on_salle_machine_retour_exited(body: Node2D) -> void:
 	if body == time_aunote:
 		_player_at_salle_machine_retour = false
-		_salle_machine_retour_prompt.visible = false
+		if _salle_machine_retour_prompt:
+			_salle_machine_retour_prompt.visible = false
 
 
 func _on_salle_electricite_retour_entered(body: Node2D) -> void:
@@ -569,7 +570,7 @@ func _on_salle_electricite_retour_exited(body: Node2D) -> void:
 
 
 func _on_salle_machine_repair_entered(body: Node2D) -> void:
-	if body == time_aunote and salle_machine.visible and not _salle_machine_done:
+	if body == time_aunote and salle_machine.visible and not _salle_machine_done and _salle_machine_minigame == null:
 		_player_at_machines_repair = true
 		_machines_repair_prompt.visible = true
 		_update_portal_prompt_position(_machines_repair_prompt)
@@ -578,12 +579,13 @@ func _on_salle_machine_repair_entered(body: Node2D) -> void:
 func _on_salle_machine_repair_exited(body: Node2D) -> void:
 	if body == time_aunote:
 		_player_at_machines_repair = false
-		_machines_repair_prompt.visible = false
+		if _machines_repair_prompt:
+			_machines_repair_prompt.visible = false
 
 
 func _on_disjoncteur_entered(body: Node2D) -> void:
 	if body == time_aunote and salle_electricite.visible:
-		if _salle_machine_done and not _disjoncteur_done:
+		if _salle_machine_done and not _disjoncteur_done and _cablage_minigame == null:
 			_player_at_disjoncteur = true
 			_disjoncteur_prompt.visible = true
 			_update_portal_prompt_position(_disjoncteur_prompt)
@@ -595,8 +597,10 @@ func _on_disjoncteur_entered(body: Node2D) -> void:
 func _on_disjoncteur_exited(body: Node2D) -> void:
 	if body == time_aunote:
 		_player_at_disjoncteur = false
-		_disjoncteur_prompt.visible = false
-		_disjoncteur_locked_prompt.visible = false
+		if _disjoncteur_prompt:
+			_disjoncteur_prompt.visible = false
+		if _disjoncteur_locked_prompt:
+			_disjoncteur_locked_prompt.visible = false
 
 
 func _go_to_couloir() -> void:
@@ -1020,6 +1024,8 @@ func _input(event: InputEvent) -> void:
 	if not started or not can_move:
 		return
 	if DialogueUI.is_dialogue_active():
+		return
+	if _salle_machine_minigame != null or _cablage_minigame != null:
 		return
 	if not event.is_action_pressed("interagir"):
 		return
@@ -2256,8 +2262,12 @@ func _start_salle_machine_minigame() -> void:
 	if _salle_machine_minigame != null or _salle_machine_done:
 		return
 	can_move = false
+	if not is_instance_valid(time_aunote):
+		return
 	time_aunote.hide()
-	_machines_repair_prompt.visible = false
+	if _machines_repair_prompt:
+		_machines_repair_prompt.visible = false
+	_player_at_machines_repair = false
 	_salle_machine_minigame = MiniJeuTuyauScene.instantiate()
 	_salle_machine_minigame.done.connect(_on_salle_machine_minigame_done)
 	get_tree().root.add_child(_salle_machine_minigame)
@@ -2294,8 +2304,12 @@ func _start_disjoncteur_minigame() -> void:
 	if _cablage_minigame != null or _disjoncteur_done:
 		return
 	can_move = false
+	if not is_instance_valid(time_aunote):
+		return
 	time_aunote.hide()
-	_disjoncteur_prompt.visible = false
+	if _disjoncteur_prompt:
+		_disjoncteur_prompt.visible = false
+	_player_at_disjoncteur = false
 	if _darkness_layer:
 		_darkness_layer.hide()
 	_cablage_minigame = MiniJeuCablageScene.instantiate()
