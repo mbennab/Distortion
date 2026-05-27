@@ -44,11 +44,8 @@ var _tex_cross: Texture2D
 
 var _all_configs: Array = [
 	{"cols": 6, "rows": 5, "min_bends": 3},
-	{"cols": 7, "rows": 5, "min_bends": 4},
-	{"cols": 7, "rows": 6, "min_bends": 4},
-	{"cols": 8, "rows": 6, "min_bends": 5},
+	{"cols": 7, "rows": 6, "min_bends": 5},
 	{"cols": 8, "rows": 6, "min_bends": 6, "num_drains": 2},
-	{"cols": 9, "rows": 7, "min_bends": 7, "num_drains": 2},
 ]
 var _round_configs: Array = []
 var _current_config: Dictionary = {}
@@ -130,31 +127,42 @@ func _v2key(v: Vector2i) -> String:
 
 
 func _generate_puzzle() -> void:
-	_source_row = randi() % grid_rows
-	_drain_row = randi() % grid_rows
-
 	var min_bends_value: int = int(_current_config.get("min_bends", 2))
-	var main_path: Array = []
-	for _attempt in range(50):
-		main_path = _create_path()
-		if _count_bends(main_path) >= min_bends_value:
-			break
-
-	_drain_rows.clear()
-	_drain_rows.append(_drain_row)
-
 	var num_drains: int = int(_current_config.get("num_drains", 1))
+	
+	var main_path: Array = []
 	var branch_path: Array = []
-	if num_drains >= 2:
-		branch_path = _create_branch_path(main_path)
-		if branch_path.size() > 1:
-			var branch_last: Vector2i = branch_path[branch_path.size() - 1]
-			if not _drain_rows.has(branch_last.y):
-				_drain_rows.append(branch_last.y)
+	
+	for outer_try in range(30):
+		_source_row = randi() % grid_rows
+		_drain_row = randi() % grid_rows
+		
+		main_path = []
+		for _attempt in range(50):
+			main_path = _create_path()
+			if _count_bends(main_path) >= min_bends_value:
+				break
+		
+		_drain_rows.clear()
+		_drain_rows.append(_drain_row)
+		
+		branch_path = []
+		if num_drains >= 2:
+			branch_path = _create_branch_path(main_path)
+			if branch_path.size() > 1:
+				var branch_last: Vector2i = branch_path[branch_path.size() - 1]
+				if not _drain_rows.has(branch_last.y):
+					_drain_rows.append(branch_last.y)
+				else:
+					branch_path = []
 			else:
 				branch_path = []
-		else:
-			branch_path = []
+		
+		# Si on voulait 2 drains mais qu'on a echoue, on regenere le main_path
+		if num_drains >= 2 and branch_path.is_empty():
+			continue
+		
+		break
 
 	var cell_connections: Dictionary = {}
 
