@@ -6,7 +6,7 @@ enum Phase { INTRO, LOOKING_AWAY, WARNING, LOOKING_AT, STRIKE, WIN, GAME_OVER }
 
 const MAX_STRIKES := 3
 const CATCH_DISTANCE := 55.0
-const PLAYER_SPEED := 82.0
+const PLAYER_SPEED := 55.0
 const GRACE_PERIOD := 0.10
 const WARNING_DURATION := 0.30
 const INTRO_DURATION := 2.5
@@ -14,13 +14,13 @@ const STRIKE_PAUSE := 1.2
 const KNOCKBACK := 200.0
 
 const INITIAL_SAFE := 2.5
-const MIN_SAFE := 0.85
+const MIN_SAFE := 1.2
 const INITIAL_DANGER := 1.7
-const MAX_DANGER := 3.5
-const SAFE_DECAY := 0.35
-const DANGER_GROWTH := 0.28
+const MAX_DANGER := 2.8
+const SAFE_DECAY := 0.18
+const DANGER_GROWTH := 0.12
 const SAFE_RANDOM_SPREAD := 0.60
-const SKIP_WARNING_CHANCE := 0.40
+const SKIP_WARNING_CHANCE := 0.20
 
 var _phase: int = Phase.INTRO
 var _timer := 0.0

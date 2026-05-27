@@ -5,7 +5,7 @@ signal done(success: bool)
 static var _extra_time_bonus: float = 0.0
 
 # Game variables
-var _time_left: float = 60.0
+var _time_left: float = 100.0
 var _progress: float = 0.0
 var _current_command: String = ""
 var _game_over: bool = false
@@ -54,7 +54,7 @@ var _commands: Array[String] = [
 var _session_commands: Array[String] = []
 
 func _ready() -> void:
-	_time_left = 60.0 + _extra_time_bonus
+	_time_left = 100.0 + _extra_time_bonus
 	# Blur/Dark overlay
 	var bg_overlay := ColorRect.new()
 	bg_overlay.color = Color(0.04, 0.04, 0.06, 0.85)
@@ -315,7 +315,7 @@ func _ready() -> void:
 		"1. Recopiez précisément la commande affichée en vert.\n" + \
 		"2. Appuyez sur ENTRÉE pour valider la saisie.\n" + \
 		"3. Remplissez la jauge de progression à 100% (5 commandes).\n\n" + \
-		"Temps de dérivation disponible : %d secondes." % int(_time_left)
+		"Temps de dérivation disponible : %d secondes." % 100
 	inst_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	inst_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	inst_text.add_theme_font_size_override("font_size", 13)
