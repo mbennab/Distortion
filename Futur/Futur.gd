@@ -19,6 +19,7 @@ var _car_minigame: Node2D
 var _was_in_basement := false
 var _player_near_car := false
 var _car_prompt: Label
+var _exclamation_sprite: Sprite2D
 
 
 var fade_layer: CanvasLayer
@@ -53,6 +54,49 @@ func _ready() -> void:
 	_connect_etage2_sortie_signal()
 	_connect_etage3_sortie_signal()
 	_setup_ambient_audio()
+	_setup_exclamation()
+	DialogueSystem.dialogue_started.connect(_on_dialogue_started)
+
+
+func _setup_exclamation() -> void:
+	var excl_node: Marker2D = $fondFutur.get_node_or_null("exclamation") as Marker2D
+	if excl_node:
+		_exclamation_sprite = Sprite2D.new()
+		_exclamation_sprite.texture = load("res://art/exclamation.png")
+		_exclamation_sprite.scale = Vector2(0.6, 0.6)
+		_exclamation_sprite.visible = false
+		excl_node.add_child(_exclamation_sprite)
+		_start_exclamation_tween()
+
+
+func _start_exclamation_tween() -> void:
+	if not _exclamation_sprite:
+		return
+	_exclamation_sprite.position = Vector2(0, -10)
+	var tween: Tween = create_tween().set_loops(-1)
+	tween.tween_property(_exclamation_sprite, "position:y", 10.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(_exclamation_sprite, "position:y", -10.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _update_exclamation_visibility() -> void:
+	if _exclamation_sprite:
+		_exclamation_sprite.visible = $fondFutur.visible and not _car_minigame_active
+
+
+func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
+	match npc_id:
+		"npc_cheffe_futur":
+			var b = $fondFutur.get_node_or_null("Markers2D/bulle_cheffe/spr_bulle")
+			if b: b.hide()
+		"npc_vukovi_futur":
+			var b1 = $fondFutur.get_node_or_null("Markers2D/bulle_vukovi/spr_bulle")
+			if b1: b1.hide()
+			var b2 = $"SousSol/fondSousSol".get_node_or_null("Markers2D/bulle_vukovi/spr_bulle")
+			if b2: b2.hide()
+		"npc_koiai2_futur":
+			var b = $"SousSol/fondSousSol".get_node_or_null("Markers2D/bulle_koiai/spr_bulle")
+			if b: b.hide()
+
 
 
 func _setup_fade_overlay() -> void:
@@ -86,7 +130,7 @@ func _connect_metro_sortie_signal() -> void:
 
 
 func _on_metro_sortie_entered(body: Node2D) -> void:
-	if body != time_aunote or not can_move:
+	if body != time_aunote or not can_move or not $FondMetro.visible:
 		return
 
 	can_move = false
@@ -136,6 +180,7 @@ func _go_to_basement() -> void:
 	await tween_fade.finished
 
 	$fondFutur.hide()
+	_update_exclamation_visibility()
 	_car_prompt.visible = false
 	_player_near_car = false
 	_set_upper_collisions(false)
@@ -190,6 +235,7 @@ func _return_from_basement() -> void:
 	if car_zone:
 		car_zone.monitoring = true
 	time_aunote.global_position = $"fondFutur/Markers2D/entreeEscalier".global_position
+	_update_exclamation_visibility()
 
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
@@ -620,7 +666,7 @@ func _connect_sortie_fond_signal() -> void:
 
 
 func _on_sortie_fond_entered(body: Node2D) -> void:
-	if body != time_aunote or not can_move:
+	if body != time_aunote or not can_move or not $FondTour.visible:
 		return
 
 	can_move = false
@@ -629,6 +675,9 @@ func _on_sortie_fond_entered(body: Node2D) -> void:
 	tween_fade.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
 	await tween_fade.finished
 
+	var sortie_fond = $FondTour.get_node_or_null("sortie")
+	if sortie_fond is Area2D:
+		sortie_fond.monitoring = false
 	$FondTour.hide()
 	_set_tour_collisions(false)
 
@@ -993,6 +1042,9 @@ func _transition_to_tower() -> void:
 
 	$FondMetro.hide()
 	$FondTour.show()
+	var sortie_fond = $FondTour.get_node_or_null("sortie")
+	if sortie_fond is Area2D:
+		sortie_fond.monitoring = true
 	$FondEtage1.hide()
 	_set_etage1_collisions(false)
 	_set_tour_collisions(true)
@@ -1102,6 +1154,7 @@ func _disable_all_collisions() -> void:
 		var zone = metro_koiai.get_node_or_null("ZoneDialogue")
 		if zone:
 			zone.monitoring = false
+	_update_exclamation_visibility()
 
 
 # ===== Audio Ambient System =====
@@ -1334,6 +1387,7 @@ func _play_spawn_animation(spawn_position: Vector2 = position_entree_principale)
 	var car_zone = $"fondFutur/zone-voiture"
 	if car_zone:
 		car_zone.monitoring = true
+	_update_exclamation_visibility()
 
 
 func start_from_escalier() -> void:
@@ -1475,6 +1529,7 @@ func _start_car_minigame() -> void:
 	_player_near_car = false
 
 	$fondFutur.hide()
+	_update_exclamation_visibility()
 	$SousSol.hide()
 	_set_upper_collisions(false)
 	_set_basement_collisions(false)
@@ -1514,6 +1569,7 @@ func _on_car_minigame_done(success: bool) -> void:
 			time_aunote.show()
 		$ObjectiveHUD.show()
 		can_move = true
+		_update_exclamation_visibility()
 
 		if pnjfutur and not _was_in_basement:
 			pnjfutur.get_node("ZoneDialogue").monitoring = true
@@ -1551,6 +1607,7 @@ func _on_car_minigame_done(success: bool) -> void:
 	await get_tree().create_timer(3.0).timeout
 
 	$fondFutur.hide()
+	_update_exclamation_visibility()
 	$SousSol.hide()
 	$"pnj-futur".hide()
 	$"pnj-cheffe".hide()

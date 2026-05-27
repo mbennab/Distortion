@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://7ehnjutvjerd"]
 
-[ext_resource type="Texture2D" uid="uid://cebjyuqsmu8o6" path="res://art/Futur/fond-futur.png" id="1_yp6m1"]
+[ext_resource type="Texture2D" uid="uid://cd1y5qgmf6lqy" path="res://art/Futur/fond-futur.png" id="1_yp6m1"]
+[ext_resource type="Texture2D" uid="uid://bhntmpl1o6p8b" path="res://art/bulle.webp" id="2_bulle"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_yp6m1"]
 radius = 74.10803
@@ -66,6 +67,22 @@ position = Vector2(2048, 1314)
 [node name="pnjcheffePos" type="Marker2D" parent="Markers2D" unique_id=323505777]
 position = Vector2(420, 1172)
 
+[node name="bulle_cheffe" type="Marker2D" parent="Markers2D" unique_id=2012345681]
+position = Vector2(420, 922)
+
+[node name="spr_bulle" type="Sprite2D" parent="Markers2D/bulle_cheffe" unique_id=2012345682]
+position = Vector2(109.99999, 112.99999)
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("2_bulle")
+
+[node name="bulle_vukovi" type="Marker2D" parent="Markers2D" unique_id=2012345683]
+position = Vector2(2055, 446)
+
+[node name="spr_bulle" type="Sprite2D" parent="Markers2D/bulle_vukovi" unique_id=2012345684]
+position = Vector2(105.99999, 136.99998)
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("2_bulle")
+
 [node name="escalier" type="Node2D" parent="." unique_id=915031175]
 
 [node name="zone-escalier" type="Area2D" parent="escalier" unique_id=1065046573]
@@ -84,3 +101,6 @@ zoom = Vector2(0.422, 0.422)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="zone-voiture" unique_id=2012345679]
 position = Vector2(1250, 773)
 shape = SubResource("CircleShape2D_car")
+
+[node name="exclamation" type="Marker2D" parent="." unique_id=2012345680]
+position = Vector2(1250, 580)

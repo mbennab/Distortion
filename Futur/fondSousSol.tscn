@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c22w2yp4lg1vk"]
 
 [ext_resource type="Texture2D" uid="uid://bkuis33t6ndi6" path="res://art/Futur/sous-sol-v2.png" id="1_d6i4i"]
+[ext_resource type="Texture2D" uid="uid://bhntmpl1o6p8b" path="res://art/bulle.webp" id="2_bulle"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_p1y6m"]
 size = Vector2(113, 60)
@@ -30,6 +31,22 @@ position = Vector2(555, 413)
 
 [node name="pnjPos2" type="Marker2D" parent="Markers2D" unique_id=357599086]
 position = Vector2(222, 465)
+
+[node name="bulle_vukovi" type="Marker2D" parent="Markers2D" unique_id=2012345690]
+position = Vector2(555, 163)
+
+[node name="spr_bulle" type="Sprite2D" parent="Markers2D/bulle_vukovi" unique_id=2012345691]
+position = Vector2(37.99997, 190.99998)
+scale = Vector2(0.16718751, 0.17222224)
+texture = ExtResource("2_bulle")
+
+[node name="bulle_koiai" type="Marker2D" parent="Markers2D" unique_id=2012345692]
+position = Vector2(222, 215)
+
+[node name="spr_bulle" type="Sprite2D" parent="Markers2D/bulle_koiai" unique_id=2012345693]
+position = Vector2(47.999992, 190)
+scale = Vector2(0.1723958, 0.15555556)
+texture = ExtResource("2_bulle")
 
 [node name="escalier" type="Node2D" parent="." unique_id=473445642]
 

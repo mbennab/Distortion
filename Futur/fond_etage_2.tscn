@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dqsm4fkqsapw1"]
 
 [ext_resource type="Texture2D" uid="uid://5fo8xbpiynbx" path="res://art/Futur/fond_etage2.png" id="1_ltls1"]
+[ext_resource type="Texture2D" uid="uid://cc6np2tqnpf8x" path="res://art/exclamation.png" id="2_excl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ltls1"]
 size = Vector2(212, 107)
@@ -20,6 +21,13 @@ zoom = Vector2(0.422, 0.422)
 
 [node name="entreeEtage2" type="Marker2D" parent="Marker" unique_id=1806212188]
 position = Vector2(1149, 1522)
+
+[node name="exclamation" type="Marker2D" parent="." unique_id=2012345710]
+position = Vector2(1215, 345)
+
+[node name="spr_exclamation" type="Sprite2D" parent="exclamation" unique_id=2012345711]
+texture = ExtResource("2_excl")
+scale = Vector2(0.4, 0.4)
 
 [node name="SortieEtage2" type="Area2D" parent="." unique_id=200721019]
 
