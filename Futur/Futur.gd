@@ -20,6 +20,7 @@ var _was_in_basement := false
 var _player_near_car := false
 var _car_prompt: Label
 var _exclamation_sprite: Sprite2D
+var _metro_exclamation_sprite: Sprite2D
 
 
 var fade_layer: CanvasLayer
@@ -55,6 +56,7 @@ func _ready() -> void:
 	_connect_etage3_sortie_signal()
 	_setup_ambient_audio()
 	_setup_exclamation()
+	_setup_metro_exclamation()
 	DialogueSystem.dialogue_started.connect(_on_dialogue_started)
 
 
@@ -78,9 +80,32 @@ func _start_exclamation_tween() -> void:
 	tween.tween_property(_exclamation_sprite, "position:y", -10.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
+func _setup_metro_exclamation() -> void:
+	var sortie: Area2D = $FondMetro.get_node_or_null("Sortie") as Area2D
+	if sortie:
+		_metro_exclamation_sprite = Sprite2D.new()
+		_metro_exclamation_sprite.texture = load("res://art/exclamation.png")
+		_metro_exclamation_sprite.scale = Vector2(0.6, 0.6)
+		_metro_exclamation_sprite.position = Vector2(0, -80)
+		_metro_exclamation_sprite.visible = false
+		sortie.add_child(_metro_exclamation_sprite)
+		_start_metro_exclamation_tween()
+
+
+func _start_metro_exclamation_tween() -> void:
+	if not _metro_exclamation_sprite:
+		return
+	_metro_exclamation_sprite.position = Vector2(0, -80)
+	var tween: Tween = create_tween().set_loops(-1)
+	tween.tween_property(_metro_exclamation_sprite, "position:y", -60.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(_metro_exclamation_sprite, "position:y", -80.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
 func _update_exclamation_visibility() -> void:
 	if _exclamation_sprite:
 		_exclamation_sprite.visible = $fondFutur.visible and not _car_minigame_active
+	if _metro_exclamation_sprite:
+		_metro_exclamation_sprite.visible = $FondMetro.visible and not _car_minigame_active
 
 
 func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
@@ -421,7 +446,7 @@ func _start_cheffe_post_tourelle_dialogue() -> void:
 	var npcs = DialogueSystem.dimension.get("npcs", [])
 	for npc in npcs:
 		if npc.get("id") == "npc_cheffe_futur":
-			npc["first_message"] = "On a eu chaud, heureusement que les autres sont resté dans la voiture, maintenant trouvons un moyen de rejoindre la tour d'Alfredo Sinko Nochez"
+			npc["first_message"] = "Bien joué ! On peut continuer notre chemin !"
 			break
 	DialogueSystem._spoken_to.erase("npc_cheffe_futur")
 	DialogueSystem.start_dialogue("npc_cheffe_futur")
@@ -555,6 +580,7 @@ func _on_tourelle_minigame_done(success: bool) -> void:
 			var zone = pnjcheffe.get_node_or_null("ZoneDialogue")
 			if zone:
 				zone.monitoring = true
+			pnjcheffe.show_bubble("Bien joué ! On peut continuer notre chemin !")
 		var label := Label.new()
 		label.text = "Vous avez esquivé les tourelles !"
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -631,6 +657,7 @@ func _transition_to_metro() -> void:
 			zone.monitoring = false
 
 	$FondMetro.show()
+	_update_exclamation_visibility()
 	var metro_collision = $FondMetro.get_node("limite-metro")
 	if metro_collision:
 		metro_collision.collision_layer = 256
@@ -1268,6 +1295,7 @@ func start(spawn_id: String = "entree") -> void:
 		if zone_escalier:
 			zone_escalier.monitoring = false
 		$FondMetro.show()
+		_update_exclamation_visibility()
 		var metro_collision = $FondMetro.get_node("limite-metro")
 		if metro_collision:
 			metro_collision.collision_layer = 256
@@ -1592,19 +1620,58 @@ func _on_car_minigame_done(success: bool) -> void:
 	await tween_fade.finished
 
 	var vp := get_viewport().get_visible_rect().size
+
+	var cinem_layer := CanvasLayer.new()
+	cinem_layer.layer = 150
+	add_child(cinem_layer)
+
+	var cinem_sprite := Sprite2D.new()
+	cinem_sprite.texture = load("res://art/Futur/cinematique_superette.png")
+	cinem_sprite.centered = false
+	cinem_sprite.modulate.a = 0.0
+	if cinem_sprite.texture:
+		var tex_size := cinem_sprite.texture.get_size()
+		var s := maxf(vp.x / tex_size.x, vp.y / tex_size.y)
+		cinem_sprite.scale = Vector2(s, s)
+	cinem_sprite.position = Vector2.ZERO
+	cinem_layer.add_child(cinem_sprite)
+
+	var text_panel := Panel.new()
+	var text_style := StyleBoxFlat.new()
+	text_style.bg_color = Color(0, 0, 0, 0.75)
+	text_style.border_width_left = 2
+	text_style.border_width_right = 2
+	text_style.border_width_top = 2
+	text_style.border_width_bottom = 2
+	text_style.border_color = Color(1, 1, 1, 0.4)
+	text_style.corner_radius_top_left = 6
+	text_style.corner_radius_top_right = 6
+	text_style.corner_radius_bottom_left = 6
+	text_style.corner_radius_bottom_right = 6
+	text_panel.add_theme_stylebox_override("panel", text_style)
+	text_panel.position = Vector2(vp.x * 0.1, vp.y * 0.8)
+	text_panel.size = Vector2(vp.x * 0.8, 80)
+	cinem_layer.add_child(text_panel)
+
 	var text_label := Label.new()
-	text_label.text = "L'inébranlable groupe se refugie dans une supérette abandonnée"
+	text_label.text = "Le groupe des Intankables se refugie dans une superette abandonée..."
 	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	text_label.add_theme_font_size_override("font_size", 24)
-	text_label.add_theme_color_override("font_color", Color.WHITE)
 	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	text_label.custom_minimum_size = Vector2(600, 0)
-	text_label.position = Vector2(vp.x / 2.0 - 300, vp.y / 2.0 - 60)
-	text_label.size = Vector2(600, 120)
-	fade_layer.add_child(text_label)
+	text_label.add_theme_font_size_override("font_size", 16)
+	text_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	text_label.add_theme_constant_override("outline_size", 1)
+	text_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	text_label.position = Vector2(vp.x * 0.1 + 10, vp.y * 0.8 + 5)
+	text_label.size = Vector2(vp.x * 0.8 - 20, 70)
+	cinem_layer.add_child(text_label)
 
-	await get_tree().create_timer(3.0).timeout
+	var appear_tween := create_tween()
+	appear_tween.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+	appear_tween.parallel().tween_property(cinem_sprite, "modulate:a", 1.0, 0.8)
+	await appear_tween.finished
+
+	await get_tree().create_timer(4.0).timeout
 
 	$fondFutur.hide()
 	_update_exclamation_visibility()
@@ -1628,7 +1695,8 @@ func _on_car_minigame_done(success: bool) -> void:
 
 	$FondSuperette.show()
 
-	text_label.queue_free()
+	if is_instance_valid(cinem_layer):
+		cinem_layer.queue_free()
 
 	tween_fade = create_tween()
 	tween_fade.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
