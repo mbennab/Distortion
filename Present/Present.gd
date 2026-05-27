@@ -172,10 +172,12 @@ func _remove_darkness_overlay() -> void:
 	_darkness_active = false
 	var tween := create_tween()
 	tween.tween_property(_darkness_rect, "color", Color(0, 0, 0, 0), 2.0).set_trans(Tween.TRANS_SINE)
-	tween.tween_callback(func():
-		if is_instance_valid(_darkness_layer):
-			_darkness_layer.hide()
-	)
+	tween.tween_callback(_hide_darkness_layer)
+
+
+func _hide_darkness_layer() -> void:
+	if is_instance_valid(_darkness_layer):
+		_darkness_layer.hide()
 
 
 func _connect_parking_signals() -> void:

@@ -730,7 +730,7 @@ func _build_ui() -> void:
 	_dynamic_nodes.append(_retry_btn)
 
 	_hint_label = Label.new()
-	_hint_label.text = "Clic : tourner  |  S : indice  |  ESC : quitter"
+	_hint_label.text = "Clic : tourner  |  ESC : quitter"
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint_label.add_theme_font_size_override("font_size", 12)
 	_hint_label.add_theme_color_override("font_color", Color(0.35, 0.4, 0.45))
@@ -909,8 +909,8 @@ func _show_hint() -> void:
 	_hint_timer.timeout.connect(_clear_hint)
 
 	for cell in _solution_main_path + _solution_branch_path:
-		var r := cell.y
-		var c := cell.x
+		var r: int = cell.y
+		var c: int = cell.x
 		if r < 0 or r >= _cell_bg.size() or c < 0 or c >= _cell_bg[r].size():
 			continue
 		var bg: ColorRect = _cell_bg[r][c]
