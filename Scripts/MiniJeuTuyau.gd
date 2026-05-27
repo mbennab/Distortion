@@ -27,6 +27,11 @@ var _grid_origin := Vector2.ZERO
 var _dynamic_nodes: Array = []
 var _fluid_dots: Array = []
 
+var _solution_main_path: Array = []
+var _solution_branch_path: Array = []
+var _hint_active := false
+var _hint_timer: SceneTreeTimer = null
+
 var _bg: ColorRect
 var _grid_panel: PanelContainer
 var _round_label: Label
@@ -228,6 +233,12 @@ func _generate_puzzle() -> void:
 		for r in range(grid_rows):
 			for c in range(grid_cols):
 				grid[r][c]["rotation"] = randi() % 4
+
+	# Stocker les chemins solution pour l'indice (touche S)
+	_solution_main_path = main_path.duplicate()
+	_solution_branch_path = branch_path.duplicate()
+	_hint_active = false
+	_hint_timer = null
 
 
 func _diff_to_side(diff: Vector2i) -> int:
@@ -719,7 +730,7 @@ func _build_ui() -> void:
 	_dynamic_nodes.append(_retry_btn)
 
 	_hint_label = Label.new()
-	_hint_label.text = "Clic : tourner  |  ESC : quitter"
+	_hint_label.text = "Clic : tourner  |  S : indice  |  ESC : quitter"
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint_label.add_theme_font_size_override("font_size", 12)
 	_hint_label.add_theme_color_override("font_color", Color(0.35, 0.4, 0.45))
@@ -766,6 +777,15 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if _phase != Phase.PLAYING:
+		return
+
+	# Touche S : afficher le chemin solution
+	if event is InputEventKey and event.keycode == KEY_S and event.pressed and not event.is_echo():
+		get_viewport().set_input_as_handled()
+		if _hint_active:
+			_clear_hint()
+		else:
+			_show_hint()
 		return
 
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -879,6 +899,53 @@ func _highlight_cell(row: int, col: int) -> void:
 		var glow_tween := create_tween()
 		glow_tween.tween_property(dot, "color:a", 0.0, 0.6).set_trans(Tween.TRANS_SINE)
 		glow_tween.tween_callback(dot.queue_free)
+
+
+func _show_hint() -> void:
+	if _hint_active:
+		return
+	_hint_active = true
+	_hint_timer = get_tree().create_timer(5.0)
+	_hint_timer.timeout.connect(_clear_hint)
+
+	for cell in _solution_main_path + _solution_branch_path:
+		var r := cell.y
+		var c := cell.x
+		if r < 0 or r >= _cell_bg.size() or c < 0 or c >= _cell_bg[r].size():
+			continue
+		var bg: ColorRect = _cell_bg[r][c]
+		if is_instance_valid(bg):
+			bg.color = Color(0.25, 0.18, 0.05)
+		if r < _pipe_sprites.size() and c < _pipe_sprites[r].size():
+			var sprite: Sprite2D = _pipe_sprites[r][c]
+			if is_instance_valid(sprite):
+				sprite.modulate = Color(1.0, 0.85, 0.3)
+
+	if is_instance_valid(_status_label):
+		_status_label.text = "INDICE : chemin en or affiche 5s"
+		_status_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+
+
+func _clear_hint() -> void:
+	if not _hint_active:
+		return
+	_hint_active = false
+	_hint_timer = null
+
+	for r in range(grid_rows):
+		for c in range(grid_cols):
+			if r < _cell_bg.size() and c < _cell_bg[r].size():
+				var bg: ColorRect = _cell_bg[r][c]
+				if is_instance_valid(bg):
+					bg.color = Color(0.08, 0.10, 0.14)
+			if r < _pipe_sprites.size() and c < _pipe_sprites[r].size():
+				var sprite: Sprite2D = _pipe_sprites[r][c]
+				if is_instance_valid(sprite):
+					sprite.modulate = Color(1, 1, 1)
+
+	if is_instance_valid(_status_label):
+		_status_label.text = "Connectez les tuyaux vers la sortie"
+		_status_label.add_theme_color_override("font_color", Color(0.65, 0.85, 0.95))
 
 
 func _on_fluid_blocked() -> void:
