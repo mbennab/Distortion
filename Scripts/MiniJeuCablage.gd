@@ -5,12 +5,12 @@ signal done(success: bool)
 enum Phase { PLAYING, ROUND_TRANSITION, SUCCESS, FAILURE, EXITING }
 enum NType { SOURCE, TARGET, AND_GATE, OR_GATE, NOT_GATE, JUNCTION }
 
-const TOTAL_ROUNDS := 3
-const NODE_R := 30.0
-const GATE_W := 90.0
-const GATE_H := 50.0
-const CABLE_W := 4.0
-const CABLE_W_LIT := 7.0
+const TOTAL_ROUNDS := 4
+const NODE_R := 24.0
+const GATE_W := 80.0
+const GATE_H := 44.0
+const CABLE_W := 2.0
+const CABLE_W_LIT := 3.5
 const CLICK_CABLE_DIST := 14.0
 
 var _phase: int = Phase.PLAYING
@@ -42,6 +42,7 @@ var _retry_btn: Button
 var _cable_layer: Node2D
 var _preview_line: Line2D
 var _target_panels: Dictionary = {}
+var _objective_status_labels: Dictionary = {}
 
 
 func _ready() -> void:
@@ -52,87 +53,137 @@ func _ready() -> void:
 
 func _define_levels() -> void:
 	_levels.clear()
+	
+	# LEVEL 1 : Alimentation d'urgence (Tutoriel - Câblage direct optimal)
 	_levels.append({
 		"terminals": [
 			{"id": "A", "type": "source", "label": "A", "px": 0.10, "py": 0.25, "on": true},
 			{"id": "B", "type": "source", "label": "B", "px": 0.10, "py": 0.75, "on": true},
+			{"id": "R1", "type": "junction", "label": "R1", "px": 0.45, "py": 0.50},
 			{"id": "1", "type": "target", "label": "OUT 1", "px": 0.88, "py": 0.22},
 			{"id": "2", "type": "target", "label": "OUT 2", "px": 0.88, "py": 0.50},
 			{"id": "3", "type": "target", "label": "OUT 3", "px": 0.88, "py": 0.78},
 		],
 		"connections": [],
 		"objectives": ["1", "2", "3"],
-		"budget": 4000.0,
+		"objectives_info": {
+			"1": "OUT 1 : Relier via R1",
+			"2": "OUT 2 : Relier via R1",
+			"3": "OUT 3 : Relier direct B"
+		},
+		"validation_cases": [
+			{"inputs": {"A": true, "B": true}, "outputs": {"1": true, "2": true, "3": true}}
+		],
+		"budget": 1800.0,
 		"title": "Alimentation d'urgence",
-		"hints": [
-			"Reliez les SOURCES aux CIBLES",
-			"pour alimener tout le circuit.",
-			"",
-			"SOURCE verte = alimentee",
-			"CIBLE jaune = en attente",
-			"CIBLE verte = alimentee",
-			"",
-			"Clic noeud puis noeud = cable",
-			"Clic droit = annuler selection",
-			"ESC = quitter",
-		]
+		"gates_desc": []
 	})
+	
+	# LEVEL 2 : Circuit de sécurité (Logique de base AND / OR sans nœuds morts)
+	_levels.append({
+		"terminals": [
+			{"id": "A", "type": "source", "label": "A", "px": 0.06, "py": 0.25, "on": true},
+			{"id": "B", "type": "source", "label": "B", "px": 0.06, "py": 0.75, "on": true},
+			{"id": "R_A", "type": "junction", "label": "R_A", "px": 0.22, "py": 0.25},
+			{"id": "R_B", "type": "junction", "label": "R_B", "px": 0.22, "py": 0.75},
+			{"id": "AND", "type": "and_gate", "label": "AND", "px": 0.48, "py": 0.30},
+			{"id": "OR", "type": "or_gate", "label": "OR", "px": 0.48, "py": 0.70},
+			{"id": "1", "type": "target", "label": "OUT 1", "px": 0.88, "py": 0.25},
+			{"id": "2", "type": "target", "label": "OUT 2", "px": 0.88, "py": 0.50},
+			{"id": "3", "type": "target", "label": "OUT 3", "px": 0.88, "py": 0.75},
+		],
+		"connections": [],
+		"objectives": ["1", "2", "3"],
+		"objectives_info": {
+			"1": "OUT 1 : A AND B",
+			"2": "OUT 2 : A OR B",
+			"3": "OUT 3 : B Direct"
+		},
+		"validation_cases": [
+			{"inputs": {"A": true, "B": true}, "outputs": {"1": true, "2": true, "3": true}},
+			{"inputs": {"A": true, "B": false}, "outputs": {"1": false, "2": true, "3": false}},
+			{"inputs": {"A": false, "B": true}, "outputs": {"1": false, "2": true, "3": true}},
+			{"inputs": {"A": false, "B": false}, "outputs": {"1": false, "2": false, "3": false}}
+		],
+		"budget": 2200.0,
+		"title": "Circuit de sécurité",
+		"gates_desc": ["AND", "OR"]
+	})
+	
+	# LEVEL 3 : Répartition Équilibrée (Junction/Relais et partage de signal sans nœuds morts)
 	_levels.append({
 		"terminals": [
 			{"id": "A", "type": "source", "label": "A", "px": 0.06, "py": 0.20, "on": true},
 			{"id": "B", "type": "source", "label": "B", "px": 0.06, "py": 0.50, "on": true},
-			{"id": "X", "type": "source", "label": "X", "px": 0.06, "py": 0.82, "on": false},
-			{"id": "AND", "type": "and_gate", "label": "AND", "px": 0.40, "py": 0.25},
-			{"id": "OR", "type": "or_gate", "label": "OR", "px": 0.40, "py": 0.60},
-			{"id": "1", "type": "target", "label": "OUT 1", "px": 0.88, "py": 0.20},
-			{"id": "2", "type": "target", "label": "OUT 2", "px": 0.88, "py": 0.55},
-			{"id": "3", "type": "target", "label": "OUT 3", "px": 0.88, "py": 0.85},
+			{"id": "C", "type": "source", "label": "C", "px": 0.06, "py": 0.80, "on": true},
+			{"id": "R_B", "type": "junction", "label": "R_B", "px": 0.20, "py": 0.50},
+			{"id": "R_C", "type": "junction", "label": "R_C", "px": 0.20, "py": 0.80},
+			{"id": "AND", "type": "and_gate", "label": "AND", "px": 0.35, "py": 0.30},
+			{"id": "R1", "type": "junction", "label": "R1", "px": 0.52, "py": 0.30},
+			{"id": "OR", "type": "or_gate", "label": "OR", "px": 0.68, "py": 0.20},
+			{"id": "NOT", "type": "not_gate", "label": "NOT", "px": 0.68, "py": 0.50},
+			{"id": "AND2", "type": "and_gate", "label": "AND2", "px": 0.45, "py": 0.80},
+			{"id": "1", "type": "target", "label": "OUT 1", "px": 0.90, "py": 0.20},
+			{"id": "2", "type": "target", "label": "OUT 2", "px": 0.90, "py": 0.50},
+			{"id": "3", "type": "target", "label": "OUT 3", "px": 0.90, "py": 0.80},
 		],
 		"connections": [],
 		"objectives": ["1", "2", "3"],
-		"budget": 3200.0,
-		"title": "Circuit de securite",
-		"hints": [
-			"Source X en PANNE (rouge) !",
-			"Ne l'utilisez pas...",
-			"",
-			"AND : active si les 2 entrees ON",
-			"OR : active si au moins 1 ON",
-			"",
-			"Objectif 1 : A et B via AND",
-			"Objectif 2 : A ou B via OR",
-			"Objectif 3 : B direct",
-		]
+		"objectives_info": {
+			"1": "OUT 1 : (A AND B) OR C",
+			"2": "OUT 2 : NOT (A AND B)",
+			"3": "OUT 3 : B AND C"
+		},
+		"validation_cases": [
+			{"inputs": {"A": true, "B": true, "C": true}, "outputs": {"1": true, "2": false, "3": true}},
+			{"inputs": {"A": true, "B": true, "C": false}, "outputs": {"1": true, "2": false, "3": false}},
+			{"inputs": {"A": true, "B": false, "C": true}, "outputs": {"1": true, "2": true, "3": false}},
+			{"inputs": {"A": false, "B": true, "C": true}, "outputs": {"1": true, "2": true, "3": true}},
+			{"inputs": {"A": false, "B": false, "C": true}, "outputs": {"1": true, "2": true, "3": false}},
+			{"inputs": {"A": false, "B": false, "C": false}, "outputs": {"1": false, "2": true, "3": false}}
+		],
+		"budget": 2800.0,
+		"title": "Répartition Équilibrée",
+		"gates_desc": ["AND", "OR", "NOT"]
 	})
+	
+	# LEVEL 4 : Le Réacteur Principal (Puzzle expert complet sans nœuds morts)
 	_levels.append({
 		"terminals": [
-			{"id": "A", "type": "source", "label": "A", "px": 0.06, "py": 0.15, "on": true},
-			{"id": "B", "type": "source", "label": "B", "px": 0.06, "py": 0.50, "on": true},
-			{"id": "D", "type": "source", "label": "D", "px": 0.06, "py": 0.85, "on": false},
-			{"id": "AND1", "type": "and_gate", "label": "AND", "px": 0.40, "py": 0.18},
-			{"id": "OR1", "type": "or_gate", "label": "OR", "px": 0.40, "py": 0.50},
-			{"id": "NOT1", "type": "not_gate", "label": "NOT", "px": 0.40, "py": 0.82},
-			{"id": "1", "type": "target", "label": "OUT 1", "px": 0.90, "py": 0.15},
-			{"id": "2", "type": "target", "label": "OUT 2", "px": 0.90, "py": 0.50},
-			{"id": "3", "type": "target", "label": "OUT 3", "px": 0.90, "py": 0.85},
+			{"id": "A", "type": "source", "label": "A", "px": 0.06, "py": 0.12, "on": true},
+			{"id": "B", "type": "source", "label": "B", "px": 0.06, "py": 0.35, "on": true},
+			{"id": "C", "type": "source", "label": "C", "px": 0.06, "py": 0.60, "on": true},
+			{"id": "D", "type": "source", "label": "D", "px": 0.06, "py": 0.85, "on": true},
+			{"id": "R_A", "type": "junction", "label": "R_A", "px": 0.18, "py": 0.12},
+			{"id": "R_B", "type": "junction", "label": "R_B", "px": 0.18, "py": 0.35},
+			{"id": "AND1", "type": "and_gate", "label": "AND1", "px": 0.32, "py": 0.20},
+			{"id": "OR1", "type": "or_gate", "label": "OR1", "px": 0.32, "py": 0.72},
+			{"id": "OR2", "type": "or_gate", "label": "OR2", "px": 0.32, "py": 0.45},
+			{"id": "R1", "type": "junction", "label": "R1", "px": 0.52, "py": 0.72},
+			{"id": "AND2", "type": "and_gate", "label": "AND2", "px": 0.60, "py": 0.25},
+			{"id": "NOT", "type": "not_gate", "label": "NOT", "px": 0.68, "py": 0.72},
+			{"id": "1", "type": "target", "label": "OUT 1", "px": 0.90, "py": 0.25},
+			{"id": "2", "type": "target", "label": "OUT 2", "px": 0.90, "py": 0.72},
+			{"id": "3", "type": "target", "label": "OUT 3", "px": 0.90, "py": 0.45},
 		],
-		"connections": [{"from": "NOT1", "to": "2"}],
+		"connections": [],
 		"objectives": ["1", "2", "3"],
-		"budget": 2800.0,
-		"title": "Reboot du reacteur",
-		"hints": [
-			"Source D en PANNE (rouge) !",
-			"Un cable pre-poses (gris).",
-			"",
-			"NOT inverse :",
-			"NOT(PANNE) = alimente !",
-			"NOT(alimente) = eteint",
-			"",
-			"Objectif 1 : AND(A, B)",
-			"Objectif 2 : NOT(D) deja cable",
-			"Objectif 3 : B -> OR -> 3",
-			"OU A -> OR -> 3",
-		]
+		"objectives_info": {
+			"1": "OUT 1 : (A AND B) AND (C OR D)",
+			"2": "OUT 2 : NOT (C OR D)",
+			"3": "OUT 3 : A OR B"
+		},
+		"validation_cases": [
+			{"inputs": {"A": true, "B": true, "C": true, "D": true}, "outputs": {"1": true, "2": false, "3": true}},
+			{"inputs": {"A": true, "B": true, "C": false, "D": false}, "outputs": {"1": false, "2": true, "3": true}},
+			{"inputs": {"A": true, "B": false, "C": true, "D": false}, "outputs": {"1": false, "2": false, "3": true}},
+			{"inputs": {"A": false, "B": true, "C": false, "D": true}, "outputs": {"1": false, "2": false, "3": true}},
+			{"inputs": {"A": false, "B": false, "C": false, "D": false}, "outputs": {"1": false, "2": true, "3": false}},
+			{"inputs": {"A": false, "B": false, "C": true, "D": false}, "outputs": {"1": false, "2": false, "3": false}}
+		],
+		"budget": 3200.0,
+		"title": "Le Réacteur Principal",
+		"gates_desc": ["AND", "OR", "NOT"]
 	})
 
 
@@ -146,6 +197,7 @@ func _init_round(round_num: int) -> void:
 	_terminals.clear()
 	_objectives.clear()
 	_target_panels.clear()
+	_objective_status_labels.clear()
 	_cable_line_nodes.clear()
 	_preset_line_nodes.clear()
 
@@ -167,7 +219,6 @@ func _init_round(round_num: int) -> void:
 	for c in pc:
 		var cd: Dictionary = c
 		_preset_connections.append({"from": cd["from"], "to": cd["to"]})
-		var dist: float = _node_pos(cd["from"]).distance_to(_node_pos(cd["to"]))
 
 	_clear_dynamic()
 	_build_ui()
@@ -241,6 +292,7 @@ func _btn(text: String, bg: Color, border: Color) -> Button:
 
 
 func _build_ui() -> void:
+	var ld: Dictionary = _levels[_current_round - 1]
 	_vp = get_viewport().get_visible_rect().size
 	var bw: float = _vp.x * 0.60
 	var bh: float = _vp.y - 110.0
@@ -274,7 +326,7 @@ func _build_ui() -> void:
 	_dynamic.append(_cable_layer)
 
 	_preview_line = Line2D.new()
-	_preview_line.width = 3.0
+	_preview_line.width = 2.0
 	_preview_line.default_color = Color(1.0, 1.0, 1.0, 0.4)
 	_preview_line.z_index = 4
 	_preview_line.visible = false
@@ -306,7 +358,7 @@ func _build_ui() -> void:
 	_budget_lbl = _lbl("", 14, Color(0.65, 0.85, 0.65))
 	_budget_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_budget_lbl.position = Vector2(25, _vp.y - 42)
-	_budget_lbl.size = Vector2(350, 20)
+	_budget_lbl.size = Vector2(450, 20)
 	add_child(_budget_lbl)
 	_dynamic.append(_budget_lbl)
 	_update_budget()
@@ -339,39 +391,120 @@ func _build_ui() -> void:
 	add_child(instr_panel)
 	_dynamic.append(instr_panel)
 
-	var enigme_lbl := _lbl("ENIGME", 17, Color(0.9, 0.78, 0.35))
-	enigme_lbl.position = Vector2(px + 10, 68)
-	enigme_lbl.size = Vector2(pw - 20, 24)
-	add_child(enigme_lbl)
-	_dynamic.append(enigme_lbl)
+	# Titre de la console latérale
+	var sidebar_title := _lbl("[ CONSOLE DE DISTRIBUTION ]", 14, Color(0.9, 0.78, 0.35))
+	sidebar_title.position = Vector2(px + 10, 68)
+	sidebar_title.size = Vector2(pw - 20, 20)
+	add_child(sidebar_title)
+	_dynamic.append(sidebar_title)
 
-	var hints: Array = _levels[_current_round - 1].get("hints", [])
-	var hy: float = 100.0
-	for h in hints:
-		var hl := Label.new()
-		hl.text = h
-		hl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		hl.add_theme_font_size_override("font_size", 13)
-		if h.begins_with("Objectif"):
-			hl.add_theme_color_override("font_color", Color(0.4, 0.95, 0.5))
-		elif h.begins_with("NOT") or h.begins_with("AND") or h.begins_with("OR"):
-			hl.add_theme_color_override("font_color", Color(0.5, 0.7, 1.0))
-		elif h.begins_with("Source") or h.begins_with("Attention") or h.begins_with("Cable") or h.begins_with("Ne l"):
-			hl.add_theme_color_override("font_color", Color(1.0, 0.5, 0.35))
-		elif h.begins_with("Un cable"):
-			hl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-		elif h.begins_with("Vert") or h.begins_with("CIBLE") or h.begins_with("SOURCE"):
-			hl.add_theme_color_override("font_color", Color(0.45, 0.85, 0.5))
-		else:
-			hl.add_theme_color_override("font_color", Color(0.72, 0.78, 0.82))
-		hl.position = Vector2(px + 14, hy)
-		hl.size = Vector2(pw - 28, 18)
-		hl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		add_child(hl)
-		_dynamic.append(hl)
-		hy += 21.0
+	var cur_y: float = 95.0
 
+	# --- SECTION 1: OBJECTIFS DE RESTAURATION (Live Checks) ---
+	var sect1_title := Label.new()
+	sect1_title.text = "■ OBJECTIFS DE FLUX (TEMPS RÉEL)"
+	sect1_title.add_theme_font_size_override("font_size", 11)
+	sect1_title.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
+	sect1_title.position = Vector2(px + 14, cur_y)
+	sect1_title.size = Vector2(pw - 28, 16)
+	add_child(sect1_title)
+	_dynamic.append(sect1_title)
+	cur_y += 24.0
+
+	var obj_info: Dictionary = ld.get("objectives_info", {})
+	for oid in _objectives:
+		var info_text: String = obj_info.get(oid, "Cible " + oid)
+		
+		# Description
+		var desc_lbl := Label.new()
+		desc_lbl.text = "• " + info_text
+		desc_lbl.add_theme_font_size_override("font_size", 10.5)
+		desc_lbl.add_theme_color_override("font_color", Color(0.72, 0.78, 0.82))
+		desc_lbl.position = Vector2(px + 20, cur_y)
+		desc_lbl.size = Vector2(pw - 145, 16)
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		add_child(desc_lbl)
+		_dynamic.append(desc_lbl)
+
+		# Indicateur de statut
+		var stat_lbl := Label.new()
+		stat_lbl.text = "[ INCOMPATIBLE ]"
+		stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		stat_lbl.add_theme_font_size_override("font_size", 9.5)
+		stat_lbl.add_theme_color_override("font_color", Color(1.0, 0.3, 0.2))
+		stat_lbl.position = Vector2(px + pw - 130, cur_y)
+		stat_lbl.size = Vector2(115, 16)
+		add_child(stat_lbl)
+		_dynamic.append(stat_lbl)
+		
+		_objective_status_labels[oid] = stat_lbl
+		cur_y += 24.0
+
+	cur_y += 12.0
+
+	# --- SECTION 2: LOGIQUE DES PORTES LOGIQUES ---
+	var gates_in_level: Array = ld.get("gates_desc", [])
+	if not gates_in_level.is_empty():
+		var sect2_title := Label.new()
+		sect2_title.text = "■ LOGIQUE DES PORTES LOGIQUES"
+		sect2_title.add_theme_font_size_override("font_size", 11)
+		sect2_title.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
+		sect2_title.position = Vector2(px + 14, cur_y)
+		sect2_title.size = Vector2(pw - 28, 16)
+		add_child(sect2_title)
+		_dynamic.append(sect2_title)
+		cur_y += 22.0
+
+		for g in gates_in_level:
+			var gate_lbl := Label.new()
+			gate_lbl.add_theme_font_size_override("font_size", 9.5)
+			match g:
+				"AND":
+					gate_lbl.text = "  [AND] : ON si toutes les entrées sont ON."
+					gate_lbl.add_theme_color_override("font_color", Color(0.55, 0.75, 1.0))
+				"OR":
+					gate_lbl.text = "  [OR]  : ON si au moins une entrée est ON."
+					gate_lbl.add_theme_color_override("font_color", Color(0.75, 0.55, 1.0))
+				"NOT":
+					gate_lbl.text = "  [NOT] : ON si l'entrée unique est OFF."
+					gate_lbl.add_theme_color_override("font_color", Color(1.0, 0.55, 0.55))
+			gate_lbl.position = Vector2(px + 14, cur_y)
+			gate_lbl.size = Vector2(pw - 28, 16)
+			add_child(gate_lbl)
+			_dynamic.append(gate_lbl)
+			cur_y += 18.0
+
+		cur_y += 12.0
+
+	# --- SECTION 3: GUIDE D'OPÉRATION ---
+	var sect3_title := Label.new()
+	sect3_title.text = "■ GUIDE D'OPÉRATION"
+	sect3_title.add_theme_font_size_override("font_size", 11)
+	sect3_title.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
+	sect3_title.position = Vector2(px + 14, cur_y)
+	sect3_title.size = Vector2(pw - 28, 16)
+	add_child(sect3_title)
+	_dynamic.append(sect3_title)
+	cur_y += 22.0
+
+	var controls := [
+		"• Clic G. : Sélectionner nœud / Créer câble",
+		"• Clic D. : Annuler la sélection",
+		"• Clic G. sur câble : Supprimer le câble",
+		"• Touche ESC : Abandonner"
+	]
+	for c in controls:
+		var ctrl_lbl := Label.new()
+		ctrl_lbl.text = c
+		ctrl_lbl.add_theme_font_size_override("font_size", 9.5)
+		ctrl_lbl.add_theme_color_override("font_color", Color(0.5, 0.55, 0.6))
+		ctrl_lbl.position = Vector2(px + 14, cur_y)
+		ctrl_lbl.size = Vector2(pw - 28, 16)
+		add_child(ctrl_lbl)
+		_dynamic.append(ctrl_lbl)
+		cur_y += 18.0
+
+	# Boutons d'actions
 	var btn_w: float = (pw - 40) / 3.0
 	_validate_btn = _btn("Valider", Color(0.12, 0.45, 0.18), Color(0.25, 0.6, 0.3))
 	_validate_btn.position = Vector2(px + 10, _vp.y - 100)
@@ -387,14 +520,14 @@ func _build_ui() -> void:
 	add_child(_clear_btn)
 	_dynamic.append(_clear_btn)
 
-	_reset_btn = _btn("Reset complet", Color(0.45, 0.35, 0.08), Color(0.6, 0.45, 0.15))
+	_reset_btn = _btn("Reset", Color(0.45, 0.35, 0.08), Color(0.6, 0.45, 0.15))
 	_reset_btn.position = Vector2(px + 30 + btn_w * 2, _vp.y - 100)
 	_reset_btn.size = Vector2(btn_w, 40)
 	_reset_btn.pressed.connect(_on_reset)
 	add_child(_reset_btn)
 	_dynamic.append(_reset_btn)
 
-	_retry_btn = _btn(">> Reessayer", Color(0.55, 0.16, 0.06), Color(0.8, 0.32, 0.12))
+	_retry_btn = _btn(">> Réessayer", Color(0.55, 0.16, 0.06), Color(0.8, 0.32, 0.12))
 	_retry_btn.position = Vector2(_vp.x / 2.0 - 120, _vp.y - 75)
 	_retry_btn.size = Vector2(240, 48)
 	_retry_btn.pressed.connect(_on_retry)
@@ -479,7 +612,7 @@ func _draw_one_node(id: String) -> void:
 		var pin_w: float = 14.0
 		var pin_h: float = 5.0
 		if type == NType.AND_GATE or type == NType.OR_GATE:
-			for off_y in [-14.0, 14.0]:
+			for off_y in [-12.0, 12.0]: # adjusted for new size
 				var pin := ColorRect.new()
 				pin.color = pin_c
 				pin.position = Vector2(pos.x - GATE_W / 2.0 - pin_w + 2, pos.y + off_y - pin_h / 2.0)
@@ -574,7 +707,7 @@ func _draw_one_node(id: String) -> void:
 		main_lbl.text = t["label"]
 		main_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		main_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		main_lbl.add_theme_font_size_override("font_size", 18)
+		main_lbl.add_theme_font_size_override("font_size", 15) # slightly reduced for new node size
 		main_lbl.add_theme_color_override("font_color", lbl_c)
 		main_lbl.position = Vector2(pos.x - NODE_R, pos.y - 10)
 		main_lbl.size = Vector2(NODE_R * 2.0, 20)
@@ -586,7 +719,7 @@ func _draw_one_node(id: String) -> void:
 		var tag_lbl := Label.new()
 		tag_lbl.text = tag
 		tag_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		tag_lbl.add_theme_font_size_override("font_size", 9)
+		tag_lbl.add_theme_font_size_override("font_size", 8.5)
 		tag_lbl.add_theme_color_override("font_color", Color(0.5, 0.55, 0.6))
 		tag_lbl.position = Vector2(pos.x - NODE_R, pos.y + NODE_R + 2)
 		tag_lbl.size = Vector2(NODE_R * 2.0, 14)
@@ -594,19 +727,6 @@ func _draw_one_node(id: String) -> void:
 		tag_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(tag_lbl)
 		_dynamic.append(tag_lbl)
-
-		if type == NType.SOURCE and not is_on:
-			var brk := Label.new()
-			brk.text = "(PANNE)"
-			brk.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			brk.add_theme_font_size_override("font_size", 10)
-			brk.add_theme_color_override("font_color", Color(1.0, 0.25, 0.2))
-			brk.position = Vector2(pos.x - 30, pos.y - NODE_R - 16)
-			brk.size = Vector2(60, 14)
-			brk.z_index = 7
-			brk.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			add_child(brk)
-			_dynamic.append(brk)
 
 
 func _update_target_visuals() -> void:
@@ -649,21 +769,38 @@ func _refresh_cables() -> void:
 		var dir: Vector2 = (tp - fp).normalized()
 		var start: Vector2 = fp + dir * (fh + 4.0)
 		var end: Vector2 = tp - dir * (th + 4.0)
+		
 		var line := Line2D.new()
 		line.add_point(start)
 		line.add_point(end)
-		line.width = 3.0
+		line.width = CABLE_W
 		line.default_color = Color(0.35, 0.35, 0.38) if not from_on else Color(0.2, 0.8, 0.35)
 		line.z_index = 2
 		_cable_layer.add_child(line)
 		_preset_line_nodes.append(line)
+
+		# Directional arrowhead at the center of the line
+		var mid: Vector2 = (start + end) / 2.0
+		var arrow := Line2D.new()
+		var arrow_size := 6.0
+		var ortho := dir.orthogonal()
+		var p1: Vector2 = mid + dir * arrow_size
+		var p2: Vector2 = mid - dir * arrow_size * 0.5 + ortho * arrow_size * 0.7
+		var p3: Vector2 = mid - dir * arrow_size * 0.5 - ortho * arrow_size * 0.7
+		arrow.add_point(p2)
+		arrow.add_point(p1)
+		arrow.add_point(p3)
+		arrow.width = CABLE_W
+		arrow.default_color = line.default_color
+		arrow.z_index = 3
+		_cable_layer.add_child(arrow)
+		_preset_line_nodes.append(arrow)
 
 		var tag := Label.new()
 		tag.text = "(fixe)"
 		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		tag.add_theme_font_size_override("font_size", 9)
 		tag.add_theme_color_override("font_color", Color(0.45, 0.45, 0.5))
-		var mid: Vector2 = (start + end) / 2.0
 		tag.position = Vector2(mid.x - 15, mid.y - 16)
 		tag.size = Vector2(30, 14)
 		tag.z_index = 4
@@ -683,6 +820,7 @@ func _refresh_cables() -> void:
 		var dir: Vector2 = (tp - fp).normalized()
 		var start: Vector2 = fp + dir * (fh + 4.0)
 		var end: Vector2 = tp - dir * (th + 4.0)
+		
 		var line := Line2D.new()
 		line.add_point(start)
 		line.add_point(end)
@@ -692,15 +830,44 @@ func _refresh_cables() -> void:
 		_cable_layer.add_child(line)
 		_cable_line_nodes.append(line)
 
+		# Directional arrowhead at the center of the line
+		var mid: Vector2 = (start + end) / 2.0
+		var arrow := Line2D.new()
+		var arrow_size := 6.0
+		var ortho := dir.orthogonal()
+		var p1: Vector2 = mid + dir * arrow_size
+		var p2: Vector2 = mid - dir * arrow_size * 0.5 + ortho * arrow_size * 0.7
+		var p3: Vector2 = mid - dir * arrow_size * 0.5 - ortho * arrow_size * 0.7
+		arrow.add_point(p2)
+		arrow.add_point(p1)
+		arrow.add_point(p3)
+		arrow.width = CABLE_W_LIT if from_on else CABLE_W
+		arrow.default_color = line.default_color
+		arrow.z_index = 4
+		_cable_layer.add_child(arrow)
+		_cable_line_nodes.append(arrow)
+
 
 func _update_budget() -> void:
 	if not _budget_lbl:
 		return
 	var remaining: float = _cable_budget - _cable_used
-	_budget_lbl.text = "Cable restant : " + str(int(remaining)) + " / " + str(int(_cable_budget))
-	if remaining < _cable_budget * 0.15:
+	remaining = maxf(0.0, remaining)
+	
+	var percent: float = clampf(remaining / _cable_budget, 0.0, 1.0)
+	var blocks: int = clampi(int(percent * 10.0), 0, 10)
+	var gauge := ""
+	for i in range(10):
+		if i < blocks:
+			gauge += "█"
+		else:
+			gauge += "░"
+			
+	_budget_lbl.text = "Budget Câble : [ " + gauge + " ] " + str(int(remaining)) + " / " + str(int(_cable_budget))
+	
+	if percent < 0.15:
 		_budget_lbl.add_theme_color_override("font_color", Color(1.0, 0.3, 0.2))
-	elif remaining < _cable_budget * 0.35:
+	elif percent < 0.35:
 		_budget_lbl.add_theme_color_override("font_color", Color(1.0, 0.7, 0.2))
 	else:
 		_budget_lbl.add_theme_color_override("font_color", Color(0.65, 0.85, 0.65))
@@ -821,6 +988,22 @@ func _handle_left_click(pos: Vector2) -> void:
 		_status_lbl.add_theme_color_override("font_color", Color(1.0, 0.3, 0.2))
 		return
 
+	# --- GAMEPLAY RULE EXTREME: Limit outgoing connections ---
+	var from_type: int = ft["type"]
+	if from_type == NType.SOURCE or from_type == NType.AND_GATE or from_type == NType.OR_GATE or from_type == NType.NOT_GATE:
+		var out_count := 0
+		for c in _connections:
+			if c["from"] == from_id:
+				out_count += 1
+		for pc in _preset_connections:
+			if pc["from"] == from_id:
+				out_count += 1
+				
+		if out_count >= 1:
+			_status_lbl.text = "Cette SOURCE/PORTE a déjà 1 sortie. Utilisez un RELAIS !"
+			_status_lbl.add_theme_color_override("font_color", Color(1.0, 0.4, 0.2))
+			return
+
 	var dist: float = _node_pos(from_id).distance_to(_node_pos(to_id))
 	_cable_used += dist
 	if _cable_used > _cable_budget:
@@ -876,12 +1059,11 @@ func _remove_cable(idx: int) -> void:
 	_connections.remove_at(idx)
 
 
-func _propagate_power() -> void:
+# Simulate power propagation completely in memory (silent)
+func _propagate_power_silent() -> void:
 	for id in _terminals:
 		var t: Dictionary = _terminals[id]
-		if t["type"] == NType.SOURCE:
-			t["powered"] = t.get("on_default", true)
-		else:
+		if t["type"] != NType.SOURCE:
 			t["powered"] = false
 
 	var all_conns: Array = _connections.duplicate()
@@ -891,7 +1073,7 @@ func _propagate_power() -> void:
 	var ids: Array = _terminals.keys().duplicate()
 	ids.sort_custom(func(a: String, b: String) -> bool: return _terminals[a]["pos"].x < _terminals[b]["pos"].x)
 
-	for _iter in range(10):
+	for _iter in range(12):
 		var changed := false
 		for id in ids:
 			var t: Dictionary = _terminals[id]
@@ -927,27 +1109,130 @@ func _propagate_power() -> void:
 		if not changed:
 			break
 
+
+func _propagate_power() -> void:
+	# 1. Reset sources to their default states first
+	for id in _terminals:
+		var t: Dictionary = _terminals[id]
+		if t["type"] == NType.SOURCE:
+			t["powered"] = t.get("on_default", true)
+			
+	# 2. Propagate
+	_propagate_power_silent()
+	
+	# 3. Refresh display elements
 	_refresh_cables()
 	_update_target_visuals()
+	_update_live_ui()
+
+
+# Live truth-table validation logic runner
+func _check_truth_table() -> Dictionary:
+	var ld: Dictionary = _levels[_current_round - 1]
+	var cases: Array = ld.get("validation_cases", [])
+	
+	# Track which targets satisfy the full truth table
+	var target_correct := {}
+	for oid in _objectives:
+		target_correct[oid] = true
+		
+	# Save current states of sources to restore them later
+	var original_states := {}
+	for id in _terminals:
+		if _terminals[id]["type"] == NType.SOURCE:
+			original_states[id] = _terminals[id]["on_default"]
+
+	# Test all cases in the truth table
+	for c_idx in range(cases.size()):
+		var case: Dictionary = cases[c_idx]
+		var inputs: Dictionary = case["inputs"]
+		var expected: Dictionary = case["outputs"]
+		
+		# Set input states
+		for src_id in inputs:
+			if _terminals.has(src_id):
+				_terminals[src_id]["powered"] = inputs[src_id]
+				
+		# Silent propagation
+		_propagate_power_silent()
+		
+		# Check output conformity
+		for tgt_id in expected:
+			if _terminals.has(tgt_id):
+				var actual: bool = _terminals[tgt_id]["powered"]
+				var expected_val: bool = expected[tgt_id]
+				if actual != expected_val:
+					target_correct[tgt_id] = false
+
+	# Restore original states and propagate
+	for id in original_states:
+		_terminals[id]["powered"] = original_states[id]
+	_propagate_power_silent()
+
+	var all_ok := true
+	for oid in _objectives:
+		if not target_correct.get(oid, false):
+			all_ok = false
+
+	return {
+		"success": all_ok,
+		"target_status": target_correct
+	}
+
+
+# Real-time objective feedback updates
+func _update_live_ui() -> void:
+	if _phase != Phase.PLAYING:
+		return
+
+	var validation: Dictionary = _check_truth_table()
+	var target_status: Dictionary = validation["target_status"]
+	
+	# Update checklist colors and texts on sidebar
+	for oid in _objective_status_labels:
+		var stat_lbl: Label = _objective_status_labels[oid]
+		if is_instance_valid(stat_lbl):
+			var is_correct: bool = target_status.get(oid, false)
+			if is_correct:
+				stat_lbl.text = "[ OPÉRATIONNEL ]"
+				stat_lbl.add_theme_color_override("font_color", Color(0.2, 0.95, 0.4))
+			else:
+				stat_lbl.text = "[ INCOMPATIBLE ]"
+				stat_lbl.add_theme_color_override("font_color", Color(1.0, 0.3, 0.2))
+
+	# Glow the Validate button if all objectives are resolved
+	if _validate_btn and is_instance_valid(_validate_btn):
+		var all_ok: bool = validation["success"]
+		var vs := _validate_btn.get_theme_stylebox("normal") as StyleBoxFlat
+		if vs:
+			if all_ok:
+				vs.border_color = Color(0.4, 0.95, 0.5)
+				_validate_btn.add_theme_color_override("font_color", Color(0.8, 1.0, 0.85))
+			else:
+				vs.border_color = Color(0.25, 0.6, 0.3)
+				_validate_btn.remove_theme_color_override("font_color")
 
 
 func _on_validate() -> void:
 	if _phase != Phase.PLAYING:
 		return
+		
 	_propagate_power()
 
-	var all_met := true
+	var validation: Dictionary = _check_truth_table()
+	var all_met: bool = validation["success"]
+	var target_status: Dictionary = validation["target_status"]
+	
 	var unmet: Array = []
 	for oid in _objectives:
-		if _terminals.has(oid) and not _terminals[oid]["powered"]:
-			all_met = false
+		if not target_status.get(oid, false):
 			unmet.append(_terminals[oid]["label"])
 
 	if all_met:
 		_on_round_complete()
 	else:
 		_phase = Phase.FAILURE
-		_status_lbl.text = "Cibles non alimentees : " + ", ".join(unmet)
+		_status_lbl.text = "Restaurations incorrectes ou incomplètes : " + ", ".join(unmet)
 		_status_lbl.add_theme_color_override("font_color", Color(1.0, 0.3, 0.2))
 		_flash_error()
 		_retry_btn.visible = true
