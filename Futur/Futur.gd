@@ -93,7 +93,7 @@ func _on_dialogue_started(npc_id: String, _npc_name: String) -> void:
 			if b1: b1.hide()
 			var b2 = $"SousSol/fondSousSol".get_node_or_null("Markers2D/bulle_vukovi/spr_bulle")
 			if b2: b2.hide()
-		"npc_koiai2_futur":
+		"npc_koiai2_futur", "npc_koiai2_futur_soussol":
 			var b = $"SousSol/fondSousSol".get_node_or_null("Markers2D/bulle_koiai/spr_bulle")
 			if b: b.hide()
 
