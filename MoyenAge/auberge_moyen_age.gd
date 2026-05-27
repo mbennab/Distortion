@@ -204,7 +204,6 @@ func _on_table_minigame_done(success: bool) -> void:
 		if _tables_done.size() >= 3:
 			_on_all_tables_done()
 	else:
-		_tables_done.clear()
 		_current_table_id = ""
 
 	_update_prompt_visibility()

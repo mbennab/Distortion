@@ -624,7 +624,7 @@ func _show_result(success: bool) -> void:
 	if success:
 		subtitle.text = "Les rumeurs de la taverne t'ont révélé des indices précieux."
 	else:
-		subtitle.text = "Recommence les écoutes et reste discret cette fois."
+		subtitle.text = "Reste discret et réessaie d'écouter les tables restantes."
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	subtitle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
