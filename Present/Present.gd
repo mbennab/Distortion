@@ -543,10 +543,11 @@ func _on_pc_controle_retour_exited(body: Node2D) -> void:
 
 
 func _on_salle_machine_retour_entered(body: Node2D) -> void:
-	if body == time_aunote and salle_machine.visible and _salle_machine_minigame == null:
+	if body == time_aunote:
 		_player_at_salle_machine_retour = true
-		_salle_machine_retour_prompt.visible = true
-		_update_portal_prompt_position(_salle_machine_retour_prompt)
+		_salle_machine_retour_prompt.visible = _darkness_active
+		if _darkness_active:
+			_update_portal_prompt_position(_salle_machine_retour_prompt)
 
 
 func _on_salle_machine_retour_exited(body: Node2D) -> void:
@@ -1066,7 +1067,7 @@ func _input(event: InputEvent) -> void:
 	elif _player_at_pc_controle_retour and pc_controle.visible:
 		get_viewport().set_input_as_handled()
 		_return_from_pc_controle()
-	elif _player_at_salle_machine_retour and salle_machine.visible and _salle_machine_minigame == null:
+	elif _player_at_salle_machine_retour and salle_machine.visible and _darkness_active:
 		get_viewport().set_input_as_handled()
 		_return_from_salle_machine()
 	elif _player_at_machines_repair and salle_machine.visible:
@@ -2277,27 +2278,33 @@ func _start_salle_machine_minigame() -> void:
 
 func _on_salle_machine_minigame_done(success: bool) -> void:
 	_stop_bgm()
-	if success:
-		_play_sfx("sfx_electric")
 	_salle_machine_minigame = null
-	_salle_machine_done = true
-	if _machines_repair_prompt:
-		_machines_repair_prompt.visible = false
-	_player_at_machines_repair = false
 	if is_instance_valid(time_aunote):
 		time_aunote.show()
 	can_move = true
-	# Alarme SFX 10-15s avant de lancer la musique d'alarme
-	_play_sfx("sfx_alarme")
-	await get_tree().create_timer(12.0).timeout
-	if not is_inside_tree():
-		return
-	_update_audio_stage()
+
 	if success:
+		if _machines_repair_prompt:
+			_machines_repair_prompt.visible = false
+		_player_at_machines_repair = false
+		_salle_machine_done = true
+		_play_sfx("sfx_electric")
+		# Alarme SFX 10-15s avant de lancer la musique d'alarme
+		_play_sfx("sfx_alarme")
+		await get_tree().create_timer(12.0).timeout
+		if not is_inside_tree():
+			return
+		_update_audio_stage()
 		DialogueSystem.complete_step("quete_preparation", "etape_reparer_machines")
 		_show_darkness_overlay()
 		_update_secretaire_npc_id()
 		_update_pc_controle_state()
+	else:
+		# Échec (ESC) → le joueur peut réessayer
+		_salle_machine_done = false
+		_player_at_machines_repair = true
+		if _machines_repair_prompt:
+			_machines_repair_prompt.visible = true
 
 
 func _start_disjoncteur_minigame() -> void:
@@ -2369,13 +2376,13 @@ func _on_hacking_minigame_done(success: bool) -> void:
 	if is_instance_valid(time_aunote):
 		time_aunote.show()
 	can_move = true
-	# Alarme SFX puis alarme_finale
-	_play_sfx("sfx_alarme")
-	await get_tree().create_timer(12.0).timeout
-	if not is_inside_tree():
-		return
-	_update_audio_stage()
 	if success:
+		# Alarme SFX puis alarme_finale
+		_play_sfx("sfx_alarme")
+		await get_tree().create_timer(12.0).timeout
+		if not is_inside_tree():
+			return
+		_update_audio_stage()
 		DialogueSystem.complete_step("quete_preparation", "etape_retour_secretaire_fin")
 		_show_darkness_overlay()
 		_update_secretaire_npc_id()
