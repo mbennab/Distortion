@@ -363,7 +363,7 @@ func _on_minigame_done(success := true, idx := -1) -> void:
 			_ecoute_round += 1
 			var data := _minigames[idx]
 			_cleanup_instance_only()
-			var instance := load(data.path).instantiate()
+			var instance = load(data.path).instantiate()
 			instance.set("round", _ecoute_round)
 			instance.done.connect(_on_ecoute_round_done.bind(instance))
 			get_tree().root.add_child(instance)
@@ -384,7 +384,7 @@ func _on_ecoute_round_done(success: bool, instance: Node) -> void:
 		_ecoute_round += 1
 		var data := _find_ecoute_data()
 		if data != null:
-			var new_instance := load(data.path).instantiate()
+			var new_instance = load(data.path).instantiate()
 			new_instance.set("round", _ecoute_round)
 			new_instance.done.connect(_on_ecoute_round_done.bind(new_instance))
 			get_tree().root.add_child(new_instance)
