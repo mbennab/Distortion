@@ -532,6 +532,8 @@ func _victory() -> void:
 		bg_fadeout1.tween_property(subtitles_bg, "modulate:a", 0.0, 0.6)
 		await bg_fadeout1.finished
 		
+		subtitles_label.text = ""
+		
 		if not is_inside_tree():
 			return
 			
