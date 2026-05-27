@@ -81,6 +81,7 @@ frame_progress = 0.37181473
 
 [node name="pnj-koiai-2" type="Node2D" parent="." unique_id=1173760963]
 script = ExtResource("6_koiai2")
+npc_id = "npc_koiai2_futur_soussol"
 
 [node name="pnjkoiai2Animation" type="AnimatedSprite2D" parent="pnj-koiai-2" unique_id=703366801]
 position = Vector2(0, -9)
