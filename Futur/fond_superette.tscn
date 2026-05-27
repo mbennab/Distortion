@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://cy3gcng03ftj5"]
 
-[ext_resource type="Texture2D" uid="uid://dxlh8k3inlyjg" path="res://art/Futur/fond-superette.png" id="1_rc2ie"]
+[ext_resource type="Texture2D" uid="uid://c5jetj6e6odid" path="res://art/Futur/fond-superette.png" id="1_rc2ie"]
 [ext_resource type="Texture2D" uid="uid://df33hldk0g1bl" path="res://art/Futur/tourelles.png" id="2_hwowg"]
 [ext_resource type="Texture2D" uid="uid://dtmilshcrhayj" path="res://art/Futur/orbe.png" id="3_hwowg"]
-[ext_resource type="Script" path="res://Scripts/MiniJeuTourelles.gd" id="4_minijeu"]
+[ext_resource type="Script" uid="uid://c7e0jv0b51l3h" path="res://Scripts/MiniJeuTourelles.gd" id="4_minijeu"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cpr5e"]
 atlas = ExtResource("2_hwowg")
