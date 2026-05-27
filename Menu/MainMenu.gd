@@ -346,10 +346,64 @@ func _play_outro() -> void:
 	await get_tree().create_timer(0.3).timeout
 
 
+func _play_intro_cinematic() -> void:
+	ui.visible = false
+
+	var mat := distortion.material as ShaderMaterial
+	mat.set_shader_parameter("intensity", 0.0)
+
+	var vs := Vector2(W, H)
+	var container := Control.new()
+	container.size = vs
+	container.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(container)
+
+	var black_bg := ColorRect.new()
+	black_bg.color = Color.BLACK
+	black_bg.size = vs
+	container.add_child(black_bg)
+
+	var paths := [
+		"res://art/cinematique1.png",
+		"res://art/cinematique2.png",
+		"res://art/cinematique3.png",
+	]
+
+	for path in paths:
+		var tex := load(path) as Texture2D
+		if not tex:
+			continue
+
+		var tr := TextureRect.new()
+		tr.texture = tex
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.size = vs
+		tr.modulate.a = 0.0
+		container.add_child(tr)
+
+		var fi := create_tween()
+		fi.tween_property(tr, "modulate:a", 1.0, 0.5)
+		await fi.finished
+
+		await get_tree().create_timer(3.0).timeout
+
+		var fo := create_tween()
+		fo.tween_property(tr, "modulate:a", 0.0, 0.5)
+		await fo.finished
+
+		tr.queue_free()
+		await get_tree().create_timer(0.3).timeout
+
+	container.queue_free()
+
+
 func _on_new_game() -> void:
 	if fading:
 		return
 	await _play_outro()
+	await _play_intro_cinematic()
+	ui.visible = true
 	_start_async_load("res://Main.tscn")
 
 
