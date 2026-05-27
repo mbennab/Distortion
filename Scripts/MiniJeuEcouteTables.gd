@@ -389,6 +389,10 @@ func _process(delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	if not is_inside_tree() or not running:
 		return
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		_finish_game(false)
+		return
 	if event.is_action_pressed("interagir"):
 		get_viewport().set_input_as_handled()
 

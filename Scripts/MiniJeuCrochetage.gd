@@ -387,6 +387,7 @@ func _input(event: InputEvent) -> void:
 func _cancel() -> void:
 	_cancel_requested = true
 	_running = false
+	done.emit(false)
 
 	var tween := create_tween()
 	tween.tween_property(_bg, "modulate:a", 0.0, 0.3)
