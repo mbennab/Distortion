@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://crt0c7ceuwj0f" path="res://Futur/pnj_cheffe.gd" id="7_chef"]
 [ext_resource type="Script" uid="uid://ba0ytj6fhkxsq" path="res://Futur/pnj_futur.gd" id="8_vuko"]
 [ext_resource type="Script" uid="uid://d0321mdga4ggl" path="res://Futur/pnj_koiai2.gd" id="9_koi"]
+[ext_resource type="Texture2D" uid="uid://cc6np2tqnpf8x" path="res://art/exclamation.png" id="10_excl"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_punk_f0"]
 atlas = ExtResource("2_punk")
@@ -211,6 +212,13 @@ polygon = PackedVector2Array(1058, 1015, 1118, 1016, 1119, 917, 1089, 918, 1089,
 [node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="LimiteEtage3" unique_id=395647900]
 build_mode = 1
 polygon = PackedVector2Array(1312, 1017, 1368, 1017, 1369, 914, 1341, 911, 1339, 916, 1308, 917)
+
+[node name="exclamation" type="Marker2D" parent="." unique_id=2012345720]
+position = Vector2(1214, 325)
+
+[node name="spr_exclamation" type="Sprite2D" parent="exclamation" unique_id=2012345721]
+texture = ExtResource("10_excl")
+scale = Vector2(0.4, 0.4)
 
 [node name="SortieEtage3" type="Area2D" parent="." unique_id=1082236830]
 

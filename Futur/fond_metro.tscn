@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://b3jrp28tb4fy8" path="res://art/Futur/fondMetro.png" id="1_vmnwc"]
 [ext_resource type="Script" uid="uid://d0321mdga4ggl" path="res://Futur/pnj_koiai2.gd" id="2_koiai"]
 [ext_resource type="Texture2D" uid="uid://ccmtq7klubp0g" path="res://art/Futur/pnj-koiai2.png" id="3_koiaitex"]
+[ext_resource type="Texture2D" uid="uid://bhntmpl1o6p8b" path="res://art/bulle.webp" id="4_g0dx0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vmnwc"]
 size = Vector2(20, 362)
@@ -83,3 +84,11 @@ collision_layer = 4194304
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="limite-metro" unique_id=1970535297]
 build_mode = 1
 polygon = PackedVector2Array(2, 657, 65, 652, 114, 613, 415, 621, 690, 636, 721, 610, 843, 618, 874, 628, 1159, 626, 1286, 621, 1748, 626, 1774, 670, 1872, 709, 1927, 701, 1937, 644, 2020, 639, 2295, 618, 2344, 623, 2417, 647, 2446, 761, 2446, 942, 2443, 1028, 2339, 1049, 2267, 1095, 2106, 1108, 2064, 1069, 1987, 1049, 1833, 1051, 1600, 1043, 1444, 1072, 1343, 1088, 1221, 1082, 1118, 1062, 1016, 1036, 957, 1012, 882, 1007, 876, 1043, 796, 1054, 576, 1049, 422, 1043, 363, 1067, 293, 1056, 301, 1101, 166, 1106, 155, 1067, 90, 1062, 26, 1041, 5, 992)
+
+[node name="bulle_koiai" type="Marker2D" parent="." unique_id=1547667594]
+position = Vector2(1126, 551)
+
+[node name="spr_bulle" type="Sprite2D" parent="bulle_koiai" unique_id=894820421]
+position = Vector2(166.00005, 22.999985)
+scale = Vector2(0.31015623, 0.2694445)
+texture = ExtResource("4_g0dx0")
