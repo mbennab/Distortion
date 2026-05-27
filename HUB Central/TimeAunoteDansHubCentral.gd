@@ -456,20 +456,8 @@ func lancer_mini_jeu_chien() -> void:
 			mini_jeu.call("open_game")
 
 func _open_arcade_menu() -> void:
-	if _is_arcade_open:
-		return
-	if not has_node("ArcadeMenu") or get_node("ArcadeMenu").is_queued_for_deletion():
-		var ArcadeScript := load("res://HUB Central/ArcadeMenu.gd") as GDScript
-		if not ArcadeScript:
-			return
-		var menu := ArcadeScript.new() as CanvasLayer
-		menu.name = "ArcadeMenu"
-		menu.hub = self
-		add_child(menu)
-	var arcade := get_node("ArcadeMenu") as CanvasLayer
-	if arcade and arcade.has_method("open"):
-		_is_arcade_open = true
-		arcade.call("open")
+	# Arcade supprimée — ne rien faire
+	pass
 
 func _on_arcade_menu_closed() -> void:
 	_is_arcade_open = false
