@@ -208,7 +208,7 @@ func _cleanup_active() -> void:
 func _setup_laser_player(parent: Node) -> void:
 	var p := CharacterBody2D.new()
 	p.name = "TimeAunote"
-	p.collision_layer = 1
+	p.collision_layer = 17
 	p.collision_mask = 0
 	p.z_index = 10
 	var shape := CollisionShape2D.new()
@@ -277,6 +277,9 @@ func _on_minigame_selected(idx: int) -> void:
 	if has_backdrop:
 		var bg_scene := load(data.location).instantiate() as Node2D
 		bg_scene.process_mode = PROCESS_MODE_DISABLED
+		# Désactiver les Camera2D du fond qui volent le viewport
+		for cam in bg_scene.find_children("", "Camera2D", true, false):
+			cam.enabled = false
 		get_tree().root.add_child(bg_scene)
 		_active_bg = bg_scene
 
@@ -287,7 +290,8 @@ func _on_minigame_selected(idx: int) -> void:
 		_active_instance = full
 
 		if data.name == "Conduite":
-			full.position = Vector2(-320, -160)
+			# Centrer la route dans le viewport (coords monde originales ~1226,1230)
+			full.position = Vector2(-700, -900)
 			var target := full
 			if not data.child_mg.is_empty():
 				target = full.get_node(data.child_mg)
@@ -299,7 +303,13 @@ func _on_minigame_selected(idx: int) -> void:
 			return
 
 		if data.name == "Lasers":
+			# Centrer la superette (joueur crée à (1200,600) → ramené au centre)
+			full.position = Vector2(-688, -259)
 			_setup_laser_player(full)
+
+		if data.name == "Boss":
+			# Centrer le combat dans le viewport (sprites en ~1156,831)
+			full.position = Vector2(-645, -490)
 
 		var target := full
 		if not data.child_mg.is_empty():
